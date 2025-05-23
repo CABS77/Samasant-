@@ -1,0 +1,56 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Utilisateurs / Nit ñu collection
+    // Users can read and update their own profile. Creation is handled by auth.
+    match /utilisateurs/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
+      // allow create: if request.auth != null; // Creation usually handled by backend after auth
+      // No public creation or deletion by default.
+    }
+
+    // Articles de Santé / Xabar Santé collection
+    // Publicly readable, only admins can write.
+    match /articles_sante/{articleId} {
+      allow read: if true;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Remèdes Traditionnels / Médikaman Tradisyonel collection
+    // Publicly readable. Admins or 'Modou' (traditional practitioner persona) can write.
+    match /remedes_traditionnels/{remedeId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null && (
+        get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.role == 'admin' ||
+        get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.role == 'modou'
+      );
+    }
+
+    // Historiques de Chat / Istorik Chat collection
+    // Users can read and write their own chat history.
+    match /historiques_chat/{chatId} {
+      allow read, write: if request.auth != null && resource.data.jefandikukat_id == request.auth.uid;
+       // Admins can read for support/moderation purposes
+      allow read: if request.auth != null && get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Rendez-vous / Randevu collection
+    // Users can read/write their own appointments.
+    // Doctors (if identified by doktoor_id) or Admins can also access.
+    match /rendez_vous/{rdvId} {
+      allow read, write: if request.auth != null && (
+        resource.data.jefandikukat_id == request.auth.uid ||
+        resource.data.doktoor_id == request.auth.uid || // Assuming doctor's UID is stored
+        get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    // Default deny all other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
