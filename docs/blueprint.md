@@ -2,7 +2,7 @@
 
 ## Core Features:
 
-- AI Chat: AI-powered pre-diagnostic chat in Wolof, French, and Pulaar using Gemini and a set of business rules, providing initial health assessments.
+- AI Chat: AI-powered pre-diagnostic chat in Wolof, French, and Pulaar using DeepSeek R1 and a set of business rules, providing initial health assessments.
 - Remedy Display: Display validated traditional remedies with schematic images sourced from a PostgreSQL database. Provide filtering by symptom and language.
 - Clinic Locator: Integrate a map using Mapbox for offline access, displaying nearby clinics and healthcare facilities. Allow persona Modou to update the remedies with information from traditional practitioners.
 - Emergency Alert System: Implement an emergency prioritization tool to identify critical cases and send SMS alerts to nearby clinics, focusing on conditions like suspected malaria. This tool should incorporate reasoning to determine when to send the alerts.
@@ -98,7 +98,7 @@ Option audio pour les fiches santé (voix synthétique wolof).
 
 4. Fonctionnalités Clés (MVP)
 Fonction	Détail Technique	Spécificité Culturelle
-Chat IA	Gemini + règles métier	Réponses en wolof avec proverbes
+Chat IA	DeepSeek R1 + règles métier	Réponses en wolof avec proverbes
 Remèdes	Base PostgreSQL + images schématiques	Dessins pour éviter les erreurs d'identification
 Télémédecine	Intégration Twilio	Paiement par Orange Money
 Urgences	Algorithme de priorisation	Alerte SMS aux cliniques en cas de paludisme suspecté
