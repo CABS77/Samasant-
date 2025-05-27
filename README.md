@@ -79,6 +79,14 @@ OPENAI_API_KEY=your-deepseek-key
 
 `AI_MODEL` n'est plus utilisé.
 
+### Configuration de l'IA
+
+Copiez le fichier `.env.example` vers `.env` et renseignez la clef :
+
+```
+OPENAI_API_KEY=... # clé DeepSeek R1
+```
+
 ---
 
 ## 7. Structure du projet
