@@ -71,6 +71,14 @@ yarn dev
 L’application sera disponible sur [http://localhost:9002](http://localhost:9002) \
 (port configuré dans le script `npm run dev`)
 
+### Configuration de l'IA
+
+Copiez le fichier `.env.example` vers `.env` et renseignez la clef :
+
+```
+OPENAI_API_KEY=... # clé DeepSeek R1
+```
+
 ---
 
 ## 6. Structure du projet
