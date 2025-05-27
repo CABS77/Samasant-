@@ -45,7 +45,7 @@ const CACHE_EXPIRY_TIME = 60 * 60 * 1000; // 1 hour in milliseconds
  * @param language The language (currently unused in mock).
  * @returns A promise that resolves to an array of Remedy objects.
  */
-async function fetchRemediesFromSource(symptom: string, language: string): Promise<Remedy[]> {
+export async function fetchRemediesFromSource(symptom: string, language: string): Promise<Remedy[]> {
     console.log(`Fetching remedies from source for symptom: ${symptom}, language: ${language}`);
     // This expanded mock data should be replaced with actual database calls.
     const allRemedies: Remedy[] = [
@@ -212,5 +212,11 @@ export async function getRemedies(symptom: string, language: string): Promise<Re
 
   return freshRemedies;
 }
+
+// Exported only for testing to reset the cache between tests
+export function clearRemedyCache() {
+  remedyCache.clear();
+}
+
 
     

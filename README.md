@@ -68,7 +68,6 @@ npm run dev
 # ou
 yarn dev
 ```
-L’application sera disponible sur [http://localhost:9002](http://localhost:9002)
 
 ---
 
