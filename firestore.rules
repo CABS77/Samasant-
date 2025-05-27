@@ -32,8 +32,11 @@ service cloud.firestore {
     // Historiques de Chat / Istorik Chat collection
     // Users can read and write their own chat history.
     match /historiques_chat/{chatId} {
-      allow read, write: if request.auth != null && resource.data.jefandikukat_id == request.auth.uid;
-       // Admins can read for support/moderation purposes
+      // During creation `resource` is not yet defined
+      allow create: if request.auth != null && request.resource.data.jefandikukat_id == request.auth.uid;
+      // Existing documents rely on `resource`
+      allow read, update, delete: if request.auth != null && resource.data.jefandikukat_id == request.auth.uid;
+      // Admins can read for support/moderation purposes
       allow read: if request.auth != null && get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.role == 'admin';
     }
 
@@ -41,7 +44,14 @@ service cloud.firestore {
     // Users can read/write their own appointments.
     // Doctors (if identified by doktoor_id) or Admins can also access.
     match /rendez_vous/{rdvId} {
-      allow read, write: if request.auth != null && (
+      // Creating a new appointment checks incoming data
+      allow create: if request.auth != null && (
+        request.resource.data.jefandikukat_id == request.auth.uid ||
+        request.resource.data.doktoor_id == request.auth.uid || // Assuming doctor's UID is stored
+        get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.role == 'admin'
+      );
+      // Existing appointment operations rely on `resource`
+      allow read, update, delete: if request.auth != null && (
         resource.data.jefandikukat_id == request.auth.uid ||
         resource.data.doktoor_id == request.auth.uid || // Assuming doctor's UID is stored
         get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.role == 'admin'
