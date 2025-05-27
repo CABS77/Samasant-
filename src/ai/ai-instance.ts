@@ -1,15 +1,14 @@
 
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
+import { genkit } from 'genkit';
+import { openAI } from '@genkit-ai/openai';
 
 export const ai = genkit({
   promptDir: './prompts',
   plugins: [
-    googleAI({
-      apiKey: process.env.GOOGLE_GENAI_API_KEY,
+    openAI({
+      apiKey: process.env.OPENAI_API_KEY,
     }),
   ],
-  // Mise à jour vers un modèle plus récent et adapté pour le texte.
-  // gemini-1.5-flash offre un bon équilibre entre performance, coût et capacités.
-  model: 'googleai/gemini-1.5-flash',
+  // Use DeepSeek R1
+  model: 'openai/deepseek-r1',
 });
