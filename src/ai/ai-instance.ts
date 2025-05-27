@@ -9,6 +9,6 @@ export const ai = genkit({
       apiKey: process.env.OPENAI_API_KEY,
     }),
   ],
-  // Use DeepSeek R1 as the sole model.
+  main
   model: 'openai/deepseek-r1',
 });

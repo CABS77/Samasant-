@@ -68,8 +68,16 @@ npm run dev
 # ou
 yarn dev
 ```
-L’application sera disponible sur [http://localhost:9002](http://localhost:9002) \
-(port configuré dans le script `npm run dev`)
+
+## 6. Configuration de l'IA
+
+Créez un fichier `.env` à la racine et renseignez votre clé DeepSeek :
+
+```bash
+OPENAI_API_KEY=your-deepseek-key
+```
+
+`AI_MODEL` n'est plus utilisé.
 
 ### Configuration de l'IA
 
@@ -81,7 +89,7 @@ OPENAI_API_KEY=... # clé DeepSeek R1
 
 ---
 
-## 6. Structure du projet
+## 7. Structure du projet
 
 ```
 src/
@@ -95,7 +103,7 @@ src/
 
 ---
 
-## 7. Contribution
+## 8. Contribution
 
 Les contributions sont les bienvenues !
 
@@ -107,7 +115,7 @@ Les contributions sont les bienvenues !
 
 ---
 
-## 8. Déploiement Firebase
+## 9. Déploiement Firebase
 
 1. Connectez-vous à Firebase avec votre compte :
     ```bash
@@ -126,7 +134,7 @@ Les contributions sont les bienvenues !
 
 ---
 
-## 9. Roadmap
+## 10. Roadmap
 
 - [ ] Authentification utilisateur (numéro de téléphone, email)
 - [ ] Amélioration du chatbot IA
@@ -137,13 +145,13 @@ Les contributions sont les bienvenues !
 
 ---
 
-## 10. Licence
+## 11. Licence
 
 Ce projet est sous licence MIT.
 
 ---
 
-## 11. Contact
+## 12. Contact
 
 Pour toute question ou suggestion :  
 [Issues GitHub](https://github.com/CABS77/Samasant-/issues)
