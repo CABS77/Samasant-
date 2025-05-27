@@ -68,7 +68,8 @@ npm run dev
 # ou
 yarn dev
 ```
-L’application sera disponible sur [http://localhost:3000](http://localhost:3000)
+L’application sera disponible sur [http://localhost:9002](http://localhost:9002) \
+(port configuré dans le script `npm run dev`)
 
 ---
 
