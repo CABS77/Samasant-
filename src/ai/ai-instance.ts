@@ -1,13 +1,13 @@
 
 import { genkit } from 'genkit';
-import { openAI } from '@genkit-ai/openai';
+import { openAI as deepSeek } from '@genkit-ai/openai';
 
 export const ai = genkit({
   promptDir: './prompts',
   plugins: [
-    openAI({
-      apiKey: process.env.OPENAI_API_KEY,
+    deepSeek({
+      apiKey: process.env.DEEPSEEK_API_KEY,
     }),
   ],
-  model: 'openai/deepseek-r1',
+  model: 'deepseek/deepseek-r1',
 });
