@@ -198,6 +198,8 @@ export async function getRemedies(symptom: string, language: string): Promise<Re
   }
 
   console.log(`Cache miss for key: ${cacheKey}. Fetching from source...`);
+  // Use dynamic import to ensure spies on fetchRemediesFromSource take effect
+  const { fetchRemediesFromSource } = await import('./remedies');
   const freshRemedies = await fetchRemediesFromSource(symptom, language);
 
   // Store the fresh data in the cache
