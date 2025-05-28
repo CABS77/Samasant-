@@ -74,7 +74,7 @@ yarn dev
 Créez un fichier `.env` à la racine et renseignez votre clé DeepSeek :
 
 ```bash
-OPENAI_API_KEY=your-deepseek-key
+DEEPSEEK_API_KEY=your-deepseek-key
 ```
 
 `AI_MODEL` n'est plus utilisé.
@@ -84,7 +84,7 @@ OPENAI_API_KEY=your-deepseek-key
 Copiez le fichier `.env.example` vers `.env` et renseignez la clef :
 
 ```
-OPENAI_API_KEY=... # clé DeepSeek R1
+DEEPSEEK_API_KEY=... # clé DeepSeek R1
 ```
 
 ---
