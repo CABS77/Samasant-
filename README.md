@@ -157,5 +157,10 @@ Pour toute question ou suggestion :
 [Issues GitHub](https://github.com/CABS77/Samasant-/issues)
 
 ---
+## Avertissement médical / Medical Disclaimer
+
+SamaSanté AI provides informational content only and is not a substitute for consultation with a qualified healthcare professional.
+
+---
 
 *Merci de contribuer à améliorer la santé pour tous avec SamaSanté !*
