@@ -86,6 +86,7 @@
   "close_button_label": "Fermer (Teudj)",
   "enterSymptoms_bindal_sa_malaaka": "Veuillez entrer vos symptômes.",
   "footer_text": "© {currentYear} {appName}. Tous droits réservés.",
+  "medical_disclaimer": "Veuillez consulter un médecin pour tout problème de santé. Cette application ne stocke aucune donnée médicale personnelle.",
   "default_image_alt": "Image illustrative pour remède",
   "placeholder_image_alt": "Image de remplacement",
   "geolocation_fetching": "Localisation en cours...",
