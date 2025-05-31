@@ -1,3 +1,2 @@
 User-agent: *
 Allow: /
-Sitemap: [URL_DE_VOTRE_SITEMAP_ICI_QUAND_IL_SERA_CREE]/sitemap.xml
