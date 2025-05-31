@@ -72,8 +72,9 @@ export default function Home() {
           </Card>
         </main>
 
-        <footer className="p-2 sm:p-4 border-t border-border mt-auto flex-shrink-0 bg-card text-center text-xs text-muted-foreground">
-          {t("footer_text", { currentYear: currentYear, appName: t("appName_sama") })}
+        <footer className="p-2 sm:p-4 border-t border-border mt-auto flex-shrink-0 bg-card text-center text-xs text-muted-foreground space-y-1">
+          <div>{t('medical_disclaimer')}</div>
+          <div>{t("footer_text", { currentYear: currentYear, appName: t("appName_sama") })}</div>
         </footer>
       </div>
   );
