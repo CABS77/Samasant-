@@ -130,28 +130,33 @@ const initialHealthAssessmentFlow = ai.defineFlow<
       output.traditionalRemedies = [];
     }
     if (input.language === 'wolof') {
-      try {
-        const assessmentRes = await translateToWolof({ text: output.assessment });
-        output.assessment = assessmentRes.translation;
-      } catch (e) {
-        console.error('Failed to translate assessment to Wolof', e);
-      }
+      const translations = [
+        translateToWolof({ text: output.assessment })
+          .then(res => {
+            output.assessment = res.translation;
+          })
+          .catch(e => {
+            console.error('Failed to translate assessment to Wolof', e);
+          }),
+        translateToWolof({ text: output.nextSteps })
+          .then(res => {
+            output.nextSteps = res.translation;
+          })
+          .catch(e => {
+            console.error('Failed to translate next steps to Wolof', e);
+          }),
+        ...output.traditionalRemedies.map(r =>
+          translateToWolof({ text: r.description })
+            .then(res => {
+              r.description = res.translation;
+            })
+            .catch(e => {
+              console.error('Failed to translate remedy description', e);
+            })
+        ),
+      ];
 
-      for (const remedy of output.traditionalRemedies) {
-        try {
-          const res = await translateToWolof({ text: remedy.description });
-          remedy.description = res.translation;
-        } catch (e) {
-          console.error('Failed to translate remedy description', e);
-        }
-      }
-
-      try {
-        const nextRes = await translateToWolof({ text: output.nextSteps });
-        output.nextSteps = nextRes.translation;
-      } catch (e) {
-        console.error('Failed to translate next steps to Wolof', e);
-      }
+      await Promise.all(translations);
     }
     return output;
   } catch (error: any) {
