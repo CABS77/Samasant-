@@ -5,6 +5,7 @@ import './globals.css';
 import {Poppins, Open_Sans} from 'next/font/google';
 import { AppProviders } from '@/components/app-providers';
 import { Toaster } from "@/components/ui/toaster";
+import { useServiceWorker } from '@/hooks/useServiceWorker';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',

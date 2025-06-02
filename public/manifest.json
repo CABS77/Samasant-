@@ -1,0 +1,52 @@
+{
+  "name": "SamaSanté AI - Assistant Santé IA au Sénégal",
+  "short_name": "SamaSanté",
+  "description": "Votre assistant santé IA au Sénégal. Obtenez des évaluations de santé, découvrez des remèdes traditionnels et des conseils en Franco-Wolof.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3CB371",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "fr-SN",
+  "dir": "ltr",
+  "categories": ["medical", "health"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nouvelle consultation",
+      "short_name": "Consultation",
+      "description": "Démarrer une nouvelle consultation IA",
+      "url": "/", 
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Remèdes traditionnels",
+      "short_name": "Remèdes",
+      "description": "Parcourir les remèdes traditionnels",
+      "url": "/#remedies",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot1.png",
+      "sizes": "1080x1920",
+      "type": "image/png"
+    }
+  ]
+}
