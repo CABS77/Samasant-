@@ -28,9 +28,16 @@ export function AIChatSection({}: AIChatSectionProps) {
   const [isRecording, setIsRecording] = useState(false);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const recognitionRef = useRef<any>(null);
+  // Cache last submitted message and responses by language to avoid
+  // unnecessary API calls when switching languages without changing the text
+  const [lastSubmittedMessage, setLastSubmittedMessage] = useState("");
+  const [cachedResponses, setCachedResponses] = useState<Record<string, ChatOutput>>({});
 
 
-  const handleChatSubmit = async (language: 'french' | 'wolof' | 'franco-wolof', message?: string) => {
+  const handleChatSubmit = async (
+    language: 'french' | 'wolof' | 'franco-wolof',
+    message?: string
+  ) => {
     const messageToSubmit = message || chatInput;
     if (!messageToSubmit.trim()) {
       toast({
@@ -39,6 +46,22 @@ export function AIChatSection({}: AIChatSectionProps) {
         description: t("enterSymptoms_bindal_sa_malaaka"),
       });
       return;
+    }
+
+    // If the message hasn't changed and we already have a cached response for
+    // the requested language, reuse it to avoid an unnecessary API call
+    if (
+      messageToSubmit === lastSubmittedMessage &&
+      cachedResponses[language]
+    ) {
+      setChatOutput(cachedResponses[language]);
+      return;
+    }
+
+    // Reset cache when the message changes
+    if (messageToSubmit !== lastSubmittedMessage) {
+      setCachedResponses({});
+      setLastSubmittedMessage(messageToSubmit);
     }
 
     setLoading(true);
@@ -50,9 +73,12 @@ export function AIChatSection({}: AIChatSectionProps) {
       });
       const outputWithArrayRemedies = {
         ...response,
-        traditionalRemedies: Array.isArray(response.traditionalRemedies) ? response.traditionalRemedies : [],
+        traditionalRemedies: Array.isArray(response.traditionalRemedies)
+          ? response.traditionalRemedies
+          : [],
       };
       setChatOutput(outputWithArrayRemedies);
+      setCachedResponses((prev) => ({ ...prev, [language]: outputWithArrayRemedies }));
       toast({
         title: t("aiAssessmentComplete_saafara"),
         description: t("checkChatResponseBelow_seetal"),
