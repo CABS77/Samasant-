@@ -1,11 +1,11 @@
 
 "use client";
 import type { InitialHealthAssessmentOutput, RemedyDetailSchema } from "@/ai/flows/initial-health-assessment";
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {Textarea} from "@/components/ui/textarea";
-import {initialHealthAssessment} from "@/ai/flows/initial-health-assessment";
+import { useAIAssessment } from "@/hooks/ai/useAIAssessment";
 import { toast } from "@/hooks/use-toast";
 import { useTranslation } from 'react-i18next';
 import { Mic, MicOff, Volume2, VolumeX, Loader2, Info, Share2 } from 'lucide-react';

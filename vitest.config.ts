@@ -8,6 +8,20 @@ export default defineConfig({
     },
   },
   test: {
-    environment: 'node',
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    globals: true,
+    css: true,
+    coverage: {
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'src/test/',
+        '.next/',
+        'src/**/*.d.ts',
+        'src/**/*.config.ts',
+        'src/types/**',
+      ],
+    },
   },
 });

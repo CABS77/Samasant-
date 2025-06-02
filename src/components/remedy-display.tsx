@@ -4,7 +4,7 @@
 
 import type { Remedy } from "@/services/remedies";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { getRemedies } from "@/services/remedies";
 import { generateRemedies } from "@/ai/flows/generate-remedies-flow";
@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDebounce } from "@/hooks/useDebounce";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 
 
 // Combined type for display
@@ -47,6 +49,9 @@ export function RemedyDisplay() {
   const [loading, setLoading] = useState<boolean>(true);
   const [generating, setGenerating] = useState<boolean>(false);
   const [noResultsMessage, setNoResultsMessage] = useState<string>("");
+  
+  // Utiliser debounce pour optimiser la recherche
+  const debouncedSymptom = useDebounce(symptom, 300);
 
   const extractEnglishKeywords = useCallback((remedy: Remedy): string => {
     const nameLower = remedy.name.toLowerCase();

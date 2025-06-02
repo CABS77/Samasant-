@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Exécuter les tests de qualité avant le commit
+npm run lint
+npm run typecheck

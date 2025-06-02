@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SamaSanté - Mode Hors Ligne</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    .container {
+      text-align: center;
+      padding: 2rem;
+      max-width: 500px;
+    }
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 1rem;
+      color: #3CB371;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #3CB371;
+    }
+    p {
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    .button {
+      background-color: #3CB371;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .button:hover {
+      background-color: #2E8B57;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <svg class="logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M50 0C22.3858 0 0 22.3858 0 50C0 77.6142 22.3858 100 50 100C77.6142 100 100 77.6142 100 50C100 22.3858 77.6142 0 50 0ZM50 8.33333C26.9289 8.33333 8.33333 26.9289 8.33333 50C8.33333 73.0711 26.9289 91.6667 50 91.6667C73.0711 91.6667 91.6667 73.0711 91.6667 50C91.6667 26.9289 73.0711 8.33333 50 8.33333ZM50 20.8333C36.1851 20.8333 25 30.7116 25 42.5C25 49.0917 28.6083 54.8917 34.1667 58.3333V75H41.6667V62.5H58.3333V75H65.8333V58.3333C71.3917 54.8917 75 49.0917 75 42.5C75 30.7116 63.8149 20.8333 50 20.8333Z" fill="currentColor"/>
+    </svg>
+    <h1>Mode Hors Ligne</h1>
+    <p>
+      Vous êtes actuellement hors ligne. SamaSanté nécessite une connexion Internet pour fonctionner correctement.
+    </p>
+    <p>
+      Certaines fonctionnalités comme les remèdes traditionnels peuvent être disponibles hors ligne si vous les avez déjà consultés.
+    </p>
+    <button class="button" onclick="window.location.reload()">
+      Réessayer
+    </button>
+  </div>
+</body>
+</html>
