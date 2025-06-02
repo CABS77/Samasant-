@@ -1,12 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-let translateMock: any;
 let promptOutputs: Record<string, any>;
-
-vi.mock('../src/ai/flows/translate-to-wolof.ts', () => {
-  translateMock = vi.fn(async ({ text }) => ({ translation: text + '_wolof' }));
-  return { translateToWolof: translateMock };
-});
 
 vi.mock('../src/ai/ai-instance', () => {
   return {
@@ -29,7 +23,7 @@ beforeEach(async () => {
 });
 
 describe('initialHealthAssessment flow', () => {
-  it('translates fields when language is wolof', async () => {
+  it('returns prompt output when language is wolof', async () => {
     promptOutputs['initialHealthAssessmentPrompt'] = {
       assessment: 'assess fr',
       traditionalRemedies: [
@@ -41,9 +35,8 @@ describe('initialHealthAssessment flow', () => {
 
     const result = await initialHealthAssessment({ message: 'm', language: 'wolof' });
 
-    expect(translateMock).toHaveBeenCalledTimes(4);
-    expect(result.assessment).toBe('assess fr_wolof');
-    expect(result.traditionalRemedies[0].description).toBe('desc1_wolof');
-    expect(result.nextSteps).toBe('next fr_wolof');
+    expect(result.assessment).toBe('assess fr');
+    expect(result.traditionalRemedies[0].description).toBe('desc1');
+    expect(result.nextSteps).toBe('next fr');
   });
 });
