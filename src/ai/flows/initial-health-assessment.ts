@@ -83,6 +83,10 @@ Basé sur '{{{message}}}', retournez un objet JSON :
         threshold: 'BLOCK_MEDIUM_AND_ABOVE',
       },
     ],
+    generationConfig: {
+      maxOutputTokens: 300,
+      temperature: 0.7,
+    },
   },
 });
 
