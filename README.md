@@ -75,9 +75,10 @@ Créez un fichier `.env` à la racine et renseignez votre clé DeepSeek :
 
 ```bash
 DEEPSEEK_API_KEY=your-deepseek-key
+DEEPSEEK_MODEL=reasoner # ou 'chat'
 ```
 
-`AI_MODEL` n'est plus utilisé.
+Par défaut, le modèle **deepseekReasoner** est utilisé. Définissez `DEEPSEEK_MODEL=chat` pour choisir le modèle **deepseekChat**, plus rapide.
 
 ### Configuration de l'IA
 
@@ -85,6 +86,7 @@ Copiez le fichier `.env.example` vers `.env` et renseignez la clef :
 
 ```
 DEEPSEEK_API_KEY=... # clé DeepSeek R1
+DEEPSEEK_MODEL=reasoner
 ```
 
 ---
