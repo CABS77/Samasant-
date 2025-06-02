@@ -2,6 +2,10 @@
 import { genkit } from 'genkit';
 import wrappedDeepseek, { deepseekChat, deepseekReasoner } from './plugins/wrapped-deepseek';
 
+const modelEnv = process.env.DEEPSEEK_MODEL?.toLowerCase();
+const selectedModel =
+  modelEnv === 'chat' || modelEnv === 'deepseekchat' ? deepseekChat : deepseekReasoner;
+
 export const ai = genkit({
   promptDir: './prompts',
   plugins: [
@@ -9,5 +13,5 @@ export const ai = genkit({
       apiKey: process.env.DEEPSEEK_API_KEY,
     }),
   ],
-  model: deepseekReasoner, // Utilise le modèle de raisonnement pour les évaluations de santé
+  model: selectedModel, // Modèle par défaut configurable via DEEPSEEK_MODEL
 });
