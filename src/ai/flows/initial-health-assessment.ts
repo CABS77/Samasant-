@@ -129,35 +129,35 @@ const initialHealthAssessmentFlow = ai.defineFlow<
       console.warn('AI output for traditionalRemedies was not an array, correcting.');
       output.traditionalRemedies = [];
     }
-    if (input.language === 'wolof') {
-      const translations = [
-        translateToWolof({ text: output.assessment })
-          .then(res => {
-            output.assessment = res.translation;
-          })
-          .catch(e => {
-            console.error('Failed to translate assessment to Wolof', e);
-          }),
-        translateToWolof({ text: output.nextSteps })
-          .then(res => {
-            output.nextSteps = res.translation;
-          })
-          .catch(e => {
-            console.error('Failed to translate next steps to Wolof', e);
-          }),
-        ...output.traditionalRemedies.map(r =>
-          translateToWolof({ text: r.description })
-            .then(res => {
-              r.description = res.translation;
-            })
-            .catch(e => {
-              console.error('Failed to translate remedy description', e);
-            })
-        ),
-      ];
-
-      await Promise.all(translations);
-    }
+//     if (input.language === 'wolof') {
+//       const translations = [
+//         translateToWolof({ text: output.assessment })
+//           .then(res => {
+//             output.assessment = res.translation;
+//           })
+//           .catch(e => {
+//             console.error('Failed to translate assessment to Wolof', e);
+//           }),
+//         translateToWolof({ text: output.nextSteps })
+//           .then(res => {
+//             output.nextSteps = res.translation;
+//           })
+//           .catch(e => {
+//             console.error('Failed to translate next steps to Wolof', e);
+//           }),
+//         ...output.traditionalRemedies.map(r =>
+//           translateToWolof({ text: r.description })
+//             .then(res => {
+//               r.description = res.translation;
+//             })
+//             .catch(e => {
+//               console.error('Failed to translate remedy description', e);
+//             })
+//         ),
+//       ];
+// 
+//       await Promise.all(translations);
+//     }
     return output;
   } catch (error: any) {
     console.error(`Error in initialHealthAssessmentFlow: ${error.message}`, error.stack);
