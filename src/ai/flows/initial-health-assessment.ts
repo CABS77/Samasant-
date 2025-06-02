@@ -11,6 +11,7 @@
 
 import {ai} from '@/ai/ai-instance';
 import {z} from 'genkit';
+import {translateToWolof} from '@/ai/flows/translate-to-wolof';
 
 const InitialHealthAssessmentInputSchema = z.object({
   message: z.string().describe('The user message describing their symptoms or health concerns.'),
@@ -127,6 +128,30 @@ const initialHealthAssessmentFlow = ai.defineFlow<
     if (!Array.isArray(output.traditionalRemedies)) {
       console.warn('AI output for traditionalRemedies was not an array, correcting.');
       output.traditionalRemedies = [];
+    }
+    if (input.language === 'wolof') {
+      try {
+        const assessmentRes = await translateToWolof({ text: output.assessment });
+        output.assessment = assessmentRes.translation;
+      } catch (e) {
+        console.error('Failed to translate assessment to Wolof', e);
+      }
+
+      for (const remedy of output.traditionalRemedies) {
+        try {
+          const res = await translateToWolof({ text: remedy.description });
+          remedy.description = res.translation;
+        } catch (e) {
+          console.error('Failed to translate remedy description', e);
+        }
+      }
+
+      try {
+        const nextRes = await translateToWolof({ text: output.nextSteps });
+        output.nextSteps = nextRes.translation;
+      } catch (e) {
+        console.error('Failed to translate next steps to Wolof', e);
+      }
     }
     return output;
   } catch (error: any) {
