@@ -30,7 +30,7 @@ export const wrappedDeepseek = (options?: PluginOptions) =>
         result.candidates = result.candidates.map((c: any) => ({
           ...c,
           message: {
-            role: c.message.role,
+            role: c.message.role === 'assistant' ? 'model' : c.message.role,
             content: [{ text: c.message.text }],
           },
         }));
