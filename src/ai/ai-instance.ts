@@ -1,11 +1,11 @@
 
 import { genkit } from 'genkit';
-import deepseek, { deepseekChat, deepseekReasoner } from 'genkitx-deepseek';
+import wrappedDeepseek, { deepseekChat, deepseekReasoner } from './plugins/wrapped-deepseek';
 
 export const ai = genkit({
   promptDir: './prompts',
   plugins: [
-    deepseek({
+    wrappedDeepseek({
       apiKey: process.env.DEEPSEEK_API_KEY,
     }),
   ],
