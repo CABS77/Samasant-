@@ -1,11 +1,13 @@
 
 "use client";
+import React from 'react';
 import type { InitialHealthAssessmentOutput, RemedyDetailSchema } from "@/ai/flows/initial-health-assessment";
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {Textarea} from "@/components/ui/textarea";
 import { useAIAssessment } from "@/hooks/ai/useAIAssessment";
+import { initialHealthAssessment } from "@/ai/flows/initial-health-assessment";
 import { toast } from "@/hooks/use-toast";
 import { useTranslation } from 'react-i18next';
 import { Mic, MicOff, Volume2, VolumeX, Loader2, Info, Share2 } from 'lucide-react';
@@ -100,7 +102,7 @@ export function AIChatSection({}: AIChatSectionProps) {
     if (typeof window !== 'undefined') {
       synthRef.current = window.speechSynthesis;
 
-      const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = false;

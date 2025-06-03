@@ -31,11 +31,11 @@ export function OptimizedImage({
   const [error, setError] = useState(false);
 
   // Generate a simple blur placeholder if none provided
-  const defaultBlurDataURL = `data:image/svg+xml;base64,${Buffer.from(
+  const defaultBlurDataURL = `data:image/svg+xml;base64,${btoa(
     `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
       <rect width="100%" height="100%" fill="#f3f4f6"/>
     </svg>`
-  ).toString('base64')}`;
+  )}`;
 
   if (error) {
     return (

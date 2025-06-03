@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { initialHealthAssessment } from '@/ai/flows/initial-health-assessment';
 import type { InitialHealthAssessmentInput, InitialHealthAssessmentOutput } from '@/ai/flows/initial-health-assessment';
+import { useEffect } from 'react';
 
 interface UseAIAssessmentOptions {
   enabled?: boolean;
@@ -14,7 +15,7 @@ export function useAIAssessment(
 ) {
   const queryClient = useQueryClient();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['ai-assessment', input?.message, input?.language],
     queryFn: async () => {
       if (!input) throw new Error('No input provided');
@@ -34,12 +35,25 @@ export function useAIAssessment(
     },
     enabled: !!input && (options?.enabled ?? true),
     staleTime: 1000 * 60 * 60, // 1 heure - les données restent fraîches
-    cacheTime: 1000 * 60 * 60 * 24, // 24 heures - garde en cache
+    gcTime: 1000 * 60 * 60 * 24, // 24 heures - garde en cache
     retry: 2, // Réessayer 2 fois en cas d'échec
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    onSuccess: options?.onSuccess,
-    onError: options?.onError,
   });
+
+  // Gérer les callbacks onSuccess et onError avec useEffect
+  useEffect(() => {
+    if (query.isSuccess && query.data && options?.onSuccess) {
+      options.onSuccess(query.data);
+    }
+  }, [query.isSuccess, query.data, options?.onSuccess]);
+
+  useEffect(() => {
+    if (query.isError && query.error && options?.onError) {
+      options.onError(query.error);
+    }
+  }, [query.isError, query.error, options?.onError]);
+
+  return query;
 }
 
 // Hook pour précharger des évaluations communes

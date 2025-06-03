@@ -1,3 +1,4 @@
+import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAIAssessment } from '../ai/useAIAssessment';
@@ -15,7 +16,7 @@ function createWrapper() {
     defaultOptions: {
       queries: { 
         retry: false,
-        cacheTime: 0,
+        gcTime: 0,
       },
     },
   });
