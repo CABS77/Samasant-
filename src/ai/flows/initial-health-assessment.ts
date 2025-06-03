@@ -26,6 +26,7 @@ const RemedyDetailSchema = z.object({
   name: z.string().describe("Nom du remède/astuce."),
   description: z.string().describe("Description et utilisation du remède/astuce.")
 });
+export type RemedyDetailSchema = z.infer<typeof RemedyDetailSchema>;
 
 const InitialHealthAssessmentOutputSchema = z.object({
   assessment: z.string().describe('An initial assessment of the user provided symptoms.'),

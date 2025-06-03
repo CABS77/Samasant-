@@ -15,15 +15,7 @@ export function useServiceWorker() {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                   toast({
                     title: 'Mise à jour disponible',
-                    description: 'Nouvelle version de SamaSanté disponible. Actualisez la page.',
-                    action: (
-                      <button
-                        onClick={() => window.location.reload()}
-                        className="underline"
-                      >
-                        Actualiser
-                      </button>
-                    ),
+                    description: 'Nouvelle version de SamaSanté disponible. Actualisez la page pour la charger.',
                   });
                 }
               });
