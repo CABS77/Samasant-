@@ -79,7 +79,7 @@ async input => {
       const message = `Emergency alert: Possible malaria case reported near you. Symptoms: ${symptoms}. Contact: ${phoneNumber}.`;
       for (const clinic of nearbyClinics) {
         try {
-            await sendSms('+' + phoneNumber, message);
+            await sendSms(clinic.phoneNumber, message);
             clinicsAlerted.push(clinic.name);
         } catch (smsError: any) {
             console.error(`Failed to send SMS to ${clinic.name}: ${smsError.message}`);
