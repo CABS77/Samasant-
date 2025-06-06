@@ -56,7 +56,7 @@ describe('AIChatSection', () => {
     render(<AIChatSection />, { wrapper: createWrapper() });
     
     expect(screen.getByText('ai_assistant_sama_ker_xel')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('describe_symptoms_placeholder')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('typeOrSpeakWolof_maangi')).toBeInTheDocument();
     expect(screen.getByText('submit_french')).toBeInTheDocument();
     expect(screen.getByText('submit_wolof')).toBeInTheDocument();
   });
@@ -81,7 +81,7 @@ describe('AIChatSection', () => {
     
     render(<AIChatSection />, { wrapper: createWrapper() });
     
-    const textarea = screen.getByPlaceholderText('describe_symptoms_placeholder');
+    const textarea = screen.getByPlaceholderText('typeOrSpeakWolof_maangi');
     fireEvent.change(textarea, { target: { value: 'Test symptoms' } });
     
     const submitButton = screen.getByText('submit_french');
@@ -98,7 +98,7 @@ describe('AIChatSection', () => {
   it('should display loading state during submission', async () => {
     render(<AIChatSection />, { wrapper: createWrapper() });
     
-    const textarea = screen.getByPlaceholderText('describe_symptoms_placeholder');
+    const textarea = screen.getByPlaceholderText('typeOrSpeakWolof_maangi');
     fireEvent.change(textarea, { target: { value: 'Test symptoms' } });
     
     const submitButton = screen.getByText('submit_french');
