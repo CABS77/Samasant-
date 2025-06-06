@@ -60,7 +60,7 @@ describe('useAIAssessment', () => {
     };
 
     const { result } = renderHook(
-      () => useAIAssessment(input),
+      () => useAIAssessment(input, { retry: false }),
       { wrapper: createWrapper() }
     );
 
@@ -84,12 +84,12 @@ describe('useAIAssessment', () => {
     };
 
     const { result } = renderHook(
-      () => useAIAssessment(input),
+      () => useAIAssessment(input, { retry: false }),
       { wrapper: createWrapper() }
     );
 
-    await waitFor(() => {
-      expect(result.current.isError).toBe(true);
+    await waitFor(() => expect(result.current.isError).toBe(true), {
+      timeout: 1000,
     });
 
     expect(result.current.error).toEqual(new Error('API Error'));
