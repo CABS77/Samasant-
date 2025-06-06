@@ -11,6 +11,7 @@ import { initialHealthAssessment } from "@/ai/flows/initial-health-assessment";
 import { toast } from "@/hooks/use-toast";
 import { useTranslation } from 'react-i18next';
 import { Mic, MicOff, Volume2, VolumeX, Loader2, Info, Share2 } from 'lucide-react';
+import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface AIChatSectionProps {}
@@ -267,6 +268,19 @@ export function AIChatSection({}: AIChatSectionProps) {
             {loading ? t("loading_yeggeul") : t("answerInWolof_button")}
           </Button>
         </div>
+        {loading && !chatOutput && (
+          <div className="mt-6 space-y-4 sm:space-y-6">
+            <div className="flex items-center justify-center space-x-2">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <span className="text-primary font-medium">{t("aiThinking_reflechit")}</span>
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          </div>
+        )}
 
         {chatOutput && (
            <div className="mt-6 space-y-4 sm:space-y-6">
