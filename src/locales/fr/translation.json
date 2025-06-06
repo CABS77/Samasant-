@@ -95,7 +95,12 @@
   "answerInFrench_button": "Réponse en Français",
   "answerInWolof_button": "Tontu ci Wolof",
   "dailyLimitReached_title": "Limite quotidienne atteinte",
-  "dailyLimitReached_description": "Vous avez atteint la limite de 7 requêtes pour aujourd'hui."
+  "dailyLimitReached_description": "Vous avez atteint la limite de 7 requêtes pour aujourd'hui.",
+  "welcome_title": "Bienvenue sur SamaSanté",
+  "welcome_description": "Découvrez l'application de santé et télémédecine pour tous au Sénégal.",
+  "openApp_button": "Accéder à l'application",
+  "downloadAndroid_button": "Télécharger sur Android",
+  "downloadIos_button": "Télécharger sur iOS"
 }
 
     
