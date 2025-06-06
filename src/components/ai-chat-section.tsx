@@ -9,6 +9,7 @@ import {Textarea} from "@/components/ui/textarea";
 import { useAIAssessment } from "@/hooks/ai/useAIAssessment";
 import { initialHealthAssessment } from "@/ai/flows/initial-health-assessment";
 import { toast } from "@/hooks/use-toast";
+import { hasReachedLimit, incrementDailyCount } from "@/lib/requestLimit";
 import { useTranslation } from 'react-i18next';
 import { Mic, MicOff, Volume2, VolumeX, Loader2, Info, Share2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -66,6 +67,17 @@ export function AIChatSection({}: AIChatSectionProps) {
       setCachedResponses({});
       setLastSubmittedMessage(messageToSubmit);
     }
+
+    if (hasReachedLimit(7)) {
+      toast({
+        variant: "destructive",
+        title: t("dailyLimitReached_title"),
+        description: t("dailyLimitReached_description"),
+      });
+      return;
+    }
+
+    incrementDailyCount();
 
     setLoading(true);
     setChatOutput(null);

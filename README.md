@@ -23,6 +23,7 @@ L’accès aux soins reste difficile pour une grande partie de la population au 
 - Réponses personnalisées selon les cas
 - Suggestions de remèdes naturels traditionnels (tisane de neem, gingembre, etc.)
 - Escalade vers un télémédecin si nécessaire
+- Limite de **7 requêtes** par appareil et par jour pour éviter les abus
 
 ### B. Suggestions de maladies/symptômes
 - Liste de symptômes fréquents (paludisme, diarrhée, règles douloureuses, etc.)
