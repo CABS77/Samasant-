@@ -24,6 +24,10 @@ export interface Clinic {
    * The name of the clinic.
    */
   name: string;
+  /**
+   * The phone number of the clinic.
+   */
+  phoneNumber: string;
 }
 
 /**
@@ -38,10 +42,12 @@ export async function getNearbyClinics(coordinate: Coordinate): Promise<Clinic[]
     {
       coordinate: { latitude: 14.7167, longitude: -17.4677 },
       name: 'Dakar Medical Center',
+      phoneNumber: '+221770000001',
     },
     {
       coordinate: { latitude: 14.6928, longitude: -17.4467 },
       name: 'Hopital Principal de Dakar',
+      phoneNumber: '+221770000002',
     },
   ];
 }
