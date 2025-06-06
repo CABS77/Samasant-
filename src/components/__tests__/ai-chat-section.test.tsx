@@ -55,16 +55,16 @@ describe('AIChatSection', () => {
   it('should render the component with all elements', () => {
     render(<AIChatSection />, { wrapper: createWrapper() });
     
-    expect(screen.getByText('ai_assistant_sama_ker_xel')).toBeInTheDocument();
+    expect(screen.getByText('aiChat_waxtaan_title')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('typeOrSpeakWolof_maangi')).toBeInTheDocument();
-    expect(screen.getByText('submit_french')).toBeInTheDocument();
-    expect(screen.getByText('submit_wolof')).toBeInTheDocument();
+    expect(screen.getByText('answerInFrench_button')).toBeInTheDocument();
+    expect(screen.getByText('answerInWolof_button')).toBeInTheDocument();
   });
   it('should validate empty input', async () => {
     const { toast } = await import('@/hooks/use-toast');
     render(<AIChatSection />, { wrapper: createWrapper() });
     
-    const submitButton = screen.getByText('submit_french');
+    const submitButton = screen.getByText('answerInFrench_button');
     fireEvent.click(submitButton);
     
     await waitFor(() => {
@@ -84,7 +84,7 @@ describe('AIChatSection', () => {
     const textarea = screen.getByPlaceholderText('typeOrSpeakWolof_maangi');
     fireEvent.change(textarea, { target: { value: 'Test symptoms' } });
     
-    const submitButton = screen.getByText('submit_french');
+    const submitButton = screen.getByText('answerInFrench_button');
     fireEvent.click(submitButton);
     
     await waitFor(() => {
@@ -101,9 +101,9 @@ describe('AIChatSection', () => {
     const textarea = screen.getByPlaceholderText('typeOrSpeakWolof_maangi');
     fireEvent.change(textarea, { target: { value: 'Test symptoms' } });
     
-    const submitButton = screen.getByText('submit_french');
+    const submitButton = screen.getByText('answerInFrench_button');
     fireEvent.click(submitButton);
-    
-    expect(screen.getByText('analyzing_symptoms')).toBeInTheDocument();
+
+    expect(screen.getAllByText('loading_yeggeul').length).toBeGreaterThan(0);
   });
 });
