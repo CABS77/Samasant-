@@ -30,6 +30,11 @@ vi.mock('@/ai/flows/initial-health-assessment', () => ({
   }),
 }));
 
+vi.mock('@/lib/requestLimit', () => ({
+  hasReachedLimit: vi.fn(),
+  incrementDailyCount: vi.fn(),
+}));
+
 // Wrapper pour les tests avec QueryClient
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -105,5 +110,48 @@ describe('AIChatSection', () => {
     fireEvent.click(submitButton);
 
     expect(screen.getAllByText('loading_yeggeul').length).toBeGreaterThan(0);
+  });
+
+  it('should show an error when the daily limit is reached', async () => {
+    const { toast } = await import('@/hooks/use-toast');
+    const { hasReachedLimit } = await import('@/lib/requestLimit');
+    (hasReachedLimit as any).mockReturnValue(true);
+
+    render(<AIChatSection />, { wrapper: createWrapper() });
+
+    const textarea = screen.getByPlaceholderText('typeOrSpeakWolof_maangi');
+    fireEvent.change(textarea, { target: { value: 'Test symptoms' } });
+    const submitButton = screen.getByText('answerInFrench_button');
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(toast).toHaveBeenCalledWith({
+        variant: 'destructive',
+        title: 'dailyLimitReached_title',
+        description: 'dailyLimitReached_description',
+      });
+    });
+
+    const { initialHealthAssessment } = await import('@/ai/flows/initial-health-assessment');
+    expect(initialHealthAssessment).not.toHaveBeenCalled();
+  });
+
+  it('should increment count and call API when under the limit', async () => {
+    const { hasReachedLimit, incrementDailyCount } = await import('@/lib/requestLimit');
+    const { initialHealthAssessment } = await import('@/ai/flows/initial-health-assessment');
+    (hasReachedLimit as any).mockReturnValue(false);
+
+    render(<AIChatSection />, { wrapper: createWrapper() });
+
+    const textarea = screen.getByPlaceholderText('typeOrSpeakWolof_maangi');
+    fireEvent.change(textarea, { target: { value: 'Test symptoms' } });
+    const submitButton = screen.getByText('answerInFrench_button');
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(initialHealthAssessment).toHaveBeenCalled();
+    });
+
+    expect(incrementDailyCount).toHaveBeenCalled();
   });
 });

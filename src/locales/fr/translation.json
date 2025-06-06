@@ -93,7 +93,9 @@
   "geolocation_fetching": "Localisation en cours...",
   "geolocation_fetching_description": "Nous recherchons votre position actuelle.",
   "answerInFrench_button": "Réponse en Français",
-  "answerInWolof_button": "Tontu ci Wolof"
+  "answerInWolof_button": "Tontu ci Wolof",
+  "dailyLimitReached_title": "Limite quotidienne atteinte",
+  "dailyLimitReached_description": "Vous avez atteint la limite de 7 requêtes pour aujourd'hui."
 }
 
     
