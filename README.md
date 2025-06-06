@@ -95,11 +95,16 @@ DEEPSEEK_MODEL=reasoner
 
 ```
 src/
+  ai/                # Logique IA et flux
   app/
     page.tsx        # Point d’entrée principal (NextJS)
   components/       # Composants réutilisables
+  hooks/            # Hooks personnalisés
+  lib/              # Fonctions utilitaires
+  locales/          # Fichiers de traduction
   services/         # Services d’API, IA, Firebase, etc.
-  assets/           # Images, icônes
+  test/             # Configuration de tests
+  types/            # Types TypeScript
   ...
 ```
 
