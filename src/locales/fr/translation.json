@@ -1,4 +1,3 @@
-
 {
   "appName_sama": "SamaSanté AI",
   "aiChat_waxtaan": "Waxtaanu IA - Causerie IA",
@@ -100,7 +99,13 @@
   "welcome_description": "Découvrez l'application de santé et télémédecine pour tous au Sénégal.",
   "openApp_button": "Accéder à l'application",
   "downloadAndroid_button": "Télécharger sur Android",
-  "downloadIos_button": "Télécharger sur iOS"
+  "downloadIos_button": "Télécharger sur iOS",
+  "features_title": "Fonctionnalités principales",
+  "features_chat": "Chat IA en wolof et français pour un pré-diagnostic",
+  "features_remedies": "Remèdes traditionnels validés par des professionnels",
+  "features_geolocation": "Carte des cliniques et centres de santé à proximité",
+  "features_emergency": "Alerte d'urgence avec envoi de SMS aux médecins",
+  "usecases_title": "Cas d’usage",
+  "usecase_fatou": "Fatou utilise l’appli hors-ligne pour soigner la toux de son fils et reçoit une alerte si la fièvre persiste.",
+  "usecase_modou": "Modou, agent de santé, oriente les patients vers les cliniques partenaires et met à jour les remèdes."
 }
-
-    
