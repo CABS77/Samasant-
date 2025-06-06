@@ -7,6 +7,7 @@ interface UseAIAssessmentOptions {
   enabled?: boolean;
   onSuccess?: (data: InitialHealthAssessmentOutput) => void;
   onError?: (error: Error) => void;
+  retry?: number | false;
 }
 
 export function useAIAssessment(
@@ -36,7 +37,7 @@ export function useAIAssessment(
     enabled: !!input && (options?.enabled ?? true),
     staleTime: 1000 * 60 * 60, // 1 heure - les données restent fraîches
     gcTime: 1000 * 60 * 60 * 24, // 24 heures - garde en cache
-    retry: 2, // Réessayer 2 fois en cas d'échec
+    retry: options?.retry ?? 2, // Réessayer 2 fois par défaut
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
