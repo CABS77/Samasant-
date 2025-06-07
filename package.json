@@ -47,6 +47,7 @@
     "critters": "^0.0.23",
     "date-fns": "^3.6.0",
     "firebase": "^11.3.0",
+    "framer-motion": "^12.16.0",
     "genkit": "^1.11.0",
     "genkitx-deepseek": "^1.0.1",
     "i18next": "^23.13.0",
