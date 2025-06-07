@@ -3,14 +3,14 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Facebook, Twitter, Mail } from 'lucide-react';
+import { Facebook, Twitter, Mail, MessageSquare, Leaf, MapPin, AlertTriangle } from 'lucide-react';
 
 export default function LandingPage() {
   const { t } = useTranslation();
   return (
     <main className="min-h-screen flex flex-col items-center bg-background text-foreground">
-      <header className="w-full flex justify-center py-10 px-4">
-        <Card className="max-w-xl w-full text-center space-y-4 bg-card shadow-xl animate-fade-in">
+      <header className="w-full flex justify-center py-10 px-4 bg-gradient-to-r from-primary via-accent to-destructive">
+        <Card className="max-w-xl w-full text-center space-y-4 bg-card shadow-xl animate-fade-in border-2 border-primary">
           <CardHeader>
             <CardTitle className="text-2xl font-poppins-bold text-primary">
               {t('welcome_title')}
@@ -36,28 +36,40 @@ export default function LandingPage() {
         </Card>
       </header>
 
-      <section className="w-full flex justify-center px-4 py-6" aria-labelledby="features-title">
+      <section className="w-full flex justify-center px-4 py-6 bg-gradient-to-r from-secondary via-background to-secondary" aria-labelledby="features-title">
         <Card className="max-w-3xl w-full bg-card shadow-xl animate-fade-in">
           <CardHeader>
-            <CardTitle id="features-title" className="text-xl font-poppins-bold text-primary">
+            <CardTitle id="features-title" className="text-xl font-poppins-bold text-accent">
               {t('features_title')}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="list-disc list-inside space-y-2 text-sm sm:text-base">
-              <li>{t('features_chat')}</li>
-              <li>{t('features_remedies')}</li>
-              <li>{t('features_geolocation')}</li>
-              <li>{t('features_emergency')}</li>
+            <ul className="space-y-2 text-sm sm:text-base">
+              <li className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-primary" />
+                {t('features_chat')}
+              </li>
+              <li className="flex items-center gap-2">
+                <Leaf className="w-4 h-4 text-primary" />
+                {t('features_remedies')}
+              </li>
+              <li className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-primary" />
+                {t('features_geolocation')}
+              </li>
+              <li className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-primary" />
+                {t('features_emergency')}
+              </li>
             </ul>
           </CardContent>
         </Card>
       </section>
 
-      <section className="w-full flex justify-center px-4 py-6" aria-labelledby="usecases-title">
+      <section className="w-full flex justify-center px-4 py-6 bg-gradient-to-r from-secondary via-background to-secondary" aria-labelledby="usecases-title">
         <Card className="max-w-3xl w-full bg-card shadow-xl animate-fade-in">
           <CardHeader>
-            <CardTitle id="usecases-title" className="text-xl font-poppins-bold text-primary">
+            <CardTitle id="usecases-title" className="text-xl font-poppins-bold text-accent">
               {t('usecases_title')}
             </CardTitle>
           </CardHeader>
