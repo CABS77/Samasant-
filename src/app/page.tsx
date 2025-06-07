@@ -17,7 +17,7 @@ export default function LandingPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <img src="/assets/hero.png" alt={t('placeholder_image_alt')} className="mx-auto w-full h-auto" />
+            <img src="/assets/hero.svg" alt={t('placeholder_image_alt')} className="mx-auto w-full h-auto" />
             <p className="text-sm sm:text-base">
               {t('welcome_description')}
             </p>
