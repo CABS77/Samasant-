@@ -95,19 +95,19 @@
   "answerInWolof_button": "Tontu ci Wolof",
   "dailyLimitReached_title": "Limite quotidienne atteinte",
   "dailyLimitReached_description": "Vous avez atteint la limite de 7 requêtes pour aujourd'hui.",
-  "welcome_title": "Bienvenue sur SamaSanté",
-  "welcome_description": "Découvrez l'application de santé et télémédecine pour tous au Sénégal.",
-  "openApp_button": "Accéder à l'application",
-  "downloadAndroid_button": "Télécharger sur Android",
-  "downloadIos_button": "Télécharger sur iOS",
-  "features_title": "Fonctionnalités principales",
-  "features_chat": "Chat IA en wolof et français pour un pré-diagnostic",
-  "features_remedies": "Remèdes traditionnels validés par des professionnels",
-  "features_geolocation": "Carte des cliniques et centres de santé à proximité",
-  "features_emergency": "Alerte d'urgence avec envoi de SMS aux médecins",
-  "usecases_title": "Cas d’usage",
-  "usecase_fatou": "Fatou utilise l’appli hors-ligne pour soigner la toux de son fils et reçoit une alerte si la fièvre persiste.",
-  "usecase_modou": "Modou, agent de santé, oriente les patients vers les cliniques partenaires et met à jour les remèdes."
+  "welcome_title": "\u2728 Bienvenue sur SamaSant\u00E9 \u2728",
+  "welcome_description": "D\u00E9couvrez l'application de sant\u00E9 et t\u00E9l\u00E9m\u00E9decine pour tous au S\u00E9n\u00E9gal.",
+  "openApp_button": "\uD83D\uDE80 Acc\u00E9der \u00E0 l'application",
+  "downloadAndroid_button": "📱 Télécharger sur Android",
+  "downloadIos_button": "📲 Télécharger sur iOS",
+  "features_title": "Fonctionnalit\u00E9s principales \uD83C\uDF1F",
+  "features_chat": "\uD83D\uDCAC Chat IA en wolof et fran\u00E7ais pour un pr\u00E9-diagnostic",
+  "features_remedies": "\uD83C\uDF3F Rem\u00E8des traditionnels valid\u00E9s par des professionnels",
+  "features_geolocation": "\uD83D\uDCCD Carte des cliniques et centres de sant\u00E9 \u00E0 proximit\u00E9",
+  "features_emergency": "\uD83D\uDEA8 Alerte d'urgence avec envoi de SMS aux m\u00E9decins",
+  "usecases_title": "🔍 Cas d’usage",
+  "usecase_fatou": "👩‍🌾 Fatou utilise l’appli hors-ligne pour soigner la toux de son fils et reçoit une alerte si la fièvre persiste.",
+  "usecase_modou": "🚑 Modou, agent de santé, oriente les patients vers les cliniques partenaires et met à jour les remèdes."
   ,"footer_terms": "CGU"
   ,"footer_privacy": "Politique de confidentialité"
   ,"footer_contact": "Contact / support"
