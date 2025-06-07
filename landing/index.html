@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SamaSanté – Application Mobile de Santé & Télémédecine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <span class="logo" role="img" aria-label="SamaSanté">✨ SamaSanté ✨</span>
+      <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Dark Mode">🌙</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-card">
+        <h1>Bienvenue sur SamaSanté</h1>
+        <p class="subtitle">Découvrez l’application de santé et télémédecine pour tous au Sénégal.</p>
+        <img src="/assets/hero.png" alt="illustration smartphone" class="hero-img">
+        <p>Commencez votre pré-diagnostic en quelques secondes.</p>
+        <div class="btn-group">
+          <a href="#" class="btn primary">🚀 Accéder à l’application</a>
+          <a href="#" class="btn secondary">📱 Android</a>
+          <a href="#" class="btn secondary">🍎 iOS</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="features">
+      <h2>Fonctionnalités principales</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <svg aria-hidden="true" width="24" height="24"><rect width="24" height="24" fill="#16a34a"/></svg>
+          <h3>Chat IA bilingue</h3>
+          <p>Pré-diagnostic en wolof &amp; français</p>
+        </div>
+        <div class="feature-card">
+          <svg aria-hidden="true" width="24" height="24"><rect width="24" height="24" fill="#16a34a"/></svg>
+          <h3>Remèdes validés</h3>
+          <p>Fiches par des professionnels</p>
+        </div>
+        <div class="feature-card">
+          <svg aria-hidden="true" width="24" height="24"><rect width="24" height="24" fill="#16a34a"/></svg>
+          <h3>Géolocalisation</h3>
+          <p>Clinics &amp; centres proches</p>
+        </div>
+        <div class="feature-card">
+          <svg aria-hidden="true" width="24" height="24"><rect width="24" height="24" fill="#16a34a"/></svg>
+          <h3>Alerte d’urgence</h3>
+          <p>Envoi de SMS aux médecins</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="usage">
+      <h2>Cas d’usage</h2>
+      <div class="usage-cards">
+        <div class="usage-card">
+          <h3>👩🏽‍🦰 Fatou, maman rurale</h3>
+          <p>Fatou utilise SamaSanté pour obtenir rapidement un avis médical pour ses enfants lorsque la clinique est loin.</p>
+        </div>
+        <div class="usage-card">
+          <h3>👨🏽‍⚕️ Modou, agent de santé</h3>
+          <p>Modou reçoit les alertes d’urgence et peut suivre l’état de santé des patients à distance.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="testimonials">
+      <h2>Témoignages &amp; Partenaires</h2>
+      <div class="carousel">
+        <div class="slide">"Application très pratique !" – Awa</div>
+        <div class="slide">"Un vrai plus pour les zones rurales" – OMS</div>
+        <div class="slide">"Facile à utiliser" – Hôpital de Dakar</div>
+      </div>
+    </section>
+
+    <section class="cta">
+      <h2>Prêt·e à essayer SamaSanté ?</h2>
+      <a href="#" class="btn primary">Commencer le pré-diagnostic</a>
+      <p class="note">Limité à 7 requêtes/jour pour un usage équitable.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="#">CGU</a>
+      <a href="#">Confidentialité</a>
+    </div>
+    <div class="socials">
+      <a href="#" aria-label="Twitter">T</a>
+      <a href="#" aria-label="Facebook">F</a>
+      <a href="#" aria-label="Instagram">I</a>
+    </div>
+    <form class="newsletter">
+      <label for="email" class="visually-hidden">Email</label>
+      <input type="email" id="email" placeholder="Votre email" required>
+      <button type="submit" class="btn secondary">S’inscrire</button>
+    </form>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('theme-toggle');
+    toggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+    });
+  </script>
+</body>
+</html>
