@@ -131,6 +131,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${openSans.variable} antialiased`}>
+        <SpeedInsights />
         <AppProviders>
           {children}
           <Toaster />
