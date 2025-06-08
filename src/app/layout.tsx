@@ -129,6 +129,10 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
+        <script
+          async
+          src="https://ga.jspm.io/npm:@vercel/analytics@1.5.0/dist/script.js"
+        ></script>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${openSans.variable} antialiased`}>
         <SpeedInsights />
