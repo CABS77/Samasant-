@@ -12,7 +12,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <header className="bg-gradient-to-r from-green-300 to-orange-500 dark:from-green-800 dark:to-orange-700 text-white">
         <div className="container mx-auto flex items-center justify-between py-6 px-4">
-          <h1 className="text-3xl font-bold">SamaSanté</h1>
+          <h1 className="text-3xl font-bold">SamaSanté AI</h1>
           <button
             onClick={() => setDarkMode(!darkMode)}
             className="px-3 py-1 rounded bg-white bg-opacity-20 hover:bg-opacity-30 transition"
@@ -23,9 +23,10 @@ export default function LandingPage() {
         <div className="container mx-auto flex flex-col items-center py-12 px-4">
           {/* Text & CTA */}
           <div className="w-full space-y-6 text-center">
-            <h2 className="text-4xl font-extrabold">Bienvenue sur SamaSanté</h2>
+            <h2 className="text-4xl font-extrabold">Bienvenue sur SamaSanté AI</h2>
             <p className="text-lg">
-              Découvrez l’application de santé et télémédecine pour tous au Sénégal.
+              Découvrez SamaSanté AI, votre application de santé et télémédecine au Sénégal. 
+              Discutez en temps réel avec notre IA bilingue pour un pré-diagnostic express – réponses en français &amp; Wolof.
             </p>
             <motion.div
               className="mb-8"
@@ -183,7 +184,7 @@ export default function LandingPage() {
       <section className="py-12 bg-green-100 dark:bg-green-900 text-center">
         <div className="container mx-auto px-4">
           <h3 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-            Prêt·e à essayer SamaSanté&nbsp;?
+            Prêt·e à essayer SamaSanté AI&nbsp;?
           </h3>
           <Link
             href="/app"
