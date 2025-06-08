@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  allowedDevOrigins: [
+    '1ce9-93-22-34-241.ngrok-free.app',
+    '*.ngrok-free.app',
+  ],
   // Configuration pour SamaSanté
   experimental: {
     // Optimisation CSS

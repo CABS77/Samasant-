@@ -1,111 +1,227 @@
-"use client";
-import Link from 'next/link';
-import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Facebook, Twitter, Mail, MessageSquare, Leaf, MapPin, AlertTriangle } from 'lucide-react';
+'use client'
+
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import Link from 'next/link'
 
 export default function LandingPage() {
-  const { t } = useTranslation();
+  const [darkMode, setDarkMode] = useState(false)
+
   return (
-    <main className="min-h-screen flex flex-col items-center bg-background text-foreground">
-      <header className="w-full flex justify-center py-10 px-4 bg-gradient-to-r from-primary via-accent to-destructive">
-        <Card className="max-w-xl w-full text-center space-y-4 bg-card shadow-xl animate-fade-in border-2 border-primary">
-          <CardHeader>
-            <CardTitle className="text-2xl font-poppins-bold text-primary">
-              {t('welcome_title')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <img src="/assets/hero.svg" alt={t('placeholder_image_alt')} className="mx-auto w-full h-auto" />
-            <p className="text-sm sm:text-base">
-              {t('welcome_description')}
+    <div className={darkMode ? 'dark' : ''}>
+      {/* Hero Section */}
+      <header className="bg-gradient-to-r from-green-300 to-orange-500 dark:from-green-800 dark:to-orange-700 text-white">
+        <div className="container mx-auto flex items-center justify-between py-6 px-4">
+          <h1 className="text-3xl font-bold">SamaSanté</h1>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="px-3 py-1 rounded bg-white bg-opacity-20 hover:bg-opacity-30 transition"
+          >
+            {darkMode ? '☀ Light' : '🌙 Dark'}
+          </button>
+        </div>
+        <div className="container mx-auto flex flex-col items-center py-12 px-4">
+          {/* Text & CTA */}
+          <div className="w-full space-y-6 text-center">
+            <h2 className="text-4xl font-extrabold">Bienvenue sur SamaSanté</h2>
+            <p className="text-lg">
+              Découvrez l’application de santé et télémédecine pour tous au Sénégal.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-              <Link href="/app">
-                <Button>{t('openApp_button')}</Button>
-              </Link>
-              <a href="https://play.google.com/store" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline">{t('downloadAndroid_button')}</Button>
-              </a>
-              <a href="https://www.apple.com/app-store/" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline">{t('downloadIos_button')}</Button>
-              </a>
+            <motion.div
+              className="mb-8"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <img
+                src="/assets/hero.png"
+                alt="Mockup mobile"
+                className="mx-auto w-64 md:w-auto border-0"
+              />
+            </motion.div>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mx-auto md:mx-0">
+              <p className="text-gray-800 dark:text-gray-200 mb-6">
+                Commencez votre pré-diagnostic en quelques secondes.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <Link
+                  href="/app"
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-medium transition"
+                >
+                  🚀 Accéder à l’application
+                </Link>
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.samasante"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white text-gray-800 px-6 py-3 rounded shadow hover:bg-gray-100 transition"
+                >
+                  📱 Android
+                </a>
+                <a
+                  href="https://apps.apple.com/app/id123456789"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white text-gray-800 px-6 py-3 rounded shadow hover:bg-gray-100 transition"
+                >
+                  🍎 iOS
+                </a>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </header>
 
-      <section className="w-full flex justify-center px-4 py-6 bg-gradient-to-r from-secondary via-background to-secondary" aria-labelledby="features-title">
-        <Card className="max-w-3xl w-full bg-card shadow-xl animate-fade-in">
-          <CardHeader>
-            <CardTitle id="features-title" className="text-xl font-poppins-bold text-accent">
-              {t('features_title')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 text-sm sm:text-base">
-              <li className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-primary" />
-                {t('features_chat')}
-              </li>
-              <li className="flex items-center gap-2">
-                <Leaf className="w-4 h-4 text-primary" />
-                {t('features_remedies')}
-              </li>
-              <li className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-primary" />
-                {t('features_geolocation')}
-              </li>
-              <li className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-primary" />
-                {t('features_emergency')}
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
+      {/* Fonctionnalités Principales */}
+      <section className="py-16 bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto px-4">
+          <h3 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">
+            Fonctionnalités principales 🌟
+          </h3>
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+            {[
+              { src: '/assets/icon-chat.png',   title: 'Chat IA bilingue',    desc: 'Pré-diagnostic en wolof & français' },
+              { src: '/assets/icon-remedy.png', title: 'Remèdes validés',      desc: 'Fiches par des professionnels' },
+              { src: '/assets/icon-map.png',    title: 'Géolocalisation',      desc: 'Clinics & centres proches' },
+              { src: '/assets/icon-alert.png',  title: "Alerte d'urgence",     desc: 'Envoi de SMS aux médecins' },
+            ].map(({ src, title, desc }) => (
+              <div
+                key={title}
+                className="flex items-start bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-lg transition"
+              >
+                <img src={src} alt={title} className="w-8 h-8 mr-4" />
+                <div>
+                  <h4 className="font-semibold text-lg text-gray-900 dark:text-white">{title}</h4>
+                  <p className="text-gray-600 dark:text-gray-300">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
-      <section className="w-full flex justify-center px-4 py-6 bg-gradient-to-r from-secondary via-background to-secondary" aria-labelledby="usecases-title">
-        <Card className="max-w-3xl w-full bg-card shadow-xl animate-fade-in">
-          <CardHeader>
-            <CardTitle id="usecases-title" className="text-xl font-poppins-bold text-accent">
-              {t('usecases_title')}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm sm:text-base">
-            <p>{t('usecase_fatou')}</p>
-            <p>{t('usecase_modou')}</p>
-          </CardContent>
-        </Card>
+      {/* Founders Section */}
+      <section className="py-16 bg-gray-100 dark:bg-gray-700">
+        <div className="container mx-auto px-4">
+          <h3 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">Nos fondateurs</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div className="text-center">
+              <a
+                href="https://www.linkedin.com/in/ahmed-sall/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
+              >
+                <img
+                  src="/assets/cheikh-sall.jpeg"
+                  alt="Cheikh Ahmadou Bamba Sall"
+                  className="mx-auto w-32 h-32 rounded-full mb-4"
+                />
+              </a>
+              <h4 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Cheikh Ahmadou Bamba Sall
+              </h4>
+              <p className="text-gray-600 dark:text-gray-300">Fondateur</p>
+            </div>
+            <div className="text-center">
+              <a
+                href="https://www.linkedin.com/in/salif-jordan-marigo-3004b7108/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
+              >
+                <img
+                  src="/assets/salif-marigo.jpeg"
+                  alt="Salif Jordan Marigo"
+                  className="mx-auto w-32 h-32 rounded-full mb-4"
+                />
+              </a>
+              <h4 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Salif Jordan Marigo
+              </h4>
+              <p className="text-gray-600 dark:text-gray-300">Co-fondateur</p>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <footer className="w-full bg-card text-sm text-muted-foreground border-t border-border mt-6">
-        <div className="max-w-3xl mx-auto p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <nav className="flex space-x-4" aria-label="Legal">
-            <Link href="/cgu" className="hover:underline focus:outline-none focus:ring-2 focus:ring-ring">
-              {t('footer_terms')}
-            </Link>
-            <Link href="/privacy" className="hover:underline focus:outline-none focus:ring-2 focus:ring-ring">
-              {t('footer_privacy')}
-            </Link>
-            <Link href="/contact" className="hover:underline focus:outline-none focus:ring-2 focus:ring-ring">
-              {t('footer_contact')}
-            </Link>
-          </nav>
-          <div className="flex space-x-4 text-primary" aria-label={t('footer_follow')}>
-            <a href="#" aria-label="Facebook" className="hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring">
-              <Facebook className="w-5 h-5" />
-            </a>
-            <a href="#" aria-label="Twitter" className="hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring">
-              <Twitter className="w-5 h-5" />
-            </a>
-            <a href="mailto:support@samasante.sn" aria-label="Email" className="hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring">
-              <Mail className="w-5 h-5" />
-            </a>
+      {/* Cas d’usage */}
+      <section className="py-16 bg-white dark:bg-gray-800">
+        <div className="container mx-auto px-4">
+          <h3 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">
+            Cas d’usage 🔍
+          </h3>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+            {[
+              {
+                src: '/assets/avatar-fatou.png',
+                name: 'Fatou',
+                text: "Utilise l’appli hors-ligne pour soigner la toux de son fils et reçoit une alerte si la fièvre persiste."
+              },
+              {
+                src: '/assets/avatar-modou.png',
+                name: 'Modou',
+                text: 'Oriente les patients vers les cliniques partenaires et met à jour les remèdes.'
+              },
+            ].map(({ src, name, text }) => (
+              <div
+                key={name}
+                className="flex bg-gray-100 dark:bg-gray-700 p-6 rounded-lg shadow hover:shadow-lg transition"
+              >
+                <img src={src} alt={name} className="w-12 h-12 rounded-full mr-4" />
+                <div>
+                  <h5 className="font-semibold text-gray-900 dark:text-white">{name}</h5>
+                  <p className="text-gray-700 dark:text-gray-200">{text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Final */}
+      <section className="py-12 bg-green-100 dark:bg-green-900 text-center">
+        <div className="container mx-auto px-4">
+          <h3 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+            Prêt·e à essayer SamaSanté&nbsp;?
+          </h3>
+          <Link
+            href="/app"
+            className="inline-block bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition"
+          >
+            Commencer le pré-diagnostic
+          </Link>
+          <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+            Limité à 7 requêtes/jour pour un usage équitable.
+          </p>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-8 bg-gray-200 dark:bg-gray-800">
+        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="space-x-4 text-gray-700 dark:text-gray-400 text-sm">
+            <a href="#">CGU</a>
+            <a href="#">Politique de confidentialité</a>
+            <a href="#">Contact / support</a>
+          </div>
+          <div className="flex space-x-4 text-gray-700 dark:text-gray-400">
+            <a href="#" aria-label="Twitter">🐦</a>
+            <a href="#" aria-label="Facebook">📘</a>
+            <a href="#" aria-label="Email">✉️</a>
+          </div>
+          <div className="flex">
+            <input
+              type="email"
+              placeholder="Votre email"
+              className="px-4 py-2 rounded-l-lg border border-gray-300 dark:border-gray-600 focus:outline-none"
+            />
+            <button className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-r-lg transition">
+              S’inscrire
+            </button>
           </div>
         </div>
       </footer>
-    </main>
-  );
+    </div>
+  )
 }
