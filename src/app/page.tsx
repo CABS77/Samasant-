@@ -25,8 +25,7 @@ export default function LandingPage() {
           <div className="w-full space-y-6 text-center">
             <h2 className="text-4xl font-extrabold">Bienvenue sur SamaSanté AI</h2>
             <p className="text-lg">
-              Découvrez SamaSanté AI, votre application de santé et télémédecine au Sénégal. 
-              Discutez en temps réel avec notre IA bilingue pour un pré-diagnostic express – réponses en français &amp; Wolof.
+              Découvrez votre application de santé, qui vous permet de discuter avec notre IA pour un pré-diagnostic express — réponses en français et en Wolof.
             </p>
             <motion.div
               className="mb-8"
