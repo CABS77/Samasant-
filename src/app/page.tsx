@@ -25,7 +25,18 @@ export default function LandingPage() {
           <div className="w-full space-y-6 text-center">
             <h2 className="text-4xl font-extrabold">Bienvenue sur SamaSanté AI</h2>
             <p className="text-lg">
-              Découvrez votre application de santé, qui vous permet de discuter avec notre IA pour un pré-diagnostic express — réponses en français et en Wolof.
+              Découvrez votre application de santé, qui vous permet de discuter avec notre{' '}
+              <span className="font-bold text-white animate-pulse">
+                IA
+              </span>{' '}
+              pour un pré-diagnostic express — réponses en{' '}
+              <span className="font-bold text-white animate-pulse">
+                français
+              </span>{' '}
+              &{' '}
+              <span className="font-bold text-white animate-pulse">
+                Wolof
+              </span>.
             </p>
             <motion.div
               className="mb-8"
