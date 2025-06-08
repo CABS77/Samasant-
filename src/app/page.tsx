@@ -56,7 +56,7 @@ export default function LandingPage() {
                   rel="noopener noreferrer"
                   className="bg-white text-gray-800 px-6 py-3 rounded shadow hover:bg-gray-100 transition"
                 >
-                  📱 Android
+                  📱 Télécharger sur Android
                 </a>
                 <a
                   href="https://apps.apple.com/app/id123456789"
@@ -64,7 +64,7 @@ export default function LandingPage() {
                   rel="noopener noreferrer"
                   className="bg-white text-gray-800 px-6 py-3 rounded shadow hover:bg-gray-100 transition"
                 >
-                  🍎 iOS
+                  🍎 Télécharger sur iOS
                 </a>
               </div>
             </div>
