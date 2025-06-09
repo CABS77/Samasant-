@@ -54,7 +54,7 @@ export default function LandingPage() {
                   rel="noopener noreferrer"
                   className="bg-white text-gray-800 px-6 py-3 rounded shadow hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
-                  🍎 Bientôt sur iOS
+                   Bientôt sur iOS
                 </a>
               </div>
             </div>
