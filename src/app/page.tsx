@@ -121,6 +121,10 @@ export default function LandingPage() {
                   className="mx-auto w-32 h-32 rounded-full mb-4"
                 />
               </a>
+              <h4 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Cheikh Ahmadou Bamba Sall{' '}
+              </h4>
+              <p className="text-gray-600 dark:text-gray-300">Fondateur</p>
               <a
                 href="https://www.linkedin.com/in/ahmed-sall/"
                 target="_blank"
@@ -130,25 +134,9 @@ export default function LandingPage() {
                 <img
                   src="/assets/linkedin-logo.png"
                   alt="LinkedIn"
-                  className="w-6 h-6 inline-block"
+                  className="w-12 h-12 inline-block"
                 />
               </a>
-              <h4 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Cheikh Ahmadou Bamba Sall{' '}
-                <a
-                  href="https://www.linkedin.com/in/ahmed-sall/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block"
-                >
-                  <img
-                    src="/assets/linkedin-logo.png"
-                    alt="LinkedIn"
-                    className="w-6 h-6 inline-block"
-                  />
-                </a>
-              </h4>
-              <p className="text-gray-600 dark:text-gray-300">Fondateur</p>
             </div>
             <div className="text-center">
               <a
@@ -163,6 +151,10 @@ export default function LandingPage() {
                   className="mx-auto w-32 h-32 rounded-full mb-4"
                 />
               </a>
+              <h4 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Salif Jordan Marigo{' '}
+              </h4>
+              <p className="text-gray-600 dark:text-gray-300">Co-fondateur</p>
               <a
                 href="https://www.linkedin.com/in/salif-jordan-marigo-3004b7108/"
                 target="_blank"
@@ -172,25 +164,9 @@ export default function LandingPage() {
                 <img
                   src="/assets/linkedin-logo.png"
                   alt="LinkedIn"
-                  className="w-6 h-6 inline-block"
+                  className="w-12 h-12 inline-block"
                 />
               </a>
-              <h4 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Salif Jordan Marigo{' '}
-                <a
-                  href="https://www.linkedin.com/in/salif-jordan-marigo-3004b7108/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block"
-                >
-                  <img
-                    src="/assets/linkedin-logo.png"
-                    alt="LinkedIn"
-                    className="w-6 h-6 inline-block"
-                  />
-                </a>
-              </h4>
-              <p className="text-gray-600 dark:text-gray-300">Co-fondateur</p>
             </div>
           </div>
         </div>
