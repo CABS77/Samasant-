@@ -15,6 +15,18 @@ export default function LandingPage() {
           {/* Text & CTA */}
           <div className="w-full md:w-1/2 space-y-6 text-center md:text-left px-6 md:px-16">
             <h2 className="text-4xl font-extrabold">Bienvenue sur SamaSanté AI</h2>
+            <motion.div
+              className="md:w-1/2 mb-8 md:mb-0 px-4 md:px-16"
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+            >
+              <img
+                src="/assets/hero.png"
+                alt="Mockup mobile"
+                className="mx-auto max-w-full h-auto border-0"
+              />
+            </motion.div>
             <p className="text-lg">
               Découvrez votre application de santé, qui vous permet de discuter avec notre{' '}
               <span className="font-bold text-white animate-pulse">
@@ -59,18 +71,6 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-          <motion.div
-            className="md:w-1/2 mb-8 md:mb-0 px-4 md:px-16"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <img
-              src="/assets/hero.png"
-              alt="Mockup mobile"
-              className="mx-auto max-w-full h-auto border-0"
-            />
-          </motion.div>
         </div>
       </header>
       <main id="main-content">
