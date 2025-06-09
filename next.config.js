@@ -12,6 +12,11 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react'],
   },
   
+  // → Internationalisation
+  i18n: {
+    locales: ['fr', 'wo'],
+    defaultLocale: 'fr',
+  },
   // Optimisation des images
   images: {
     domains: [
