@@ -11,7 +11,7 @@ export default function LandingPage() {
     <div className={darkMode ? 'dark' : ''}>
       {/* Hero Section */}
       <header className="bg-gradient-to-r from-green-300 to-orange-500 dark:from-green-800 dark:to-orange-700 text-white">
-        <div className="container mx-auto flex flex-col md:flex-row items-center py-12 px-4 gap-8">
+        <div className="container mx-auto flex flex-col sm:flex-col md:flex-row items-center py-12 px-4 gap-8">
           {/* Text & CTA */}
           <div className="w-full md:w-1/2 space-y-6 text-center md:text-left px-6 md:px-16">
             <h2 className="text-4xl font-extrabold">Bienvenue sur SamaSanté AI</h2>
