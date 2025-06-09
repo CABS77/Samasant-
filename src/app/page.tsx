@@ -11,18 +11,9 @@ export default function LandingPage() {
     <div className={darkMode ? 'dark' : ''}>
       {/* Hero Section */}
       <header className="bg-gradient-to-r from-green-300 to-orange-500 dark:from-green-800 dark:to-orange-700 text-white">
-        <div className="container mx-auto flex items-center justify-between py-6 px-4">
-          <h1 className="text-3xl font-bold">SamaSanté AI</h1>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="px-3 py-1 rounded bg-white bg-opacity-20 hover:bg-opacity-30 transition"
-          >
-            {darkMode ? '☀ Light' : '🌙 Dark'}
-          </button>
-        </div>
-        <div className="container mx-auto flex flex-col items-center py-12 px-4">
+        <div className="container mx-auto flex flex-col md:flex-row items-center py-12 px-4 gap-8">
           {/* Text & CTA */}
-          <div className="w-full space-y-6 text-center">
+          <div className="w-full md:w-1/2 space-y-6 text-center md:text-left px-6 md:px-16">
             <h2 className="text-4xl font-extrabold">Bienvenue sur SamaSanté AI</h2>
             <p className="text-lg">
               Découvrez votre application de santé, qui vous permet de discuter avec notre{' '}
@@ -38,18 +29,6 @@ export default function LandingPage() {
                 Wolof
               </span>.
             </p>
-            <motion.div
-              className="mb-8"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <img
-                src="/assets/hero.png"
-                alt="Mockup mobile"
-                className="mx-auto w-64 md:w-auto border-0"
-              />
-            </motion.div>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mx-auto md:mx-0">
               <p className="text-gray-800 dark:text-gray-200 mb-6">
                 Commencez votre pré-diagnostic en quelques secondes.
@@ -57,7 +36,7 @@ export default function LandingPage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                 <Link
                   href="/app"
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-medium transition"
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
                   🚀 Accéder à l’application
                 </Link>
@@ -65,7 +44,7 @@ export default function LandingPage() {
                   href="https://play.google.com/store/apps/details?id=com.samasante"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-white text-gray-800 px-6 py-3 rounded shadow hover:bg-gray-100 transition"
+                  className="bg-white text-gray-800 px-6 py-3 rounded shadow hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
                   📱 Télécharger sur Android
                 </a>
@@ -73,15 +52,28 @@ export default function LandingPage() {
                   href="https://apps.apple.com/app/id123456789"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-white text-gray-800 px-6 py-3 rounded shadow hover:bg-gray-100 transition"
+                  className="bg-white text-gray-800 px-6 py-3 rounded shadow hover:bg-gray-100 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
                   🍎 Télécharger sur iOS
                 </a>
               </div>
             </div>
           </div>
+          <motion.div
+            className="md:w-1/2 mb-8 md:mb-0 px-4 md:px-16"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <img
+              src="/assets/hero.png"
+              alt="Mockup mobile"
+              className="mx-auto max-w-full h-auto border-0"
+            />
+          </motion.div>
         </div>
       </header>
+      <main id="main-content">
 
       {/* Fonctionnalités Principales */}
       <section className="py-16 bg-gray-50 dark:bg-gray-900">
@@ -198,7 +190,7 @@ export default function LandingPage() {
           </h3>
           <Link
             href="/app"
-            className="inline-block bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition"
+            className="inline-block bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
           >
             Commencer le pré-diagnostic
           </Link>
@@ -233,6 +225,7 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+      </main>
     </div>
   )
 }
