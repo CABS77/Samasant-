@@ -5,6 +5,7 @@ import './globals.css';
 import {Poppins, Open_Sans} from 'next/font/google';
 import { AppProviders } from '@/components/app-providers';
 import { Toaster } from "@/components/ui/toaster";
+import { Analytics } from '@vercel/analytics/next'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -144,6 +145,7 @@ export default function RootLayout({
         <SpeedInsights />
         <AppProviders>
           {children}
+          <Analytics />
           <Toaster />
         </AppProviders>
       </body>
