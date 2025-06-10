@@ -24,8 +24,8 @@ const PEXELS_API_URL = 'https://api.pexels.com/v1/search';
 const UNSPLASH_ACCESS_KEY = process.env.NEXT_PUBLIC_UNSPLASH_ACCESS_KEY;
 const PEXELS_API_KEY = process.env.NEXT_PUBLIC_PEXELS_API_KEY;
 
-// Cache pour stocker les URLs d'images
-const imageCache = new LRUCache<string, string | null>({
+// Cache pour stocker les URLs d'images ("" signifie absence d'image)
+const imageCache = new LRUCache<string, string>({
   max: 500, // Maximum 500 entrées
   ttl: 1000 * 60 * 60 * 24 * 7, // TTL de 7 jours
 });
@@ -144,7 +144,7 @@ export async function getRemedyImageUrl(query: string): Promise<string | null> {
   const cachedUrl = imageCache.get(query);
   if (cachedUrl !== undefined) {
     console.log(`✅ Cache hit for query "${query}": ${cachedUrl}`);
-    return cachedUrl;
+    return cachedUrl || null;
   }
   
   console.log(`❌ Cache miss for query "${query}". Fetching from APIs...`);
@@ -166,8 +166,8 @@ export async function getRemedyImageUrl(query: string): Promise<string | null> {
   
   console.warn(`No image found for query: "${query}" on Unsplash or Pexels. Returning null as fallback.`);
   
-  // Mettre en cache le résultat null pour éviter de refaire les appels API
-  imageCache.set(query, null);
+  // Mettre en cache le résultat vide pour éviter de refaire les appels API
+  imageCache.set(query, "");
   return null;
 }
 
