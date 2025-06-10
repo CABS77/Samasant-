@@ -54,7 +54,7 @@ export default function Home() {
           <AIChatSection />
 
           <div className="grid gap-6 md:grid-cols-2">
-            <Card className="shadow-xl rounded-2xl bg-card/80 backdrop-blur">
+            <Card className="shadow-xl rounded-2xl bg-card/90 backdrop-blur">
               <CardHeader>
                 <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">
                   {t("traditionalRemedies_safara")}
@@ -65,7 +65,7 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-xl rounded-2xl bg-card/80 backdrop-blur">
+            <Card className="shadow-xl rounded-2xl bg-card/90 backdrop-blur">
               <CardHeader>
                 <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">
                   {t("emergencyAlertSystem_xabar")}
