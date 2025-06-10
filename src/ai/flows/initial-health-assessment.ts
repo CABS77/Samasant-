@@ -85,7 +85,8 @@ Basé sur '{{{message}}}', retournez un objet JSON :
       },
     ],
     generationConfig: {
-      maxOutputTokens: 300,
+      // Increase token limit to allow more detailed Wolof responses
+      maxOutputTokens: 600,
       temperature: 0.7,
     },
   },
