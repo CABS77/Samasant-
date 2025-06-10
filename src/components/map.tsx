@@ -12,21 +12,20 @@ interface MapProps {
 }
 
 export function Map({ latitude, longitude, clinics = [] }: MapProps) {
+  const markerParams = clinics
+    .map((c) => `${c.latitude},${c.longitude},blue1`)
+    .join('|');
+  const markers = markerParams
+    ? `${latitude},${longitude},red|${markerParams}`
+    : `${latitude},${longitude},red`;
+  const url = `https://staticmap.openstreetmap.de/staticmap.php?center=${latitude},${longitude}&zoom=13&size=600x400&markers=${markers}`;
   return (
-    <div className="relative w-full h-[400px] rounded-lg overflow-hidden bg-gray-100">
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 mb-2">Carte interactive</p>
-          <p className="text-sm text-gray-500">
-            Latitude: {latitude.toFixed(4)}, Longitude: {longitude.toFixed(4)}
-          </p>
-          {clinics.length > 0 && (
-            <p className="text-sm text-gray-500 mt-2">
-              {clinics.length} clinique(s) trouvée(s)
-            </p>
-          )}
-        </div>
-      </div>
+    <div className="w-full max-w-xl mx-auto">
+      <img
+        src={url}
+        alt="Carte des cliniques proches"
+        className="w-full h-auto rounded-lg shadow"
+      />
     </div>
   );
 }
