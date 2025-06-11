@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import frTranslationsData from '@/locales/fr/translation.json'; // Import direct pour frTranslations
 import { Mic, MicOff, Volume2, VolumeX, Share2, Loader2, Info } from 'lucide-react';
 import {ThemeToggle} from "@/components/theme-toggle";
+import Link from 'next/link';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from 'react-i18next';
 
@@ -47,7 +48,12 @@ export default function Home() {
                 </svg>
                 <h1 className="font-poppins-bold text-lg sm:text-xl text-primary whitespace-nowrap overflow-hidden">{t("appName_sama")}</h1>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-4">
+              <Link href="/appointments" className="text-sm underline">
+                Prendre rendez-vous
+              </Link>
+              <ThemeToggle />
+            </div>
         </header>
 
         <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto space-y-6 max-w-6xl w-full mx-auto">
