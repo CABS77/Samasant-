@@ -354,9 +354,34 @@ export function AIChatSection({}: AIChatSectionProps) {
             </div>
           </div>
         )}
+        <div className="mt-4 text-right">
+          <Link href="/appointments" className="text-sm underline">
+            {t("appointments_book_link")}
+          </Link>
+        </div>
       </CardContent>
     </Card>
 
+    <Card className="shadow-xl rounded-xl bg-card text-card-foreground">
+      <CardHeader>
+        <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">
+          {t('appointments_book_link')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <h3 className="text-lg font-semibold mb-2">
+          {t('doctor_availability_title')}
+        </h3>
+        <ul className="space-y-2 mb-4">
+          {doctors.map((d) => (
+            <li key={d.id} className="border p-2 rounded">
+              <strong>{d.name}</strong>: {d.available.join(', ')}
+            </li>
+          ))}
+        </ul>
+        <AppointmentForm doctors={doctors} />
+      </CardContent>
+    </Card>
     <Card className="shadow-xl rounded-xl bg-card text-card-foreground">
       <CardHeader>
         <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">
