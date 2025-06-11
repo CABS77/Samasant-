@@ -15,7 +15,7 @@ import { Mic, MicOff, Volume2, VolumeX, Loader2, Info, Share2 } from 'lucide-rea
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AppointmentForm } from '@/components/appointment-form';
-
+import Link from 'next/link';
 
 interface AIChatSectionProps {}
 
@@ -380,6 +380,31 @@ export function AIChatSection({}: AIChatSectionProps) {
           ))}
         </ul>
         <AppointmentForm doctors={doctors} />
+      </CardContent>
+    </Card>
+    <Card className="shadow-xl rounded-xl bg-card text-card-foreground">
+      <CardHeader>
+        <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">
+          {t('appointments_book_link')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <h3 className="text-lg font-semibold mb-2">
+          {t('doctor_availability_title')}
+        </h3>
+        <ul className="space-y-2 mb-4">
+          {doctors.map((d) => (
+            <li key={d.id} className="border p-2 rounded">
+              <strong>{d.name}</strong>: {d.available.join(', ')}
+            </li>
+          ))}
+        </ul>
+        <AppointmentForm doctors={doctors} />
+        <div className="pt-4">
+          <Link href="/appointments" className="text-sm underline">
+            {t('appointments_book_link')}
+          </Link>
+        </div>
       </CardContent>
     </Card>
     </div>
