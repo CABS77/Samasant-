@@ -1,6 +1,7 @@
 
 "use client";
 import React from 'react';
+import Link from 'next/link';
 import type { InitialHealthAssessmentOutput, RemedyDetailSchema } from "@/ai/flows/initial-health-assessment";
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
