@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AppointmentForm } from '@/components/appointment-form';
 
+
 interface AIChatSectionProps {}
 
 interface ChatOutput {
@@ -353,6 +354,11 @@ export function AIChatSection({}: AIChatSectionProps) {
             </div>
           </div>
         )}
+        <div className="mt-4 text-right">
+          <Link href="/appointments" className="text-sm underline">
+            {t("appointments_book_link")}
+          </Link>
+        </div>
       </CardContent>
     </Card>
 
