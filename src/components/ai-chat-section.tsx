@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { Mic, MicOff, Volume2, VolumeX, Loader2, Info, Share2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import Link from 'next/link';
 
 interface AIChatSectionProps {}
 
@@ -347,6 +348,11 @@ export function AIChatSection({}: AIChatSectionProps) {
             </div>
           </div>
         )}
+        <div className="mt-4 text-right">
+          <Link href="/appointments" className="text-sm underline">
+            {t("appointments_book_link")}
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );
