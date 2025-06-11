@@ -36,6 +36,10 @@ export function AIChatSection({}: AIChatSectionProps) {
   const [loading, setLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const doctors = [
+    { id: 'd1', name: 'Dr Ndiaye', available: ['09:00', '11:00'] },
+    { id: 'd2', name: 'Dr Faye', available: ['14:00', '16:00'] },
+  ];
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const recognitionRef = useRef<any>(null);
   // Cache last submitted message and responses by language to avoid
@@ -354,6 +358,57 @@ export function AIChatSection({}: AIChatSectionProps) {
             </div>
           </div>
         )}
+        <div className="mt-4 text-right">
+          <Link href="/appointments" className="text-sm underline">
+            {t("appointments_book_link")}
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+
+    <Card className="shadow-xl rounded-xl bg-card text-card-foreground">
+      <CardHeader>
+        <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">
+          {t('appointments_book_link')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <h3 className="text-lg font-semibold mb-2">
+          {t('doctor_availability_title')}
+        </h3>
+        <ul className="space-y-2 mb-4">
+          {doctors.map((d) => (
+            <li key={d.id} className="border p-2 rounded">
+              <strong>{d.name}</strong>: {d.available.join(', ')}
+            </li>
+          ))}
+        </ul>
+        <AppointmentForm doctors={doctors} />
+      </CardContent>
+    </Card>
+    <Card className="shadow-xl rounded-xl bg-card text-card-foreground">
+      <CardHeader>
+        <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">
+          {t('appointments_book_link')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <h3 className="text-lg font-semibold mb-2">
+          {t('doctor_availability_title')}
+        </h3>
+        <ul className="space-y-2 mb-4">
+          {doctors.map((d) => (
+            <li key={d.id} className="border p-2 rounded">
+              <strong>{d.name}</strong>: {d.available.join(', ')}
+            </li>
+          ))}
+        </ul>
+        <AppointmentForm doctors={doctors} />
+        <div className="pt-4">
+          <Link href="/appointments" className="text-sm underline">
+            {t('appointments_book_link')}
+          </Link>
+        </div>
       </CardContent>
     </Card>
 
@@ -377,6 +432,7 @@ export function AIChatSection({}: AIChatSectionProps) {
         <AppointmentForm doctors={DOCTORS} />
       </CardContent>
     </Card>
+
     </div>
   );
 }
