@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { Mic, MicOff, Volume2, VolumeX, Loader2, Info, Share2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AppointmentForm } from '@/components/appointment-form';
 
 interface AIChatSectionProps {}
 
@@ -30,6 +31,10 @@ export function AIChatSection({}: AIChatSectionProps) {
   const [loading, setLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const doctors = [
+    { id: 'd1', name: 'Dr Ndiaye', available: ['09:00', '11:00'] },
+    { id: 'd2', name: 'Dr Faye', available: ['14:00', '16:00'] },
+  ];
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const recognitionRef = useRef<any>(null);
   // Cache last submitted message and responses by language to avoid
@@ -238,7 +243,8 @@ export function AIChatSection({}: AIChatSectionProps) {
   };
 
   return (
-    <Card className="shadow-xl rounded-xl mb-6 bg-card text-card-foreground">
+    <div className="space-y-6">
+    <Card className="shadow-xl rounded-xl bg-card text-card-foreground">
        <CardHeader>
         <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">{t("aiChat_waxtaan_title")}</CardTitle>
       </CardHeader>
@@ -349,5 +355,27 @@ export function AIChatSection({}: AIChatSectionProps) {
         )}
       </CardContent>
     </Card>
+
+    <Card className="shadow-xl rounded-xl bg-card text-card-foreground">
+      <CardHeader>
+        <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">
+          {t('appointments_book_link')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <h3 className="text-lg font-semibold mb-2">
+          {t('doctor_availability_title')}
+        </h3>
+        <ul className="space-y-2 mb-4">
+          {doctors.map((d) => (
+            <li key={d.id} className="border p-2 rounded">
+              <strong>{d.name}</strong>: {d.available.join(', ')}
+            </li>
+          ))}
+        </ul>
+        <AppointmentForm doctors={doctors} />
+      </CardContent>
+    </Card>
+    </div>
   );
 }
