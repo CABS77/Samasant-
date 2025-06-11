@@ -9,10 +9,7 @@ const STATIC_ASSETS = [
   '/',
   '/offline.html',
   '/manifest.json',
-  '/favicon.ico',
-  '/_next/static/css/app.css',
-  '/_next/static/chunks/main.js',
-  '/_next/static/chunks/pages/_app.js',
+  '/favicon.ico'
 ];
 
 // Stratégies de cache
