@@ -111,5 +111,12 @@
   ,"footer_terms": "CGU"
   ,"footer_privacy": "Politique de confidentialité"
   ,"footer_contact": "Contact / support"
-  ,"footer_follow": "Suivez-nous"
+  ,"footer_follow": "Suivez-nous",
+  "appointments_book_link": "Prendre rendez-vous",
+  "doctor_availability_title": "Disponibilités des médecins",
+  "appointment_motif_placeholder": "Motif de la consultation",
+  "appointment_type_label": "Type de rendez-vous",
+  "appointment_type_clinic": "En clinique",
+  "appointment_type_video": "En vidéo",
+  "appointment_submit_button": "Réserver"
 }
