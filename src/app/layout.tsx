@@ -4,6 +4,7 @@ import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
 import {Poppins, Open_Sans} from 'next/font/google';
 import { AppProviders } from '@/components/app-providers';
+import { Navbar } from '@/components/navbar';
 import { Toaster } from "@/components/ui/toaster";
 import { Analytics } from '@vercel/analytics/next'
 
@@ -144,6 +145,7 @@ export default function RootLayout({
         </a>
         <SpeedInsights />
         <AppProviders>
+          <Navbar />
           {children}
           <Analytics />
           <Toaster />
