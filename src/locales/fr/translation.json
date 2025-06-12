@@ -119,4 +119,7 @@
   "appointment_type_clinic": "En clinique",
   "appointment_type_video": "En vidéo",
   "appointment_submit_button": "Réserver"
+  ,"nav_home": "Accueil"
+  ,"nav_app": "Application"
+  ,"nav_appointments": "Rendez-vous"
 }
