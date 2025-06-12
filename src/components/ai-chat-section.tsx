@@ -17,11 +17,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AppointmentForm } from '@/components/appointment-form';
 
-const DOCTORS = [
-  { id: 'd1', name: 'Dr Ndiaye', available: ['09:00', '11:00'] },
-  { id: 'd2', name: 'Dr Faye', available: ['14:00', '16:00'] },
-];
-
 interface AIChatSectionProps {}
 
 interface ChatOutput {
@@ -385,26 +380,6 @@ export function AIChatSection({}: AIChatSectionProps) {
           ))}
         </ul>
         <AppointmentForm doctors={doctors} />
-      </CardContent>
-    </Card>
-    <Card className="shadow-xl rounded-xl bg-card text-card-foreground">
-      <CardHeader>
-        <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">
-          {t('appointments_book_link')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <h3 className="text-lg font-semibold mb-2">
-          {t('doctor_availability_title')}
-        </h3>
-        <ul className="space-y-2 mb-4">
-          {doctors.map((d) => (
-            <li key={d.id} className="border p-2 rounded">
-              <strong>{d.name}</strong>: {d.available.join(', ')}
-            </li>
-          ))}
-        </ul>
-        <AppointmentForm doctors={doctors} />
         <div className="pt-4">
           <Link href="/appointments" className="text-sm underline">
             {t('appointments_book_link')}
@@ -413,26 +388,6 @@ export function AIChatSection({}: AIChatSectionProps) {
       </CardContent>
     </Card>
 
-    <Card className="shadow-xl rounded-xl bg-card text-card-foreground">
-      <CardHeader>
-        <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">
-          {t('appointments_book_link')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <h3 className="text-lg font-semibold mb-2">
-          {t('doctor_availability_title')}
-        </h3>
-        <ul className="space-y-2 mb-4">
-          {DOCTORS.map((d) => (
-            <li key={d.id} className="border p-2 rounded">
-              <strong>{d.name}</strong>: {d.available.join(', ')}
-            </li>
-          ))}
-        </ul>
-        <AppointmentForm doctors={DOCTORS} />
-      </CardContent>
-    </Card>
 
     </div>
   );
