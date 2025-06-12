@@ -33,8 +33,11 @@ export function AIChatSection({}: AIChatSectionProps) {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const doctors = [
-    { id: 'd1', name: 'Dr Ndiaye', available: ['09:00', '11:00'] },
-    { id: 'd2', name: 'Dr Faye', available: ['14:00', '16:00'] },
+    { id: 'd1', name: 'Dr Ndiaye', specialty: 'Cardiologie', available: ['09:00', '11:00'] },
+    { id: 'd2', name: 'Dr Faye', specialty: 'Dermatologie', available: ['14:00', '16:00'] },
+    { id: 'd3', name: 'Dr Diop', specialty: 'Pédiatrie', available: ['10:00', '12:00'] },
+    { id: 'd4', name: 'Dr Sarr', specialty: 'Généraliste', available: ['13:00', '15:00'] },
+    { id: 'd5', name: 'Dr Ba', specialty: 'Gynécologie', available: ['16:00', '18:00'] },
   ];
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -375,7 +378,7 @@ export function AIChatSection({}: AIChatSectionProps) {
         <ul className="space-y-2 mb-4">
           {doctors.map((d) => (
             <li key={d.id} className="border p-2 rounded">
-              <strong>{d.name}</strong>: {d.available.join(', ')}
+              <strong>{d.name}</strong> ({d.specialty}): {d.available.join(', ')}
             </li>
           ))}
         </ul>
