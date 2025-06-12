@@ -11,6 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 interface Doctor {
   id: string;
   name: string;
+  specialty: string;
 }
 
 interface Props {
@@ -50,7 +51,7 @@ export function AppointmentForm({ doctors }: Props) {
         <option value="">Choisissez un médecin</option>
         {doctors.map((d) => (
           <option key={d.id} value={d.id}>
-            {d.name}
+            {d.name} - {d.specialty}
           </option>
         ))}
       </select>
