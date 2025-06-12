@@ -2,17 +2,11 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { BrightnessSlider } from '@/components/brightness-slider'
 export default function LandingPage() {
   return (
     <div>
       {/* Hero Section */}
       <header className="bg-gradient-to-r from-green-300 to-orange-500 dark:from-green-800 dark:to-orange-700 text-white">
-        <div className="flex justify-end gap-4 p-4">
-          <ThemeToggle />
-          <BrightnessSlider />
-        </div>
         <div className="container mx-auto flex flex-col sm:flex-col md:flex-row items-center py-12 px-4 gap-8">
           {/* Text & CTA */}
           <div className="w-full md:w-1/2 space-y-6 text-center md:text-left px-6 md:px-16">
