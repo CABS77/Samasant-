@@ -12,15 +12,16 @@ const doctors = [
 
 export default function AppointmentsPage() {
   return (
-    <div className="p-4 space-y-6 max-w-xl mx-auto">
-      <h2 className="text-2xl font-bold">Disponibilités des médecins</h2>
-      <ul className="space-y-2">
+    <div className="p-4 space-y-6 max-w-3xl mx-auto">
+      <h2 className="text-2xl font-bold font-poppins-bold">Disponibilités des médecins</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {doctors.map((d) => (
-          <li key={d.id} className="border p-2 rounded">
-            <strong>{d.name}</strong> ({d.specialty}): {d.available.join(', ')}
-          </li>
+          <div key={d.id} className="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition">
+            <strong>{d.name}</strong> ({d.specialty})
+            <div className="text-sm mt-1">{d.available.join(', ')}</div>
+          </div>
         ))}
-      </ul>
+      </div>
       <AppointmentForm doctors={doctors} />
     </div>
   );

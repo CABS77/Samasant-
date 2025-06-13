@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Icons } from '@/components/icons';
 
 interface Doctor {
   id: string;
@@ -64,11 +65,15 @@ export function AppointmentForm({ doctors }: Props) {
       <RadioGroup value={mode} onValueChange={(v) => setMode(v as 'clinic' | 'video')} className="flex gap-4">
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="clinic" id="clinic" />
-          <label htmlFor="clinic">En clinique</label>
+          <label htmlFor="clinic" className="flex items-center gap-1">
+            <Icons.stethoscope className="w-4 h-4" /> En clinique
+          </label>
         </div>
         <div className="flex items-center space-x-2">
           <RadioGroupItem value="video" id="video" />
-          <label htmlFor="video">En vidéo</label>
+          <label htmlFor="video" className="flex items-center gap-1">
+            <Icons.video className="w-4 h-4" /> En vidéo
+          </label>
         </div>
       </RadioGroup>
       <Button type="submit">Réserver</Button>

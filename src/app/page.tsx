@@ -77,7 +77,7 @@ export default function LandingPage() {
           <h3 className="text-3xl font-bold mb-8 text-gray-800 dark:text-white">
             Fonctionnalités principales 🌟
           </h3>
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { src: '/assets/icon-chat.png',   title: 'Chat IA bilingue',    desc: 'Pré-diagnostic en wolof & français' },
               { src: '/assets/icon-remedy.png', title: 'Remèdes validés',      desc: 'Fiches par des professionnels' },
