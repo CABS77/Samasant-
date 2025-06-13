@@ -1,6 +1,7 @@
 "use client";
 
 import { AppointmentForm } from '@/components/appointment-form';
+import DoctorCard from '@/components/doctor-card';
 
 const doctors = [
   { id: 'd1', name: 'Dr Ndiaye', specialty: 'Cardiologie', available: ['09:00', '11:00'] },
@@ -12,14 +13,11 @@ const doctors = [
 
 export default function AppointmentsPage() {
   return (
-    <div className="p-4 space-y-6 max-w-3xl mx-auto">
+    <div className="p-4 space-y-6 max-w-5xl mx-auto">
       <h2 className="text-2xl font-bold font-poppins-bold">Disponibilités des médecins</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {doctors.map((d) => (
-          <div key={d.id} className="bg-card border border-border rounded-lg p-4 shadow-sm hover:shadow-md transition">
-            <strong>{d.name}</strong> ({d.specialty})
-            <div className="text-sm mt-1">{d.available.join(', ')}</div>
-          </div>
+          <DoctorCard key={d.id} doctor={d} />
         ))}
       </div>
       <AppointmentForm doctors={doctors} />
