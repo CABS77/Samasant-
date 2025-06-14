@@ -4,6 +4,7 @@ import { AppointmentForm } from '@/components/appointment-form';
 import DoctorCard from '@/components/doctor-card';
 import { DoctorSearch } from '@/components/doctor-search';
 import { useState } from 'react';
+import type { Doctor } from '@/types/doctor';
 import { useTranslation } from 'react-i18next';
 
 const doctors = [
@@ -61,14 +62,14 @@ const doctors = [
 
 export default function AppointmentsPage() {
   const { t } = useTranslation();
-  const [filtered, setFiltered] = useState(doctors);
+  const [filtered, setFiltered] = useState<Doctor[]>(doctors);
 
   return (
     <div className="p-4 space-y-8 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold font-poppins-bold">
         {t('appointments_book_link')}
       </h1>
-      <DoctorSearch doctors={doctors} onFilter={setFiltered} />
+      <DoctorSearch doctors={doctors} onFilter={(docs) => setFiltered(docs)} />
       <h2 className="text-xl font-semibold">
         {t('doctor_availability_title')}
       </h2>
