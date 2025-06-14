@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
+import { Icons } from './icons'
 
 interface Doctor {
   id: string
   name: string
   specialty: string
+  bio?: string
   available: string[]
 }
 
@@ -13,14 +15,39 @@ interface Props {
 
 export default function DoctorCard({ doctor }: Props) {
   const [time, setTime] = useState('')
+
+  const handleReserve = () => {
+    if (!time) {
+      alert('Veuillez sélectionner un horaire')
+      return
+    }
+    alert(`Rendez-vous réservé avec ${doctor.name} à ${time}`)
+    setTime('')
+  }
+
+  const iconMap: Record<string, JSX.Element> = {
+    Cardiologie: <Icons.heartPulse className="w-4 h-4" />,
+    Dermatologie: <Icons.syringe className="w-4 h-4" />,
+    Pédiatrie: <Icons.baby className="w-4 h-4" />,
+    Gynécologie: <Icons.venus className="w-4 h-4" />,
+    Généraliste: <Icons.stethoscope className="w-4 h-4" />,
+  }
+
   return (
-    <div className="card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg transition-transform hover:scale-105 w-64 mx-auto">
-      <img src="/assets/doctor.jpg" alt={doctor.name} className="w-24 h-24 rounded-full mx-auto mb-2 object-cover" />
-      <h4 className="text-lg font-semibold text-gray-900 dark:text-white text-center">
-        {doctor.name}
-      </h4>
-      <p className="text-center text-gray-600 dark:text-gray-300">{doctor.specialty}</p>
-      <div className="mt-4 text-center">
+    <div className="flex bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg w-full max-w-md mx-auto gap-4">
+      <img
+        src="/assets/doctor.jpg"
+        alt={`Photo de ${doctor.name}`}
+        className="w-16 h-16 rounded-full object-cover"
+      />
+      <div className="flex-1">
+        <h4 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+          {iconMap[doctor.specialty] ?? <Icons.stethoscope className="w-4 h-4" />} {doctor.name}
+        </h4>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">{doctor.specialty}</p>
+        {doctor.bio && (
+          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">{doctor.bio}</p>
+        )}
         <label htmlFor={`time-${doctor.id}`} className="sr-only">
           Choisir un horaire
         </label>
@@ -28,7 +55,7 @@ export default function DoctorCard({ doctor }: Props) {
           id={`time-${doctor.id}`}
           value={time}
           onChange={(e) => setTime(e.target.value)}
-          className="mt-2 w-full border rounded-md p-2 text-gray-900 dark:text-gray-800"
+          className="mt-1 w-full border rounded-md p-2 text-gray-900 dark:text-gray-800"
         >
           <option value="">Choisir un créneau</option>
           {doctor.available.map((t) => (
@@ -37,9 +64,13 @@ export default function DoctorCard({ doctor }: Props) {
             </option>
           ))}
         </select>
-      </div>
-      <div className="text-center mt-4">
-        <button className="bg-green-600 text-white px-4 py-2 rounded-lg">Réserver</button>
+        <button
+          type="button"
+          onClick={handleReserve}
+          className="mt-3 bg-green-600 text-white px-4 py-2 rounded-lg w-full hover:bg-green-700 transition-colors"
+        >
+          Réserver
+        </button>
       </div>
     </div>
   )
