@@ -25,6 +25,7 @@ import {
   Shield,
   Sun,
   Syringe,
+  Star,
   Trash,
   User,
   Venus,
@@ -67,6 +68,7 @@ const Icons = {
   baby: Baby,
   heartPulse: HeartPulse,
   syringe: Syringe,
+  star: Star,
   venus: Venus,
   panelLeft: PanelLeft, // Sidebar toggle icon
 };
