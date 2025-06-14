@@ -67,7 +67,7 @@ export default function DoctorCard({ doctor }: Props) {
         <button
           type="button"
           onClick={handleReserve}
-          className="mt-3 bg-green-600 text-white px-4 py-2 rounded-lg w-full hover:bg-green-700 transition-colors"
+          className="mt-3 w-full rounded-lg bg-gradient-to-r from-green-500 to-green-600 px-4 py-2 text-white shadow-md transition-transform hover:shadow-lg hover:scale-105"
         >
           Réserver
         </button>

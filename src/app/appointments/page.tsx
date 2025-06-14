@@ -43,7 +43,7 @@ const doctors = [
 
 export default function AppointmentsPage() {
   return (
-    <div className="p-4 space-y-6 max-w-5xl mx-auto">
+    <div className="p-4 space-y-8 max-w-5xl mx-auto">
       <h2 className="text-2xl font-bold font-poppins-bold">Disponibilités des médecins</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
         {doctors.map((d) => (
