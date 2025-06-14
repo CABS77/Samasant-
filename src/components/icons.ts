@@ -1,4 +1,38 @@
-import {ArrowRight, Check, ChevronsUpDown, Circle, Copy, Edit, ExternalLink, File, HelpCircle, Home, Loader2, Mail, MessageSquare, Moon, PanelLeft, Plus, PlusCircle, Search, Server, Settings, Share2, Shield, Sun, Trash, User, Video, Stethoscope, X, Workflow} from 'lucide-react';
+import {
+  ArrowRight,
+  Baby,
+  Check,
+  ChevronsUpDown,
+  Circle,
+  Copy,
+  Edit,
+  ExternalLink,
+  File,
+  HeartPulse,
+  HelpCircle,
+  Home,
+  Loader2,
+  Mail,
+  MessageSquare,
+  Moon,
+  PanelLeft,
+  Plus,
+  PlusCircle,
+  Search,
+  Server,
+  Settings,
+  Share2,
+  Shield,
+  Sun,
+  Syringe,
+  Trash,
+  User,
+  Venus,
+  Video,
+  Stethoscope,
+  X,
+  Workflow,
+} from 'lucide-react';
 
 const Icons = {
   arrowRight: ArrowRight,
@@ -30,6 +64,10 @@ const Icons = {
   user: User,
   video: Video,
   stethoscope: Stethoscope,
+  baby: Baby,
+  heartPulse: HeartPulse,
+  syringe: Syringe,
+  venus: Venus,
   panelLeft: PanelLeft, // Sidebar toggle icon
 };
 

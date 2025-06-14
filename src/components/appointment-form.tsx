@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { createAppointment } from '@/services/appointments';
 import type { RendezVous } from '@/types/firestore';
 import { Input } from '@/components/ui/input';
@@ -56,7 +56,15 @@ export function AppointmentForm({ doctors }: Props) {
           </option>
         ))}
       </select>
-      <Calendar mode="single" selected={date} onSelect={setDate} className="rounded-md" />
+      <Calendar
+        mode="single"
+        selected={date}
+        onSelect={setDate}
+        className="rounded-md"
+      />
+      {date && (
+        <p className="text-sm text-gray-600">Jour sélectionné: {date.toLocaleDateString()}</p>
+      )}
       <Input
         value={motif}
         onChange={(e) => setMotif(e.target.value)}
