@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AppointmentForm } from '@/components/appointment-form';
 import DoctorCard from '@/components/doctor-card';
+import { DoctorSearch } from '@/components/doctor-search';
 
 interface AIChatSectionProps {}
 
@@ -40,6 +41,7 @@ export function AIChatSection({}: AIChatSectionProps) {
     { id: 'd4', name: 'Dr Sarr', specialty: 'Généraliste', available: ['13:00', '15:00'] },
     { id: 'd5', name: 'Dr Ba', specialty: 'Gynécologie', available: ['16:00', '18:00'] },
   ];
+  const [filtered, setFiltered] = useState(doctors);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const recognitionRef = useRef<any>(null);
   // Cache last submitted message and responses by language to avoid
@@ -373,20 +375,16 @@ export function AIChatSection({}: AIChatSectionProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <DoctorSearch doctors={doctors} onFilter={setFiltered} />
         <h3 className="text-lg font-semibold mb-2">
           {t('doctor_availability_title')}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-4">
-          {doctors.map((d) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+          {filtered.map((d) => (
             <DoctorCard key={d.id} doctor={d} />
           ))}
         </div>
         <AppointmentForm doctors={doctors} />
-        <div className="pt-4">
-          <Link href="/appointments" className="text-sm underline">
-            {t('appointments_book_link')}
-          </Link>
-        </div>
       </CardContent>
     </Card>
 
