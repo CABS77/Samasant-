@@ -14,8 +14,8 @@ interface Props {
 export default function DoctorCard({ doctor }: Props) {
   const [time, setTime] = useState('')
   return (
-    <div className="card bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg transition-transform hover:scale-105">
-      <img src="/assets/doctor.jpg" alt={doctor.name} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover" />
+    <div className="card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg transition-transform hover:scale-105 w-64 mx-auto">
+      <img src="/assets/doctor.jpg" alt={doctor.name} className="w-24 h-24 rounded-full mx-auto mb-2 object-cover" />
       <h4 className="text-lg font-semibold text-gray-900 dark:text-white text-center">
         {doctor.name}
       </h4>
