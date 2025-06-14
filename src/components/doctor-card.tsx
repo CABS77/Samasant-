@@ -1,15 +1,6 @@
 import React, { useState } from 'react'
 import { Icons } from './icons'
-
-interface Doctor {
-  id: string
-  name: string
-  specialty: string
-  bio?: string
-  available: string[]
-  rating?: number
-  reviews?: number
-}
+import type { Doctor } from '@/types/doctor'
 
 interface Props {
   doctor: Doctor

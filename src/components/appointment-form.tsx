@@ -3,17 +3,13 @@
 import React, { useState } from 'react';
 import { createAppointment } from '@/services/appointments';
 import type { RendezVous } from '@/types/firestore';
+import type { Doctor } from '@/types/doctor';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Icons } from '@/components/icons';
 
-interface Doctor {
-  id: string;
-  name: string;
-  specialty: string;
-}
 
 interface Props {
   doctors: Doctor[];
