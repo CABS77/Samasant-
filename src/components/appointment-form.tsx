@@ -56,12 +56,15 @@ export function AppointmentForm({ doctors }: Props) {
           </option>
         ))}
       </select>
-      <Calendar
-        mode="single"
-        selected={date}
-        onSelect={setDate}
-        className="rounded-md"
-      />
+      <div className="flex justify-center">
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={setDate}
+          disabled={{ before: new Date() }}
+          className="rounded-md"
+        />
+      </div>
       {date && (
         <p className="text-sm text-gray-600">Jour sélectionné: {date.toLocaleDateString()}</p>
       )}
@@ -84,7 +87,12 @@ export function AppointmentForm({ doctors }: Props) {
           </label>
         </div>
       </RadioGroup>
-      <Button type="submit">Réserver</Button>
+      <Button
+        type="submit"
+        className="bg-gradient-to-r from-green-500 to-green-600 shadow-md hover:shadow-lg"
+      >
+        Réserver
+      </Button>
     </form>
   );
 }
