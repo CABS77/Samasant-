@@ -45,11 +45,9 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/',
 }));
 
-// Mock de Firebase
-vi.mock('@/lib/firebase', () => ({
-  auth: {},
-  db: {},
-  analytics: null,
+// Mock de Supabase
+vi.mock('@/lib/supabase', () => ({
+  supabase: { from: vi.fn() },
 }));
 // Mock global pour les tests
 global.ResizeObserver = vi.fn().mockImplementation(() => ({

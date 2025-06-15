@@ -1,27 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const firestoreMocks = {
-  addDoc: vi.fn(),
-  getDoc: vi.fn(),
-  updateDoc: vi.fn(),
-  deleteDoc: vi.fn(),
-  getDocs: vi.fn(),
-  collection: vi.fn(),
-  doc: vi.fn(),
-  query: vi.fn(),
-  where: vi.fn(),
+const supabaseMocks = {
+  from: vi.fn(),
 };
 
-vi.mock('firebase/firestore', () => ({
-  addDoc: (...args: any[]) => firestoreMocks.addDoc(...args),
-  getDoc: (...args: any[]) => firestoreMocks.getDoc(...args),
-  updateDoc: (...args: any[]) => firestoreMocks.updateDoc(...args),
-  deleteDoc: (...args: any[]) => firestoreMocks.deleteDoc(...args),
-  getDocs: (...args: any[]) => firestoreMocks.getDocs(...args),
-  collection: (...args: any[]) => firestoreMocks.collection(...args),
-  doc: (...args: any[]) => firestoreMocks.doc(...args),
-  query: (...args: any[]) => firestoreMocks.query(...args),
-  where: (...args: any[]) => firestoreMocks.where(...args),
+vi.mock('../src/lib/supabase', () => ({
+  supabase: { from: (...args: any[]) => supabaseMocks.from(...args) },
 }));
 
 async function loadService() {
@@ -31,34 +15,51 @@ async function loadService() {
 
 describe('appointments service', () => {
   beforeEach(() => {
-    Object.values(firestoreMocks).forEach((fn) => fn.mockReset());
+    Object.values(supabaseMocks).forEach((fn) => fn.mockReset());
   });
 
   it('createAppointment returns new id', async () => {
-    firestoreMocks.addDoc.mockResolvedValue({ id: '1' });
+    const singleFn = vi.fn().mockResolvedValue({ data: { id: '1' }, error: null });
+    const selectFn = vi.fn().mockReturnValue({ single: singleFn });
+    const insertFn = vi.fn().mockReturnValue({ select: selectFn });
+    supabaseMocks.from.mockReturnValue({ insert: insertFn });
     const { createAppointment } = await loadService();
     const id = await createAppointment({} as any);
-    expect(firestoreMocks.addDoc).toHaveBeenCalled();
+    expect(supabaseMocks.from).toHaveBeenCalledWith('rendezVous');
+    expect(insertFn).toHaveBeenCalled();
     expect(id).toBe('1');
   });
 
   it('getAppointment returns data when exists', async () => {
-    firestoreMocks.getDoc.mockResolvedValue({ exists: () => true, id: '1', data: () => ({ foo: 'bar' }) });
+    const singleFn = vi.fn().mockResolvedValue({ data: { id: '1', foo: 'bar' }, error: null });
+    const eqFn = vi.fn().mockReturnValue({ single: singleFn });
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn });
+    supabaseMocks.from.mockReturnValue({ select: selectFn });
     const { getAppointment } = await loadService();
     const res = await getAppointment('1');
-    expect(firestoreMocks.getDoc).toHaveBeenCalled();
+    expect(supabaseMocks.from).toHaveBeenCalledWith('rendezVous');
+    expect(selectFn).toHaveBeenCalledWith('*');
+    expect(eqFn).toHaveBeenCalledWith('id', '1');
     expect(res).toEqual({ id: '1', foo: 'bar' });
   });
 
   it('updateAppointment calls updateDoc', async () => {
+    const eqFn = vi.fn().mockResolvedValue({ error: null });
+    const updateFn = vi.fn().mockReturnValue({ eq: eqFn });
+    supabaseMocks.from.mockReturnValue({ update: updateFn });
     const { updateAppointment } = await loadService();
     await updateAppointment('1', { estatu: 'termine' } as any);
-    expect(firestoreMocks.updateDoc).toHaveBeenCalled();
+    expect(supabaseMocks.from).toHaveBeenCalledWith('rendezVous');
+    expect(updateFn).toHaveBeenCalled();
   });
 
   it('deleteAppointment calls deleteDoc', async () => {
+    const eqFn = vi.fn().mockResolvedValue({ error: null });
+    const deleteFn = vi.fn().mockReturnValue({ eq: eqFn });
+    supabaseMocks.from.mockReturnValue({ delete: deleteFn });
     const { deleteAppointment } = await loadService();
     await deleteAppointment('1');
-    expect(firestoreMocks.deleteDoc).toHaveBeenCalled();
+    expect(supabaseMocks.from).toHaveBeenCalledWith('rendezVous');
+    expect(deleteFn).toHaveBeenCalled();
   });
 });
