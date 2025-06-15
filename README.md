@@ -45,8 +45,8 @@ L’accès aux soins reste difficile pour une grande partie de la population au 
 
 - Node.js >= 18.x
 - npm ou yarn
-- Firebase CLI (`npm install -g firebase-tools`)
-- Un compte Firebase
+- Supabase CLI (`npm install -g supabase`) *(optionnel)*
+- Un projet Supabase avec URL et clé anonyme
 
 ---
 
@@ -103,7 +103,7 @@ src/
   hooks/            # Hooks personnalisés
   lib/              # Fonctions utilitaires
   locales/          # Fichiers de traduction
-  services/         # Services d’API, IA, Firebase, etc.
+  services/         # Services d’API, IA, Supabase, etc.
   test/             # Configuration de tests
   types/            # Types TypeScript
   ...
@@ -123,22 +123,24 @@ Les contributions sont les bienvenues !
 
 ---
 
-## 9. Déploiement Firebase
+## 9. Déploiement Supabase
 
-1. Connectez-vous à Firebase avec votre compte :
+1. Installez la CLI Supabase *(optionnel)* :
     ```bash
-    firebase login
+    npm install -g supabase
     ```
-2. Initialisez Firebase dans le projet :
+2. Renseignez les variables `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` dans `.env.local`.
+3. Lancez la base en local si besoin :
     ```bash
-    firebase init
+    supabase start
     ```
-3. Déployez :
+4. Déployez la configuration :
     ```bash
-    firebase deploy
+    supabase link --project-ref your-ref
+    supabase db push
     ```
 
-*Pensez à configurer vos variables d’environnement dans Firebase si nécessaire.*
+*Assurez-vous que les clés Supabase sont correctement définies avant le déploiement.*
 
 ---
 
