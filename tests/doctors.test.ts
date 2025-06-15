@@ -1,16 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const firestoreMocks = {
-  getDocs: vi.fn(),
-  collection: vi.fn(),
+const supabaseMocks = {
+  from: vi.fn(),
 };
 
-vi.mock('firebase/firestore', () => ({
-  getDocs: (...args: any[]) => firestoreMocks.getDocs(...args),
-  collection: (...args: any[]) => firestoreMocks.collection(...args),
+vi.mock('../src/lib/supabase', () => ({
+  supabase: { from: (...args: any[]) => supabaseMocks.from(...args) },
 }));
-
-vi.mock('../src/lib/firebase', () => ({ db: {} }));
 
 async function loadService() {
   vi.resetModules();
@@ -19,18 +15,21 @@ async function loadService() {
 
 describe('doctors service', () => {
   beforeEach(() => {
-    Object.values(firestoreMocks).forEach((fn) => fn.mockReset());
+    Object.values(supabaseMocks).forEach((fn) => fn.mockReset());
   });
 
   it('getDoctors returns mapped data', async () => {
-    firestoreMocks.getDocs.mockResolvedValue({
-      docs: [
-        { id: '1', data: () => ({ name: 'Dr X', specialty: 'Gen', available: [] }) },
+    const selectFn = vi.fn().mockResolvedValue({
+      data: [
+        { id: '1', name: 'Dr X', specialty: 'Gen', available: [] },
       ],
+      error: null,
     });
+    supabaseMocks.from.mockReturnValue({ select: selectFn });
     const { getDoctors } = await loadService();
     const docs = await getDoctors();
-    expect(firestoreMocks.collection).toHaveBeenCalled();
+    expect(supabaseMocks.from).toHaveBeenCalledWith('doctors');
+    expect(selectFn).toHaveBeenCalledWith('*');
     expect(docs).toEqual([
       { id: '1', name: 'Dr X', specialty: 'Gen', available: [] },
     ]);
