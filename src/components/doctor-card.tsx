@@ -1,14 +1,15 @@
 import React, { useState } from 'react'
 import { Icons } from './icons'
 import type { Doctor } from '@/types/doctor'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   doctor: Doctor
 }
 
 export default function DoctorCard({ doctor }: Props) {
+  const { t } = useTranslation()
   const [time, setTime] = useState('')
-  const [showTimes, setShowTimes] = useState(false)
 
   const handleReserve = () => {
     if (!time) {
@@ -34,15 +35,10 @@ export default function DoctorCard({ doctor }: Props) {
     return 'available'
   }
 
-  const statusClass = (status: string) => {
-    switch (status) {
-      case 'available':
-        return 'bg-green-100 text-green-700'
-      case 'almost':
-        return 'bg-yellow-100 text-yellow-700'
-      default:
-        return 'bg-red-100 text-red-700 cursor-not-allowed'
-    }
+  const statusLabel = (status: string) => {
+    if (status === 'full') return t('appointment_full')
+    if (status === 'almost') return t('appointment_almost_full')
+    return ''
   }
 
   const renderStars = () => {
@@ -77,33 +73,23 @@ export default function DoctorCard({ doctor }: Props) {
             <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">{doctor.bio}</p>
           )}
           {renderStars()}
-          <button
-            type="button"
-            onClick={() => setShowTimes((s) => !s)}
-            className="mt-2 text-sm text-primary underline"
-          >
-            {showTimes ? 'Masquer les créneaux' : 'Voir les créneaux disponibles'}
-          </button>
         </div>
       </div>
-      {showTimes && (
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {doctor.available.map((t) => {
-            const status = getStatus(t)
-            return (
-              <button
-                key={t}
-                type="button"
-                disabled={status === 'full'}
-                onClick={() => setTime(t)}
-                className={`rounded-md px-2 py-1 text-sm ${statusClass(status)} ${time === t ? 'ring-2 ring-primary' : ''}`}
-              >
-                {t}
-              </button>
-            )
-          })}
-        </div>
-      )}
+      <select
+        value={time}
+        onChange={(e) => setTime(e.target.value)}
+        className="mt-4 w-full border rounded-md p-2 text-sm"
+      >
+        <option value="">{t('appointment_select_slot')}</option>
+        {doctor.available.map((tSlot) => {
+          const status = getStatus(tSlot)
+          return (
+            <option key={tSlot} value={tSlot} disabled={status === 'full'}>
+              {tSlot} {status !== 'available' && `- ${statusLabel(status)}`}
+            </option>
+          )
+        })}
+      </select>
       {time && (
         <button
           type="button"
