@@ -118,7 +118,10 @@
   "appointment_type_label": "Type de rendez-vous",
   "appointment_type_clinic": "En clinique",
   "appointment_type_video": "En vidéo",
-  "appointment_submit_button": "Réserver"
+  "appointment_submit_button": "Réserver",
+  "appointment_select_slot": "Sélectionner un créneau",
+  "appointment_full": "Complet",
+  "appointment_almost_full": "Presque complet"
   ,"nav_home": "Accueil"
   ,"nav_app": "Application"
   ,"nav_appointments": "Rendez-vous"
