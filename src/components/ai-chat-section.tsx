@@ -18,6 +18,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AppointmentForm } from '@/components/appointment-form';
 import DoctorCard from '@/components/doctor-card';
 import { DoctorSearch } from '@/components/doctor-search';
+import { getDoctors } from '@/services/doctors';
+import type { Doctor } from '@/types/doctor';
 
 interface AIChatSectionProps {}
 
@@ -34,20 +36,23 @@ export function AIChatSection({}: AIChatSectionProps) {
   const [loading, setLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const doctors = [
-    { id: 'd1', name: 'Dr Ndiaye', specialty: 'Cardiologie', available: ['09:00', '11:00'] },
-    { id: 'd2', name: 'Dr Faye', specialty: 'Dermatologie', available: ['14:00', '16:00'] },
-    { id: 'd3', name: 'Dr Diop', specialty: 'Pédiatrie', available: ['10:00', '12:00'] },
-    { id: 'd4', name: 'Dr Sarr', specialty: 'Généraliste', available: ['13:00', '15:00'] },
-    { id: 'd5', name: 'Dr Ba', specialty: 'Gynécologie', available: ['16:00', '18:00'] },
-  ];
-  const [filtered, setFiltered] = useState(doctors);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [filtered, setFiltered] = useState<Doctor[]>([]);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const recognitionRef = useRef<any>(null);
   // Cache last submitted message and responses by language to avoid
   // unnecessary API calls when switching languages without changing the text
   const [lastSubmittedMessage, setLastSubmittedMessage] = useState("");
   const [cachedResponses, setCachedResponses] = useState<Record<string, ChatOutput>>({});
+
+  useEffect(() => {
+    getDoctors()
+      .then((docs) => {
+        setDoctors(docs);
+        setFiltered(docs);
+      })
+      .catch((err) => console.error('Error fetching doctors', err));
+  }, []);
 
 
   const handleChatSubmit = async (
