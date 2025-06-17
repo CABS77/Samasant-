@@ -6,7 +6,7 @@ import type { RendezVous } from '@/types/firestore';
 import type { Doctor } from '@/types/doctor';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePicker } from '@/components/date-picker';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Icons } from '@/components/icons';
 
@@ -52,15 +52,7 @@ export function AppointmentForm({ doctors }: Props) {
           </option>
         ))}
       </select>
-      <div className="flex justify-center">
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={setDate}
-          disabled={{ before: new Date() }}
-          className="rounded-md"
-        />
-      </div>
+      <DatePicker date={date} onChange={setDate} />
       {date && (
         <p className="text-sm text-gray-600">Jour sélectionné: {date.toLocaleDateString()}</p>
       )}
