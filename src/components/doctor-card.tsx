@@ -70,63 +70,60 @@ export default function DoctorCard({ doctor }: Props) {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow flex flex-col h-full">
-      <div className="flex flex-col items-center text-center gap-1">
+    <div className="flex flex-col items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-md shadow w-full h-full">
+      <div className="flex flex-col items-center gap-3 w-full text-center">
         <img
           src="/assets/doctor.jpg"
           alt={`Photo de ${doctor.name}`}
-          className="w-20 h-20 rounded-full object-cover mb-2"
+          className="w-20 h-20 rounded-full object-cover"
         />
-        <h4 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-1">
-          {iconMap[doctor.specialty] ?? <Icons.stethoscope className="w-4 h-4" />} {doctor.name}
-        </h4>
-        <p className="text-sm text-gray-600 dark:text-gray-300">{doctor.specialty}</p>
-        {renderStars()}
-      </div>
-      {doctor.bio && (
-        <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-3 flex-1">
-          {doctor.bio}
-        </p>
-      )}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => setOpen(true)}
-            className="mt-4 self-center"
-          >
-            {t('appointment_select_slot')}
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="space-y-4">
-          <DialogHeader>
-            <DialogTitle>{doctor.name}</DialogTitle>
-            <DialogDescription>{doctor.specialty}</DialogDescription>
-          </DialogHeader>
-          <DatePicker date={date} onChange={setDate} />
-          <select
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="w-full border rounded-md p-2 text-sm"
-          >
-            <option value="">{t('appointment_select_slot')}</option>
-            {availableSlots.map((tSlot) => {
-              const status = getStatus(tSlot)
-              return (
-                <option key={tSlot} value={tSlot} disabled={status === 'full'}>
-                  {tSlot} {status !== 'available' && `- ${statusLabel(status)}`}
-                </option>
-              )
-            })}
-          </select>
-          {time && (
-            <Button className="w-full" onClick={handleReserve}>
-              {t('appointment_submit_button')}
+        <div className="text-center">
+          <h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+            {iconMap[doctor.specialty] ?? <Icons.stethoscope className="w-4 h-4" />} {doctor.name}
+          </h4>
+          <p className="text-xs text-gray-600 dark:text-gray-300 mb-1">{doctor.specialty}</p>
+          {renderStars()}
+        </div>
+        {doctor.bio && (
+          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
+            {doctor.bio}
+          </p>
+        )}
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
+              {t('appointment_select_slot')}
             </Button>
-          )}
-        </DialogContent>
-      </Dialog>
+          </DialogTrigger>
+          <DialogContent className="space-y-4">
+            <DialogHeader>
+              <DialogTitle>{doctor.name}</DialogTitle>
+              <DialogDescription>{doctor.specialty}</DialogDescription>
+            </DialogHeader>
+            <DatePicker date={date} onChange={setDate} />
+            <select
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-full border rounded-md p-2 text-sm"
+            >
+              <option value="">{t('appointment_select_slot')}</option>
+              {availableSlots.map((tSlot) => {
+                const status = getStatus(tSlot)
+                return (
+                  <option key={tSlot} value={tSlot} disabled={status === 'full'}>
+                    {tSlot} {status !== 'available' && `- ${statusLabel(status)}`}
+                  </option>
+                )
+              })}
+            </select>
+            {time && (
+              <Button className="w-full" onClick={handleReserve}>
+                {t('appointment_submit_button')}
+              </Button>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   )
 }
