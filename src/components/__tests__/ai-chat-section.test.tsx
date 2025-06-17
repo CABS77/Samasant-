@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AIChatSection } from '../ai-chat-section';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock des modules
@@ -19,6 +18,15 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
+vi.mock('@/components/appointment-booking', () => ({
+  __esModule: true,
+  default: () => <div>appointment-booking-mock</div>,
+}));
+
+vi.mock('@/services/doctors', () => ({
+  getDoctors: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('@/ai/flows/initial-health-assessment', () => ({
   initialHealthAssessment: vi.fn().mockResolvedValue({
     assessment: 'Test assessment',
@@ -34,6 +42,8 @@ vi.mock('@/lib/requestLimit', () => ({
   hasReachedLimit: vi.fn(),
   incrementDailyCount: vi.fn(),
 }));
+
+import { AIChatSection } from '../ai-chat-section';
 
 // Wrapper pour les tests avec QueryClient
 const createWrapper = () => {
