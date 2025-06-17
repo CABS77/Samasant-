@@ -15,12 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { Mic, MicOff, Volume2, VolumeX, Loader2, Info, Share2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AppointmentForm } from '@/components/appointment-form';
-import DoctorCard from '@/components/doctor-card';
-import { DoctorSearch } from '@/components/doctor-search';
-import { getDoctors } from '@/services/doctors';
-import type { Doctor } from '@/types/doctor';
-import { Icons } from '@/components/icons';
+import AppointmentBooking from '@/components/appointment-booking';
 
 interface AIChatSectionProps {}
 
@@ -37,10 +32,6 @@ export function AIChatSection({}: AIChatSectionProps) {
   const [loading, setLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [filtered, setFiltered] = useState<Doctor[]>([]);
-  const listRef = useRef<HTMLDivElement>(null);
-  const [showHint, setShowHint] = useState(false);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const recognitionRef = useRef<any>(null);
   // Cache last submitted message and responses by language to avoid
@@ -48,35 +39,7 @@ export function AIChatSection({}: AIChatSectionProps) {
   const [lastSubmittedMessage, setLastSubmittedMessage] = useState("");
   const [cachedResponses, setCachedResponses] = useState<Record<string, ChatOutput>>({});
 
-  useEffect(() => {
-    getDoctors()
-      .then((docs) => {
-        setDoctors(docs);
-        setFiltered(docs);
-      })
-      .catch((err) => console.error('Error fetching doctors', err));
-  }, []);
 
-  useEffect(() => {
-    const el = listRef.current;
-    if (!el) return;
-    const check = () => {
-      const hasOverflow = el.scrollWidth > el.clientWidth + 1;
-      if (!hasOverflow) {
-        setShowHint(false);
-        return;
-      }
-      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
-      setShowHint(!atEnd);
-    };
-    check();
-    el.addEventListener('scroll', check);
-    window.addEventListener('resize', check);
-    return () => {
-      el.removeEventListener('scroll', check);
-      window.removeEventListener('resize', check);
-    };
-  }, [filtered.length]);
 
 
   const handleChatSubmit = async (
@@ -404,36 +367,7 @@ export function AIChatSection({}: AIChatSectionProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <DoctorSearch
-          doctors={doctors}
-          onFilter={(docs) => setFiltered(docs)}
-        />
-        <h2 className="text-xl font-semibold">
-          {t('doctor_availability_title')}
-        </h2>
-        <div className="relative">
-          <div
-            ref={listRef}
-            className="flex gap-4 flex-nowrap overflow-x-auto pb-4"
-          >
-            {filtered.map((d) => (
-              <div key={d.id} className="flex-shrink-0 w-[48%] snap-center md:w-[30%]">
-                <DoctorCard doctor={d} />
-              </div>
-            ))}
-          </div>
-          {showHint && (
-            <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-              <Icons.arrowRight className="w-6 h-6 text-gray-500" />
-            </div>
-          )}
-        </div>
-        {showHint && (
-          <p className="text-center text-gray-500 text-sm">
-            {t('scroll_hint_doctors')}
-          </p>
-        )}
-        <AppointmentForm doctors={doctors} />
+        <AppointmentBooking />
       </CardContent>
     </Card>
 
