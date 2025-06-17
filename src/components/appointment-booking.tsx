@@ -7,7 +7,7 @@ import { DoctorSearch } from '@/components/doctor-search';
 import { Icons } from '@/components/icons';
 import type { Doctor } from '@/types/doctor';
 import { getDoctors } from '@/services/doctors';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export default function AppointmentBooking() {
@@ -17,6 +17,10 @@ export default function AppointmentBooking() {
   const listRef = useRef<HTMLDivElement>(null);
   const [showHint, setShowHint] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState('');
+
+  const handleFilter = useCallback((docs: Doctor[]) => {
+    setFiltered(docs);
+  }, []);
 
   useEffect(() => {
     getDoctors()
@@ -50,7 +54,7 @@ export default function AppointmentBooking() {
 
   return (
     <div className="space-y-4">
-      <DoctorSearch doctors={doctors} onFilter={(docs) => setFiltered(docs)} />
+      <DoctorSearch doctors={doctors} onFilter={handleFilter} />
       <h2 className="text-xl font-semibold">
         {t('doctor_availability_title')}
       </h2>
