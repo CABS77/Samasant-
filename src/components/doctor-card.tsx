@@ -1,37 +1,16 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Icons } from './icons'
 import type { Doctor } from '@/types/doctor'
 import { useTranslation } from 'react-i18next'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { DatePicker } from '@/components/date-picker'
 
 interface Props {
   doctor: Doctor
+  onSelect?: (id: string) => void
 }
 
-export default function DoctorCard({ doctor }: Props) {
+export default function DoctorCard({ doctor, onSelect }: Props) {
   const { t } = useTranslation()
-  const [time, setTime] = useState('')
-  const [date, setDate] = useState<Date | undefined>()
-  const [open, setOpen] = useState(false)
-  const availableSlots = Array.isArray(doctor.available) ? doctor.available : []
-
-  const handleReserve = () => {
-    if (!time) {
-      alert('Sélectionner un horaire')
-      return
-    }
-    alert(`Rendez-vous réservé avec ${doctor.name} à ${time}`)
-    setTime('')
-  }
 
   const iconMap: Record<string, JSX.Element> = {
     Cardiologie: <Icons.heartPulse className="w-4 h-4" />,
@@ -39,19 +18,6 @@ export default function DoctorCard({ doctor }: Props) {
     Pédiatrie: <Icons.baby className="w-4 h-4" />,
     Gynécologie: <Icons.venus className="w-4 h-4" />,
     Généraliste: <Icons.stethoscope className="w-4 h-4" />,
-  }
-
-  const getStatus = (slot: string) => {
-    const idx = availableSlots.indexOf(slot)
-    if (idx % 3 === 0) return 'full'
-    if (idx % 3 === 1) return 'almost'
-    return 'available'
-  }
-
-  const statusLabel = (status: string) => {
-    if (status === 'full') return t('appointment_full')
-    if (status === 'almost') return t('appointment_almost_full')
-    return ''
   }
 
   const renderStars = () => {
@@ -84,40 +50,13 @@ export default function DoctorCard({ doctor }: Props) {
             {doctor.bio}
           </p>
         )}
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
-              {t('appointment_select_slot')}
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="space-y-4">
-            <DialogHeader>
-              <DialogTitle>{doctor.name}</DialogTitle>
-              <DialogDescription>{doctor.specialty}</DialogDescription>
-            </DialogHeader>
-            <DatePicker date={date} onChange={setDate} />
-            <select
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="w-full border rounded-md p-2 text-sm"
-            >
-              <option value="">{t('appointment_select_slot')}</option>
-              {availableSlots.map((tSlot) => {
-                const status = getStatus(tSlot)
-                return (
-                  <option key={tSlot} value={tSlot} disabled={status === 'full'}>
-                    {tSlot} {status !== 'available' && `- ${statusLabel(status)}`}
-                  </option>
-                )
-              })}
-            </select>
-            {time && (
-              <Button className="w-full" onClick={handleReserve}>
-                {t('appointment_submit_button')}
-              </Button>
-            )}
-          </DialogContent>
-        </Dialog>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => onSelect?.(doctor.id)}
+        >
+          {t('doctor_select_button')}
+        </Button>
       </div>
     </div>
   )
