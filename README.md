@@ -129,7 +129,10 @@ Les contributions sont les bienvenues !
     ```bash
     npm install -g supabase
     ```
-2. Renseignez les variables `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` dans `.env.local`.
+2. Renseignez les variables `NEXT_PUBLIC_SUPABASE_URL` et
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY` dans `.env.local`. Si elles ne sont pas
+   définies, l'application pourra toujours se compiler mais toutes les
+   fonctionnalités dépendantes de Supabase seront désactivées.
 3. Lancez la base en local si besoin :
     ```bash
     supabase start
