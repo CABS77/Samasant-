@@ -32,7 +32,7 @@ export default function AppointmentsPage() {
       <h2 className="text-xl font-semibold">
         {t('doctor_availability_title')}
       </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+      <div className="space-y-4">
         {filtered.map((d) => (
           <DoctorCard key={d.id} doctor={d} />
         ))}
