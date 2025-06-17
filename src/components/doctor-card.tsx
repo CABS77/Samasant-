@@ -10,6 +10,7 @@ interface Props {
 export default function DoctorCard({ doctor }: Props) {
   const { t } = useTranslation()
   const [time, setTime] = useState('')
+  const availableSlots = Array.isArray(doctor.available) ? doctor.available : []
 
   const handleReserve = () => {
     if (!time) {
@@ -29,7 +30,7 @@ export default function DoctorCard({ doctor }: Props) {
   }
 
   const getStatus = (slot: string) => {
-    const idx = doctor.available.indexOf(slot)
+    const idx = availableSlots.indexOf(slot)
     if (idx % 3 === 0) return 'full'
     if (idx % 3 === 1) return 'almost'
     return 'available'
@@ -81,7 +82,7 @@ export default function DoctorCard({ doctor }: Props) {
         className="mt-4 w-full border rounded-md p-2 text-sm"
       >
         <option value="">{t('appointment_select_slot')}</option>
-        {doctor.available.map((tSlot) => {
+        {availableSlots.map((tSlot) => {
           const status = getStatus(tSlot)
           return (
             <option key={tSlot} value={tSlot} disabled={status === 'full'}>
