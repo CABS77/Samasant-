@@ -26,7 +26,7 @@ export default function DoctorCard({ doctor }: Props) {
 
   const handleReserve = () => {
     if (!time) {
-      alert('Veuillez sélectionner un horaire')
+      alert('Sélectionner un horaire')
       return
     }
     alert(`Rendez-vous réservé avec ${doctor.name} à ${time}`)
