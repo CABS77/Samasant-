@@ -33,10 +33,10 @@ export default function AppointmentsPage() {
         {t('doctor_availability_title')}
       </h2>
       <div
-        className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible"
+        className="flex gap-4 flex-nowrap overflow-x-auto pb-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible"
       >
         {filtered.map((d) => (
-          <div key={d.id} className="flex-shrink-0 w-[48%] md:w-auto">
+          <div key={d.id} className="flex-shrink-0 w-[48%] snap-center md:w-auto">
             <DoctorCard doctor={d} />
           </div>
         ))}
