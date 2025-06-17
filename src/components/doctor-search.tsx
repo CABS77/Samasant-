@@ -20,7 +20,9 @@ interface Props {
 export function DoctorSearch({ doctors, onFilter }: Props) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Doctor[]>([]);
-  const [specialty, setSpecialty] = useState("");
+  // Use "all" as the default specialty instead of an empty string because
+  // the Select.Item component does not allow "" as a value.
+  const [specialty, setSpecialty] = useState("all");
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
@@ -31,7 +33,7 @@ export function DoctorSearch({ doctors, onFilter }: Props) {
 
   useEffect(() => {
     let filtered = doctors;
-    if (specialty) {
+    if (specialty !== "all") {
       filtered = filtered.filter((d) => d.specialty === specialty);
     }
     const q = query.trim().toLowerCase();
@@ -94,7 +96,8 @@ export function DoctorSearch({ doctors, onFilter }: Props) {
           <SelectValue placeholder={t('doctor_filter_specialty_all')} />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">{t('doctor_filter_specialty_all')}</SelectItem>
+          {/* Use "all" value to avoid Select.Item empty value warning */}
+          <SelectItem value="all">{t('doctor_filter_specialty_all')}</SelectItem>
           {specialties.map((s) => (
             <SelectItem key={s} value={s}>
               {s}
