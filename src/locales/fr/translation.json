@@ -122,6 +122,7 @@
   "appointment_select_slot": "Sélectionner un créneau",
   "appointment_full": "Complet",
   "appointment_almost_full": "Presque complet"
+  "scroll_hint_doctors": "Faites d\u00E9filer pour voir plus",
   ,"nav_home": "Accueil"
   ,"nav_app": "Application"
   ,"nav_appointments": "Rendez-vous"
