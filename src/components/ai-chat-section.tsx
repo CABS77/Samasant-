@@ -381,12 +381,16 @@ export function AIChatSection({}: AIChatSectionProps) {
       </CardHeader>
       <CardContent>
         <DoctorSearch doctors={doctors} onFilter={setFiltered} />
-        <h3 className="text-lg font-semibold mb-2">
+        <h2 className="text-xl font-semibold">
           {t('doctor_availability_title')}
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+        </h2>
+        <div
+          className="flex gap-4 flex-nowrap overflow-x-auto pb-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible"
+        >
           {filtered.map((d) => (
-            <DoctorCard key={d.id} doctor={d} />
+            <div key={d.id} className="flex-shrink-0 w-[48%] snap-center md:w-auto">
+              <DoctorCard doctor={d} />
+            </div>
           ))}
         </div>
         <AppointmentForm doctors={doctors} />
