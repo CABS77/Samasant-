@@ -16,8 +16,9 @@ const STATIC_ASSETS = [
 const CACHE_STRATEGIES = {
   // Cache First - pour les assets statiques
   cacheFirst: async (request) => {
-    if (request.method !== 'GET') {
-      // Avoid attempting to cache non-GET requests
+    const method = request.method.toUpperCase();
+    if (method !== 'GET') {
+      // Avoid attempting to cache non-GET requests entirely
       return fetch(request);
     }
     const cache = await caches.open(CACHE_NAME);
@@ -26,7 +27,7 @@ const CACHE_STRATEGIES = {
     
     try {
       const response = await fetch(request);
-      if (response.ok && request.method === 'GET') {
+      if (response.ok && method === 'GET') {
         cache.put(request, response.clone());
       }
       return response;
@@ -37,13 +38,14 @@ const CACHE_STRATEGIES = {
   
   // Network First - pour les API calls
   networkFirst: async (request) => {
-    if (request.method !== 'GET') {
+    const method = request.method.toUpperCase();
+    if (method !== 'GET') {
       // Non-GET requests bypass the cache completely
       return fetch(request);
     }
     try {
       const response = await fetch(request);
-      if (response.ok && request.method === 'GET') {
+      if (response.ok && method === 'GET') {
         const cache = await caches.open(DYNAMIC_CACHE);
         cache.put(request, response.clone());
       }
@@ -57,14 +59,15 @@ const CACHE_STRATEGIES = {
   
   // Stale While Revalidate
   staleWhileRevalidate: async (request) => {
-    if (request.method !== 'GET') {
+    const method = request.method.toUpperCase();
+    if (method !== 'GET') {
       return fetch(request);
     }
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(request);
-    
+
     const fetchPromise = fetch(request).then(response => {
-      if (response.ok && request.method === 'GET') {
+      if (response.ok && method === 'GET') {
         cache.put(request, response.clone());
       }
       return response;
@@ -103,8 +106,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
+  const method = request.method.toUpperCase();
 
-  if (request.method !== 'GET') {
+  if (method !== 'GET') {
     // Let non-GET requests pass through without caching
     event.respondWith(fetch(request));
     return;
