@@ -404,7 +404,10 @@ export function AIChatSection({}: AIChatSectionProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <DoctorSearch doctors={doctors} onFilter={setFiltered} />
+        <DoctorSearch
+          doctors={doctors}
+          onFilter={(docs) => setFiltered(docs)}
+        />
         <h2 className="text-xl font-semibold">
           {t('doctor_availability_title')}
         </h2>
