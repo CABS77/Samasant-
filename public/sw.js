@@ -17,6 +17,7 @@ const CACHE_STRATEGIES = {
   // Cache First - pour les assets statiques
   cacheFirst: async (request) => {
     if (request.method !== 'GET') {
+      // Avoid attempting to cache non-GET requests
       return fetch(request);
     }
     const cache = await caches.open(CACHE_NAME);
@@ -25,7 +26,7 @@ const CACHE_STRATEGIES = {
     
     try {
       const response = await fetch(request);
-      if (response.ok) {
+      if (response.ok && request.method === 'GET') {
         cache.put(request, response.clone());
       }
       return response;
@@ -37,11 +38,12 @@ const CACHE_STRATEGIES = {
   // Network First - pour les API calls
   networkFirst: async (request) => {
     if (request.method !== 'GET') {
+      // Non-GET requests bypass the cache completely
       return fetch(request);
     }
     try {
       const response = await fetch(request);
-      if (response.ok) {
+      if (response.ok && request.method === 'GET') {
         const cache = await caches.open(DYNAMIC_CACHE);
         cache.put(request, response.clone());
       }
@@ -62,7 +64,7 @@ const CACHE_STRATEGIES = {
     const cached = await cache.match(request);
     
     const fetchPromise = fetch(request).then(response => {
-      if (response.ok) {
+      if (response.ok && request.method === 'GET') {
         cache.put(request, response.clone());
       }
       return response;
@@ -103,6 +105,8 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   if (request.method !== 'GET') {
+    // Let non-GET requests pass through without caching
+    event.respondWith(fetch(request));
     return;
   }
   
