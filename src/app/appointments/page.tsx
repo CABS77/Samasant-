@@ -60,22 +60,22 @@ export default function AppointmentsPage() {
       <div className="relative">
         <div
           ref={listRef}
-          className="flex gap-4 flex-nowrap overflow-x-auto pb-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible"
+          className="flex gap-4 flex-nowrap overflow-x-auto pb-4"
         >
           {filtered.map((d) => (
-            <div key={d.id} className="flex-shrink-0 w-[48%] snap-center md:w-auto">
+            <div key={d.id} className="flex-shrink-0 w-[48%] snap-center md:w-[30%]">
               <DoctorCard doctor={d} />
             </div>
           ))}
         </div>
         {showHint && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none md:hidden">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
             <Icons.arrowRight className="w-6 h-6 text-gray-500" />
           </div>
         )}
       </div>
       {showHint && (
-        <p className="text-center text-gray-500 text-sm md:hidden">
+        <p className="text-center text-gray-500 text-sm">
           {t('scroll_hint_doctors')}
         </p>
       )}
