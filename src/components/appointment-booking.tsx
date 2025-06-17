@@ -16,6 +16,7 @@ export default function AppointmentBooking() {
   const [filtered, setFiltered] = useState<Doctor[]>([]);
   const listRef = useRef<HTMLDivElement>(null);
   const [showHint, setShowHint] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState('');
 
   useEffect(() => {
     getDoctors()
@@ -60,7 +61,7 @@ export default function AppointmentBooking() {
         >
           {filtered.map((d) => (
             <div key={d.id} className="flex-shrink-0 w-[30%] snap-center md:w-[24%]">
-              <DoctorCard doctor={d} />
+              <DoctorCard doctor={d} onSelect={(id) => setSelectedDoctor(id)} />
             </div>
           ))}
         </div>
@@ -75,7 +76,11 @@ export default function AppointmentBooking() {
           {t('scroll_hint_doctors')}
         </p>
       )}
-      <AppointmentForm doctors={doctors} />
+      <AppointmentForm
+        doctors={doctors}
+        selectedDoctor={selectedDoctor}
+        onSelectDoctor={setSelectedDoctor}
+      />
     </div>
   );
 }

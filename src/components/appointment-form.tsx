@@ -13,10 +13,11 @@ import { Icons } from '@/components/icons';
 
 interface Props {
   doctors: Doctor[];
+  selectedDoctor: string;
+  onSelectDoctor: (id: string) => void;
 }
 
-export function AppointmentForm({ doctors }: Props) {
-  const [selectedDoctor, setSelectedDoctor] = useState('');
+export function AppointmentForm({ doctors, selectedDoctor, onSelectDoctor }: Props) {
   const [date, setDate] = useState<Date | undefined>();
   const [motif, setMotif] = useState('');
   const [mode, setMode] = useState<'clinic' | 'video'>('clinic');
@@ -42,7 +43,7 @@ export function AppointmentForm({ doctors }: Props) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <select
         value={selectedDoctor}
-        onChange={(e) => setSelectedDoctor(e.target.value)}
+        onChange={(e) => onSelectDoctor(e.target.value)}
         className="w-full border rounded-md p-2"
       >
         <option value="">Choisissez un médecin</option>
