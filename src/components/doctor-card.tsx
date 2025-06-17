@@ -70,24 +70,32 @@ export default function DoctorCard({ doctor }: Props) {
   }
 
   return (
-    <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-md shadow w-full">
-      <div className="flex items-center gap-3">
+    <div className="bg-white dark:bg-gray-800 p-4 rounded-md shadow flex flex-col h-full">
+      <div className="flex flex-col items-center text-center gap-1">
         <img
           src="/assets/doctor.jpg"
           alt={`Photo de ${doctor.name}`}
-          className="w-12 h-12 rounded-full object-cover"
+          className="w-20 h-20 rounded-full object-cover mb-2"
         />
-        <div>
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1">
-            {iconMap[doctor.specialty] ?? <Icons.stethoscope className="w-4 h-4" />} {doctor.name}
-          </h4>
-          <p className="text-xs text-gray-600 dark:text-gray-300 mb-1">{doctor.specialty}</p>
-          {renderStars()}
-        </div>
+        <h4 className="text-base font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+          {iconMap[doctor.specialty] ?? <Icons.stethoscope className="w-4 h-4" />} {doctor.name}
+        </h4>
+        <p className="text-sm text-gray-600 dark:text-gray-300">{doctor.specialty}</p>
+        {renderStars()}
       </div>
+      {doctor.bio && (
+        <p className="text-sm text-gray-600 dark:text-gray-300 mt-2 line-clamp-3 flex-1">
+          {doctor.bio}
+        </p>
+      )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => setOpen(true)}
+            className="mt-4 self-center"
+          >
             {t('appointment_select_slot')}
           </Button>
         </DialogTrigger>

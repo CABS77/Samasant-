@@ -32,9 +32,13 @@ export default function AppointmentsPage() {
       <h2 className="text-xl font-semibold">
         {t('doctor_availability_title')}
       </h2>
-      <div className="space-y-4">
+      <div
+        className="flex gap-4 overflow-x-auto pb-4 md:grid md:grid-cols-4 md:gap-6 md:overflow-visible"
+      >
         {filtered.map((d) => (
-          <DoctorCard key={d.id} doctor={d} />
+          <div key={d.id} className="flex-shrink-0 w-[48%] md:w-auto">
+            <DoctorCard doctor={d} />
+          </div>
         ))}
       </div>
       <AppointmentForm doctors={doctors} />
