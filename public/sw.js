@@ -16,6 +16,9 @@ const STATIC_ASSETS = [
 const CACHE_STRATEGIES = {
   // Cache First - pour les assets statiques
   cacheFirst: async (request) => {
+    if (request.method !== 'GET') {
+      return fetch(request);
+    }
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(request);
     if (cached) return cached;
@@ -33,6 +36,9 @@ const CACHE_STRATEGIES = {
   
   // Network First - pour les API calls
   networkFirst: async (request) => {
+    if (request.method !== 'GET') {
+      return fetch(request);
+    }
     try {
       const response = await fetch(request);
       if (response.ok) {
@@ -49,6 +55,9 @@ const CACHE_STRATEGIES = {
   
   // Stale While Revalidate
   staleWhileRevalidate: async (request) => {
+    if (request.method !== 'GET') {
+      return fetch(request);
+    }
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(request);
     
@@ -92,6 +101,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
+
+  if (request.method !== 'GET') {
+    return;
+  }
   
   // Ignorer les requêtes vers des domaines externes (sauf APIs)
   if (!url.origin.includes(self.location.origin) && 
