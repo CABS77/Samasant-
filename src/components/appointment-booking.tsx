@@ -64,7 +64,7 @@ export default function AppointmentBooking() {
           className="flex gap-4 flex-nowrap overflow-x-auto pb-4"
         >
           {filtered.map((d) => (
-            <div key={d.id} className="flex-shrink-0 w-[25%] snap-center md:w-[30%]">
+            <div key={d.id} className="flex-shrink-0 w-[35%] snap-center md:w-[30%]">
               <DoctorCard doctor={d} onSelect={(id) => setSelectedDoctor(id)} />
             </div>
           ))}
