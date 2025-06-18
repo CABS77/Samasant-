@@ -23,6 +23,7 @@ export function DoctorSearch({ doctors, onFilter }: Props) {
   // Use "all" as the default specialty instead of an empty string because
   // the Select.Item component does not allow "" as a value.
   const [specialty, setSpecialty] = useState("all");
+  const [location, setLocation] = useState("all");
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
@@ -30,11 +31,21 @@ export function DoctorSearch({ doctors, onFilter }: Props) {
     () => Array.from(new Set(doctors.map((d) => d.specialty))).sort(),
     [doctors]
   );
+  const locations = useMemo(
+    () =>
+      Array.from(
+        new Set(doctors.map((d) => d.location).filter(Boolean))
+      ).sort(),
+    [doctors]
+  );
 
   useEffect(() => {
     let filtered = doctors;
     if (specialty !== "all") {
       filtered = filtered.filter((d) => d.specialty === specialty);
+    }
+    if (location !== "all") {
+      filtered = filtered.filter((d) => d.location === location);
     }
     const q = query.trim().toLowerCase();
     if (q) {
@@ -47,7 +58,7 @@ export function DoctorSearch({ doctors, onFilter }: Props) {
       setSuggestions([]);
     }
     onFilter(filtered);
-  }, [query, doctors, specialty, onFilter]);
+  }, [query, doctors, specialty, location, onFilter]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -65,6 +76,7 @@ export function DoctorSearch({ doctors, onFilter }: Props) {
   const handleSelect = (doc: Doctor) => {
     setQuery(`${doc.name} — ${doc.specialty}`);
     setSpecialty(doc.specialty);
+    if (doc.location) setLocation(doc.location);
     setSuggestions([]);
     onFilter([doc]);
   };
@@ -101,6 +113,19 @@ export function DoctorSearch({ doctors, onFilter }: Props) {
           {specialties.map((s) => (
             <SelectItem key={s} value={s}>
               {s}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={location} onValueChange={setLocation}>
+        <SelectTrigger className="w-40">
+          <SelectValue placeholder={t('doctor_filter_location_all')} />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">{t('doctor_filter_location_all')}</SelectItem>
+          {locations.map((l) => (
+            <SelectItem key={l} value={l}>
+              {l}
             </SelectItem>
           ))}
         </SelectContent>
