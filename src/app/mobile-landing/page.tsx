@@ -41,7 +41,7 @@ export default function MobileLanding() {
           <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
             {features.map(({ icon, title, desc }) => (
               <motion.div key={title} className="flex items-start bg-white dark:bg-gray-700 rounded-lg p-6 shadow hover:shadow-lg transition" whileHover={{ scale: 1.02 }}>
-                <img src={icon} alt="" className="w-8 h-8 mr-4" />
+                <img src={icon} alt={title} className="w-8 h-8 mr-4" />
                 <div>
                   <h4 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{title}</h4>
                   <p className="text-gray-600 dark:text-gray-300">{desc}</p>
