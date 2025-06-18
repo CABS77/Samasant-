@@ -36,8 +36,13 @@ export default function DoctorCard({ doctor, onSelect }: Props) {
   }
 
   return (
-    <div className="flex flex-col items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-md shadow w-full h-full">
-      <div className="flex flex-col items-center gap-2 w-full text-center">
+    <div className="flex flex-col items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-md shadow w-full h-full">
+      <div className="flex flex-col items-center gap-3 w-full text-center">
+        <img
+          src="/assets/doctor.jpg"
+          alt={`Photo de ${doctor.name}`}
+          className="w-20 h-20 rounded-full object-cover"
+        />
         <div className="text-center">
           <h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1">
             {iconMap[doctor.specialty] ?? <Icons.stethoscope className="w-4 h-4" />} {doctor.name}
