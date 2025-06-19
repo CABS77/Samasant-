@@ -10,59 +10,44 @@ interface TimePickerProps {
 }
 
 export function TimePicker({ value, onChange }: TimePickerProps) {
-  const [hours, setHours] = React.useState(() => {
-    const [h] = value.split(':');
-    return parseInt(h || '0', 10);
-  });
-  const [minutes, setMinutes] = React.useState(() => {
-    const [, m] = value.split(':');
-    return parseInt(m || '0', 10);
-  });
+  const [time, setTime] = React.useState(value);
 
-  const pad = (n: number) => String(n).padStart(2, '0');
+  const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newTime = event.target.value;
+    if (/^([0-1]?[0-9]|2[0-3]):([0-5]?[0-9])$/.test(newTime)) {
+      setTime(newTime);
+      onChange(newTime);
+    }
+  };
 
-  const incHours = () => setHours((h) => Math.min(23, h + 1));
-  const decHours = () => setHours((h) => Math.max(0, h - 1));
-  const incMinutes = () => setMinutes((m) => (m + 1) % 60);
-  const decMinutes = () => setMinutes((m) => (m - 1 + 60) % 60);
-
-  React.useEffect(() => {
-    onChange(`${pad(hours)}:${pad(minutes)}`);
-  }, [hours, minutes, onChange]);
+  const handlePresetTime = (preset: string) => {
+    setTime(preset);
+    onChange(preset);
+  };
 
   return (
-    <div className="flex items-center justify-center gap-6 p-4">
-      <div className="flex flex-col items-center">
-        <label>Heure</label>
-        <Button type="button" variant="outline" size="icon" onClick={incHours}>
-          <span className="text-xl">+</span>
+    <div className="flex flex-col items-center gap-4 p-4">
+      <div className="flex gap-6">
+        <Button variant="outline" onClick={() => handlePresetTime('08:00')}>
+          08:00
         </Button>
-        <Input
-          type="text"
-          value={pad(hours)}
-          readOnly
-          className="w-12 text-center font-semibold text-xl"
-        />
-        <Button type="button" variant="outline" size="icon" onClick={decHours}>
-          <span className="text-xl">-</span>
+        <Button variant="outline" onClick={() => handlePresetTime('09:00')}>
+          09:00
         </Button>
-      </div>
-
-      <div className="flex flex-col items-center">
-        <label>Minutes</label>
-        <Button type="button" variant="outline" size="icon" onClick={incMinutes}>
-          <span className="text-xl">+</span>
+        <Button variant="outline" onClick={() => handlePresetTime('12:00')}>
+          12:00
         </Button>
-        <Input
-          type="text"
-          value={pad(minutes)}
-          readOnly
-          className="w-12 text-center font-semibold text-xl"
-        />
-        <Button type="button" variant="outline" size="icon" onClick={decMinutes}>
-          <span className="text-xl">-</span>
+        <Button variant="outline" onClick={() => handlePresetTime('14:00')}>
+          14:00
         </Button>
       </div>
+      <Input
+        type="text"
+        value={time}
+        onChange={handleTimeChange}
+        placeholder="HH:MM"
+        className="w-24 text-center text-xl font-semibold"
+      />
     </div>
   );
 }
