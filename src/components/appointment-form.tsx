@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/date-picker';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Icons } from '@/components/icons';
-import { TimeSlotPicker } from '@/components/time-slot-picker';
+import { TimePicker } from '@/components/time-picker';
 
 
 interface Props {
@@ -29,16 +29,6 @@ export function AppointmentForm({ doctors, selectedDoctor, onSelectDoctor }: Pro
     new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3),
   ];
 
-  const timeSlots = React.useMemo(() => {
-    return Array.from({ length: 20 }, (_, i) => {
-      const total = 8 * 60 + i * 30;
-      const h = Math.floor(total / 60)
-        .toString()
-        .padStart(2, '0');
-      const m = (total % 60).toString().padStart(2, '0');
-      return `${h}:${m}`;
-    });
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +69,7 @@ export function AppointmentForm({ doctors, selectedDoctor, onSelectDoctor }: Pro
       {date && (
         <>
           <p className="text-sm text-gray-600">Jour sélectionné: {date.toLocaleDateString()}</p>
-          <TimeSlotPicker slots={timeSlots} selected={time} onChange={setTime} />
+          <TimePicker value={time} onChange={setTime} />
         </>
       )}
       <Input
