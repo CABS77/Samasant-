@@ -21,6 +21,11 @@ export function AppointmentForm({ doctors, selectedDoctor, onSelectDoctor }: Pro
   const [date, setDate] = useState<Date | undefined>();
   const [motif, setMotif] = useState('');
   const [mode, setMode] = useState<'clinic' | 'video'>('clinic');
+  const today = new Date();
+  const disabledDates = [
+    new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1),
+    new Date(today.getFullYear(), today.getMonth(), today.getDate() + 3),
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +58,7 @@ export function AppointmentForm({ doctors, selectedDoctor, onSelectDoctor }: Pro
           </option>
         ))}
       </select>
-      <DatePicker date={date} onChange={setDate} />
+      <DatePicker date={date} onChange={setDate} disabledDates={disabledDates} />
       {date && (
         <p className="text-sm text-gray-600">Jour sélectionné: {date.toLocaleDateString()}</p>
       )}
