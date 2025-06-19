@@ -19,6 +19,7 @@ interface Props {
 
 export function AppointmentForm({ doctors, selectedDoctor, onSelectDoctor }: Props) {
   const [date, setDate] = useState<Date | undefined>();
+  const [time, setTime] = useState('');
   const [motif, setMotif] = useState('');
   const [mode, setMode] = useState<'clinic' | 'video'>('clinic');
   const today = new Date();
@@ -29,8 +30,12 @@ export function AppointmentForm({ doctors, selectedDoctor, onSelectDoctor }: Pro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedDoctor || !date) return;
-    const timestamp = { seconds: Math.floor(date.getTime() / 1000), nanoseconds: 0 };
+    if (!selectedDoctor || !date || !time) return;
+    const [hours, minutes] = time.split(':').map(Number);
+    const dateTime = new Date(date);
+    dateTime.setHours(hours);
+    dateTime.setMinutes(minutes);
+    const timestamp = { seconds: Math.floor(dateTime.getTime() / 1000), nanoseconds: 0 };
     const data: RendezVous = {
       jefandikukat_id: 'demo-user',
       doktoor_id: selectedDoctor,
@@ -60,7 +65,16 @@ export function AppointmentForm({ doctors, selectedDoctor, onSelectDoctor }: Pro
       </select>
       <DatePicker date={date} onChange={setDate} disabledDates={disabledDates} />
       {date && (
-        <p className="text-sm text-gray-600">Jour sélectionné: {date.toLocaleDateString()}</p>
+        <>
+          <p className="text-sm text-gray-600">Jour sélectionné: {date.toLocaleDateString()}</p>
+          <Input
+            type="time"
+            step={900}
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="w-full"
+          />
+        </>
       )}
       <Input
         value={motif}
