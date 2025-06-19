@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   Baby,
+  Calendar as CalendarIcon,
   Check,
   ChevronsUpDown,
   Circle,
@@ -68,6 +69,7 @@ const Icons = {
   baby: Baby,
   heartPulse: HeartPulse,
   syringe: Syringe,
+  calendar: CalendarIcon,
   star: Star,
   venus: Venus,
   panelLeft: PanelLeft, // Sidebar toggle icon
