@@ -12,12 +12,16 @@ interface TimePickerProps {
 export function TimePicker({ value, onChange }: TimePickerProps) {
   const [time, setTime] = React.useState(value);
   const [is12HourFormat, setIs12HourFormat] = React.useState(false);
+  const [isValid, setIsValid] = React.useState(true);
 
   const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = event.target.value;
     if (/^([0-1]?[0-9]|2[0-3]):([0-5]?[0-9])$/.test(newTime)) {
+      setIsValid(true);
       setTime(newTime);
       onChange(newTime);
+    } else {
+      setIsValid(false);
     }
   };
 
@@ -53,11 +57,21 @@ export function TimePicker({ value, onChange }: TimePickerProps) {
       <div className="mb-4">
         <Input
           type="text"
+          list="time-suggestions"
           value={formatTime(time)}
           onChange={handleTimeChange}
           placeholder="HH:MM"
-          className="w-24 text-center text-xl font-semibold"
+          className={`w-24 text-center text-xl font-semibold ${isValid ? 'border-green-500' : 'border-red-500'}`}
         />
+        <datalist id="time-suggestions">
+          <option value="08:00" />
+          <option value="09:00" />
+          <option value="12:00" />
+          <option value="14:00" />
+        </datalist>
+        {!isValid && (
+          <p className="text-red-500 text-sm">Format invalide. Utilisez HH:MM.</p>
+        )}
       </div>
 
       {/* Toggle Time Format */}
