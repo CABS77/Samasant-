@@ -124,7 +124,7 @@ export function DoctorSearch({ doctors, onFilter }: Props) {
         <SelectContent>
           <SelectItem value="all">{t('doctor_filter_location_all')}</SelectItem>
           {locations.map((l) => (
-            <SelectItem key={l} value={l}>
+            <SelectItem key={l} value={l || 'unknown'}>
               {l}
             </SelectItem>
           ))}
