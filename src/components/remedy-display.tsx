@@ -81,7 +81,7 @@ export function RemedyDisplay() {
         'carotte': 'carrot', 'riz': 'rice', 'cannelle': 'cinnamon stick',
     };
 
-    let keywords: string[] = [];
+    const keywords: string[] = [];
 
     for (const term of nameIngredients) {
       if (nameLower.includes(term) && ingredientMap[term] && !keywords.includes(ingredientMap[term])) {

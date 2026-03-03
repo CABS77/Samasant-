@@ -11,7 +11,6 @@
 
 import {ai} from '@/ai/ai-instance';
 import {z} from 'genkit';
-import {translateToWolof} from '@/ai/flows/translate-to-wolof';
 
 const STANDARD_MEDICAL_DISCLAIMER =
   'IMPORTANT : Je ne suis pas médecin. Ces informations sont issues de la tradition et ne remplacent pas un avis professionnel. Consultez toujours un professionnel de santé et considérez ces remèdes comme complémentaires.';

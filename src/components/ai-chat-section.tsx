@@ -72,6 +72,7 @@ export function AIChatSection({}: AIChatSectionProps) {
       setLastSubmittedMessage(messageToSubmit);
     }
 
+    // Vérification côté client (peut être contournée, mais améliore l'UX)
     if (hasReachedLimit(7)) {
       toast({
         variant: "destructive",
@@ -81,15 +82,47 @@ export function AIChatSection({}: AIChatSectionProps) {
       return;
     }
 
-    incrementDailyCount();
-
     setLoading(true);
     setChatOutput(null);
     try {
-      const response = await initialHealthAssessment({
-        message: messageToSubmit,
-        language: language,
+      // Appel à l'API Route sécurisée avec rate limiting serveur
+      const deviceId = localStorage.getItem('deviceId') || 
+                      `device-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('deviceId', deviceId);
+
+      const apiResponse = await fetch('/api/health-assessment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: messageToSubmit,
+          language: language,
+          deviceId: deviceId,
+        }),
       });
+
+      // Gérer le rate limiting côté serveur
+      if (apiResponse.status === 429) {
+        const errorData = await apiResponse.json();
+        toast({
+          variant: "destructive",
+          title: t("dailyLimitReached_title"),
+          description: errorData.message || t("dailyLimitReached_description"),
+        });
+        return;
+      }
+
+      if (!apiResponse.ok) {
+        const errorData = await apiResponse.json();
+        throw new Error(errorData.message || 'API request failed');
+      }
+
+      const response = await apiResponse.json();
+      
+      // Incrémenter le compteur local seulement si la requête a réussi
+      incrementDailyCount();
+
       const outputWithArrayRemedies = {
         ...response,
         traditionalRemedies: Array.isArray(response.traditionalRemedies)
