@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { BrightnessSlider } from '@/components/brightness-slider';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
@@ -56,9 +55,6 @@ export function Navbar() {
 
         {/* Right side */}
         <div className="flex items-center gap-2">
-          <div className="hidden sm:block">
-            <BrightnessSlider />
-          </div>
           <ThemeToggle />
 
           {/* Mobile menu button */}

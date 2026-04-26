@@ -101,7 +101,7 @@ body {
   }
   body {
     @apply bg-background text-foreground;
-    filter: brightness(var(--brightness));
+    filter: brightness(1);
   }
 }
 
