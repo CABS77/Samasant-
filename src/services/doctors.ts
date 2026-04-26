@@ -69,13 +69,16 @@ const FALLBACK_DOCTORS: Doctor[] = [
 
 export async function getDoctors(): Promise<Doctor[]> {
   try {
+    // Vérifier que Supabase est configuré avant d'appeler
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) return FALLBACK_DOCTORS;
+
     const { data, error } = await supabase.from(COLLECTION_NAME).select('*');
-    if (error) throw error;
+    if (error) return FALLBACK_DOCTORS;
     const doctors = (data as Doctor[]) || [];
-    // Si la base est vide, retourner les données de fallback
     return doctors.length > 0 ? doctors : FALLBACK_DOCTORS;
   } catch {
-    // En cas d'erreur (Supabase non configuré, etc.), retourner les fallback
     return FALLBACK_DOCTORS;
   }
 }
