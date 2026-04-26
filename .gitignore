@@ -60,3 +60,6 @@ logs
 
 # Supabase
 .supabase/
+
+# Local doctor data (managed by admin interface)
+data/doctors.json

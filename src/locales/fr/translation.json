@@ -128,5 +128,15 @@
   "doctor_filter_location_all": "Tous lieux",
   "nav_home": "Accueil",
   "nav_app": "Application",
-  "nav_appointments": "Rendez-vous"
+  "nav_appointments": "Rendez-vous",
+  "nav_admin": "Admin",
+  "admin_title": "Gestion des médecins",
+  "admin_add_doctor": "Ajouter un médecin",
+  "admin_edit": "Modifier",
+  "admin_delete": "Supprimer",
+  "admin_confirm_delete": "Confirmer la suppression",
+  "admin_success_add": "Médecin ajouté avec succès",
+  "admin_success_edit": "Médecin modifié avec succès",
+  "admin_success_delete": "Médecin supprimé avec succès",
+  "admin_error": "Une erreur est survenue. Veuillez réessayer."
 }

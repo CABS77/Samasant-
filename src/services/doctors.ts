@@ -1,9 +1,6 @@
-import { supabase } from '@/lib/supabase';
 import type { Doctor } from '@/types/doctor';
 
-const COLLECTION_NAME = 'doctors';
-
-// Données de fallback pour le développement et quand Supabase n'a pas de données
+// Données de fallback pour le développement et quand l'API n'est pas disponible
 const FALLBACK_DOCTORS: Doctor[] = [
   {
     id: 'dr-1',
@@ -69,14 +66,9 @@ const FALLBACK_DOCTORS: Doctor[] = [
 
 export async function getDoctors(): Promise<Doctor[]> {
   try {
-    // Vérifier que Supabase est configuré avant d'appeler
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !key) return FALLBACK_DOCTORS;
-
-    const { data, error } = await supabase.from(COLLECTION_NAME).select('*');
-    if (error) return FALLBACK_DOCTORS;
-    const doctors = (data as Doctor[]) || [];
+    const res = await fetch('/api/doctors');
+    if (!res.ok) return FALLBACK_DOCTORS;
+    const doctors = (await res.json()) as Doctor[];
     return doctors.length > 0 ? doctors : FALLBACK_DOCTORS;
   } catch {
     return FALLBACK_DOCTORS;
