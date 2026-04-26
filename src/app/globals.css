@@ -8,84 +8,83 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --background: 120 10% 98%;
+    --foreground: 160 10% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 160 10% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 144 50% 50%; /* Vert (#3CB371) in HSL */
-    --primary-foreground: 60 100% 50%; /* Jaune (#FFD700) in HSL */
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 25 100% 50%; /* Complementary orange */
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%; /* Rouge (#E74C3C) similar in HSL */
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --popover-foreground: 160 10% 10%;
+    --primary: 152 56% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 150 15% 95%;
+    --secondary-foreground: 160 10% 15%;
+    --muted: 140 8% 94%;
+    --muted-foreground: 160 5% 45%;
+    --accent: 28 90% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 10% 90%;
+    --input: 150 10% 90%;
+    --ring: 152 56% 40%;
+    --chart-1: 152 56% 40%;
+    --chart-2: 28 90% 52%;
+    --chart-3: 48 96% 53%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 200 60% 50%;
+    --radius: 0.75rem;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-    --brightness: 1;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 144 50% 50%; /* Vert (#3CB371) in HSL */
-    --primary-foreground: 60 100% 50%; /* Jaune (#FFD700) in HSL */
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 25 100% 50%; /* Complementary orange */
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%; /* Rouge (#E74C3C) similar in HSL */
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary: 152 56% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 150 15% 95%;
+    --sidebar-accent-foreground: 160 10% 15%;
+    --sidebar-border: 150 10% 90%;
+    --sidebar-ring: 152 56% 40%;
     --brightness: 1;
   }
 
-  /* Poppins Bold font */
+  .dark {
+    --background: 200 15% 8%;
+    --foreground: 0 0% 95%;
+    --card: 200 12% 11%;
+    --card-foreground: 0 0% 95%;
+    --popover: 200 12% 11%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 152 56% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 200 10% 16%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 200 10% 16%;
+    --muted-foreground: 200 5% 55%;
+    --accent: 28 90% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 200 10% 18%;
+    --input: 200 10% 18%;
+    --ring: 152 56% 45%;
+    --chart-1: 152 56% 45%;
+    --chart-2: 28 90% 55%;
+    --chart-3: 48 96% 53%;
+    --chart-4: 0 62% 40%;
+    --chart-5: 200 60% 50%;
+    --sidebar-background: 200 15% 8%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 152 56% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 200 10% 16%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 200 10% 18%;
+    --sidebar-ring: 152 56% 45%;
+    --brightness: 1;
+  }
+
   .font-poppins-bold {
     font-family: 'Poppins', sans-serif;
     font-weight: 700;
   }
 
-  /* Open Sans font */
   .font-open-sans {
     font-family: 'Open Sans', sans-serif;
   }
@@ -106,3 +105,59 @@ body {
   }
 }
 
+/* Premium smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Premium selection color */
+::selection {
+  background-color: hsl(152 56% 40% / 0.2);
+  color: hsl(160 10% 10%);
+}
+
+.dark ::selection {
+  background-color: hsl(152 56% 45% / 0.3);
+  color: hsl(0 0% 95%);
+}
+
+/* Premium scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(150 10% 75%);
+  border-radius: 999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(200 10% 25%);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(152 56% 40%);
+}
+
+/* Glass morphism utility */
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  .dark .glass {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(152 56% 40%), hsl(28 90% 52%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .bg-gradient-premium {
+    background: linear-gradient(135deg, hsl(152 56% 38%) 0%, hsl(160 50% 30%) 50%, hsl(28 80% 48%) 100%);
+  }
+}

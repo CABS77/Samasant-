@@ -286,14 +286,14 @@ export function AIChatSection({}: AIChatSectionProps) {
             placeholder={t("typeOrSpeakWolof_maangi")}
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
-            className="rounded-lg shadow-sm flex-grow border-border focus:ring-primary text-sm sm:text-base p-3"
+            className="rounded-xl shadow-sm flex-grow border-border focus:ring-primary text-sm sm:text-base p-4 min-h-[100px] resize-none"
             rows={3}
           />
            <Button
             onClick={toggleRecording}
             variant="outline"
             size="icon"
-            className={`rounded-lg shadow-md border-border hover:bg-accent hover:text-accent-foreground h-12 w-12 flex-shrink-0 ${isRecording ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground animate-pulse' : ''}`}
+            className={`rounded-xl shadow-sm h-12 w-12 flex-shrink-0 ${isRecording ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground animate-pulse border-destructive' : ''}`}
             title={isRecording ? t("stopRecording_taxawal") : t("startRecording_door")}
             disabled={loading}
           >
@@ -304,7 +304,7 @@ export function AIChatSection({}: AIChatSectionProps) {
           <Button
             onClick={() => handleChatSubmit('french')}
             disabled={loading || isRecording}
-            className="flex-1 rounded-lg shadow-md bg-primary text-primary-foreground hover:bg-primary/90 py-2 sm:py-3 text-sm sm:text-base font-semibold"
+            className="flex-1 rounded-xl shadow-sm py-3 text-sm sm:text-base font-semibold"
           >
             {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
             {loading ? t("loading_yeggeul") : t("answerInFrench_button")}
@@ -312,7 +312,7 @@ export function AIChatSection({}: AIChatSectionProps) {
           <Button
             onClick={() => handleChatSubmit('wolof')}
             disabled={loading || isRecording}
-            className="flex-1 rounded-lg shadow-md bg-primary text-primary-foreground hover:bg-primary/90 py-2 sm:py-3 text-sm sm:text-base font-semibold"
+            className="flex-1 rounded-xl shadow-sm py-3 text-sm sm:text-base font-semibold"
           >
             {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
             {loading ? t("loading_yeggeul") : t("answerInWolof_button")}
@@ -355,18 +355,18 @@ export function AIChatSection({}: AIChatSectionProps) {
                 </Button>
               </div>
 
-             <div className="p-4 sm:p-6 bg-secondary/50 dark:bg-secondary/30 rounded-xl shadow-inner space-y-4 sm:space-y-6 border border-border/50">
+             <div className="p-4 sm:p-6 bg-muted/30 rounded-2xl space-y-4 sm:space-y-6 border border-border/50">
               <div>
-                <h3 className="font-poppins-bold text-lg sm:text-xl text-primary mb-2 sm:mb-3 border-b pb-2 border-border/70">{t("aiAssessment_title_wolof")}</h3>
-                <p className="text-foreground/90 dark:text-foreground/80 whitespace-pre-wrap font-open-sans text-sm sm:text-base leading-relaxed">{chatOutput.assessment}</p>
+                <h3 className="font-poppins-bold text-lg sm:text-xl text-primary mb-2 sm:mb-3 border-b pb-2 border-border/50">{t("aiAssessment_title_wolof")}</h3>
+                <p className="text-foreground/90 whitespace-pre-wrap font-open-sans text-sm sm:text-base leading-relaxed">{chatOutput.assessment}</p>
               </div>
 
               {chatOutput.traditionalRemedies && chatOutput.traditionalRemedies.length > 0 && (
                 <div>
-                  <h3 className="font-poppins-bold text-lg sm:text-xl text-primary mb-2 sm:mb-3 border-b pb-2 border-border/70">{t("suggestedRemedies_title_wolof")}</h3>
+                  <h3 className="font-poppins-bold text-lg sm:text-xl text-primary mb-2 sm:mb-3 border-b pb-2 border-border/50">{t("suggestedRemedies_title_wolof")}</h3>
                   <ul className="space-y-3 list-none pl-0">
                     {chatOutput.traditionalRemedies.map((remedy, index) => (
-                      <li key={index} className="p-3 sm:p-4 bg-card dark:bg-card/80 rounded-lg shadow-sm border border-border/30">
+                      <li key={index} className="p-3 sm:p-4 bg-card rounded-xl border border-border/30">
                          <h4 className="font-poppins-bold text-base sm:text-md text-accent mb-1 flex items-center">
                            <Info className="h-4 w-4 mr-2 text-accent/80 flex-shrink-0" />
                            {remedy.name}
@@ -379,8 +379,8 @@ export function AIChatSection({}: AIChatSectionProps) {
               )}
 
               <div>
-                <h3 className="font-poppins-bold text-lg sm:text-xl text-primary mb-2 sm:mb-3 border-b pb-2 border-border/70">{t("nextSteps_title_wolof")}</h3>
-                <p className="text-foreground/90 dark:text-foreground/80 whitespace-pre-wrap font-open-sans text-sm sm:text-base leading-relaxed">{chatOutput.nextSteps}</p>
+                <h3 className="font-poppins-bold text-lg sm:text-xl text-primary mb-2 sm:mb-3 border-b pb-2 border-border/50">{t("nextSteps_title_wolof")}</h3>
+                <p className="text-foreground/90 whitespace-pre-wrap font-open-sans text-sm sm:text-base leading-relaxed">{chatOutput.nextSteps}</p>
               </div>
             </div>
           </div>

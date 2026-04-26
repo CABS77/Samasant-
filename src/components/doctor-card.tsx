@@ -36,17 +36,17 @@ export default function DoctorCard({ doctor, onSelect }: Props) {
   }
 
   return (
-    <div className="flex flex-col items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-md shadow w-full h-full">
+    <div className="flex flex-col items-center justify-between bg-card p-4 rounded-2xl border border-border/50 w-full h-full hover:shadow-md hover:border-primary/20 transition-all duration-200">
       <div className="flex flex-col items-center gap-2 w-full text-center">
         <div className="text-center">
-          <h4 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+          <h4 className="text-sm font-semibold flex items-center gap-1">
             {iconMap[doctor.specialty] ?? <Icons.stethoscope className="w-4 h-4" />} {doctor.name}
           </h4>
-          <p className="text-xs text-gray-600 dark:text-gray-300 mb-1">{doctor.specialty}</p>
+          <p className="text-xs text-muted-foreground mb-1">{doctor.specialty}</p>
           {renderStars()}
         </div>
         {doctor.bio && (
-          <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">
+          <p className="text-sm text-muted-foreground line-clamp-3">
             {doctor.bio}
           </p>
         )}
