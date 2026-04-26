@@ -1,83 +1,67 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 interface TimePickerProps {
   value: string;
   onChange: (value: string) => void;
 }
 
+const MORNING_SLOTS = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
+const AFTERNOON_SLOTS = ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'];
+
 export function TimePicker({ value, onChange }: TimePickerProps) {
-  const [time, setTime] = React.useState(value);
-  const [is12HourFormat, setIs12HourFormat] = React.useState(false);
-  const [isValid, setIsValid] = React.useState(true);
-
-  const handleTimeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newTime = event.target.value;
-    if (/^([0-1]?[0-9]|2[0-3]):([0-5]?[0-9])$/.test(newTime)) {
-      setIsValid(true);
-      setTime(newTime);
-      onChange(newTime);
-    } else {
-      setIsValid(false);
-    }
-  };
-
-  const handlePresetTime = (preset: string) => {
-    setTime(preset);
-    onChange(preset);
-  };
-
-  const toggleTimeFormat = () => {
-    setIs12HourFormat((prev) => !prev);
-  };
-
-  const formatTime = (t: string) => {
-    if (is12HourFormat) {
-      const [h, m] = t.split(":");
-      const hours = Number(h);
-      const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
-      const period = hours < 12 ? "AM" : "PM";
-      return `${String(formattedHours).padStart(2, "0")}:${m} ${period}`;
-    }
-    return t;
-  };
+  const [period, setPeriod] = useState<'morning' | 'afternoon'>('morning');
+  const slots = period === 'morning' ? MORNING_SLOTS : AFTERNOON_SLOTS;
 
   return (
-    <div className="flex flex-col items-center gap-4 p-4">
-      <div className="flex gap-6 mb-4">
-        <Button variant="outline" onClick={() => handlePresetTime("08:00")}>08:00</Button>
-        <Button variant="outline" onClick={() => handlePresetTime("09:00")}>09:00</Button>
-        <Button variant="outline" onClick={() => handlePresetTime("12:00")}>12:00</Button>
-        <Button variant="outline" onClick={() => handlePresetTime("14:00")}>14:00</Button>
+    <div className="space-y-3">
+      {/* Period toggle */}
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant={period === 'morning' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setPeriod('morning')}
+          className="flex-1"
+        >
+          ☀️ Matin
+        </Button>
+        <Button
+          type="button"
+          variant={period === 'afternoon' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setPeriod('afternoon')}
+          className="flex-1"
+        >
+          🌤️ Après-midi
+        </Button>
       </div>
 
-      <div className="mb-4">
-        <Input
-          type="text"
-          list="time-suggestions"
-          value={formatTime(time)}
-          onChange={handleTimeChange}
-          placeholder="HH:MM"
-          className={`w-24 text-center text-xl font-semibold ${isValid ? 'border-green-500' : 'border-red-500'}`}
-        />
-        <datalist id="time-suggestions">
-          <option value="08:00" />
-          <option value="09:00" />
-          <option value="12:00" />
-          <option value="14:00" />
-        </datalist>
-        {!isValid && (
-          <p className="text-red-500 text-sm">Format invalide. Utilisez HH:MM.</p>
-        )}
+      {/* Time slots grid */}
+      <div className="grid grid-cols-4 gap-2">
+        {slots.map((slot) => (
+          <button
+            key={slot}
+            type="button"
+            onClick={() => onChange(slot)}
+            className={`py-2.5 px-3 rounded-xl text-sm font-medium transition-all border-2 ${
+              value === slot
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border hover:border-primary/30 hover:bg-muted/50 text-foreground'
+            }`}
+          >
+            {slot}
+          </button>
+        ))}
       </div>
 
-      {/* Toggle Time Format */}
-      <Button variant="outline" onClick={toggleTimeFormat}>
-        {is12HourFormat ? "12h Format" : "24h Format"}
-      </Button>
+      {value && (
+        <p className="text-sm text-primary font-medium text-center">
+          ⏰ Créneau sélectionné : {value}
+        </p>
+      )}
     </div>
   );
 }

@@ -3,8 +3,79 @@ import type { Doctor } from '@/types/doctor';
 
 const COLLECTION_NAME = 'doctors';
 
+// Données de fallback pour le développement et quand Supabase n'a pas de données
+const FALLBACK_DOCTORS: Doctor[] = [
+  {
+    id: 'dr-1',
+    name: 'Dr. Aminata Diallo',
+    specialty: 'Généraliste',
+    location: 'Dakar',
+    bio: 'Médecin généraliste avec 12 ans d\'expérience. Spécialisée dans la médecine familiale et la prévention.',
+    available: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'],
+    rating: 4.8,
+    reviews: 124,
+  },
+  {
+    id: 'dr-2',
+    name: 'Dr. Ousmane Ndiaye',
+    specialty: 'Cardiologie',
+    location: 'Dakar',
+    bio: 'Cardiologue certifié, ancien chef de service à l\'Hôpital Principal de Dakar.',
+    available: ['Lun', 'Mer', 'Ven'],
+    rating: 4.9,
+    reviews: 89,
+  },
+  {
+    id: 'dr-3',
+    name: 'Dr. Fatou Sow',
+    specialty: 'Pédiatrie',
+    location: 'Thiès',
+    bio: 'Pédiatre passionnée par la santé infantile. Consultations en français et wolof.',
+    available: ['Mar', 'Jeu', 'Sam'],
+    rating: 4.7,
+    reviews: 156,
+  },
+  {
+    id: 'dr-4',
+    name: 'Dr. Ibrahima Fall',
+    specialty: 'Dermatologie',
+    location: 'Dakar',
+    bio: 'Dermatologue spécialisé dans les affections cutanées tropicales.',
+    available: ['Lun', 'Mar', 'Jeu'],
+    rating: 4.6,
+    reviews: 67,
+  },
+  {
+    id: 'dr-5',
+    name: 'Dr. Mariama Ba',
+    specialty: 'Gynécologie',
+    location: 'Saint-Louis',
+    bio: 'Gynécologue-obstétricienne avec une approche bienveillante et culturellement adaptée.',
+    available: ['Mer', 'Ven', 'Sam'],
+    rating: 4.9,
+    reviews: 203,
+  },
+  {
+    id: 'dr-6',
+    name: 'Dr. Moussa Diop',
+    specialty: 'Généraliste',
+    location: 'Kaolack',
+    bio: 'Médecin de terrain, engagé pour la santé rurale. Consultations vidéo disponibles.',
+    available: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+    rating: 4.5,
+    reviews: 98,
+  },
+];
+
 export async function getDoctors(): Promise<Doctor[]> {
-  const { data, error } = await supabase.from(COLLECTION_NAME).select('*');
-  if (error) throw error;
-  return (data as Doctor[]) || [];
+  try {
+    const { data, error } = await supabase.from(COLLECTION_NAME).select('*');
+    if (error) throw error;
+    const doctors = (data as Doctor[]) || [];
+    // Si la base est vide, retourner les données de fallback
+    return doctors.length > 0 ? doctors : FALLBACK_DOCTORS;
+  } catch {
+    // En cas d'erreur (Supabase non configuré, etc.), retourner les fallback
+    return FALLBACK_DOCTORS;
+  }
 }
