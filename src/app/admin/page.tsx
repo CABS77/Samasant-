@@ -16,13 +16,18 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
-import { useTranslation } from 'react-i18next';
 import { Plus, Pencil, Trash2, RefreshCw, Settings, Star, Lock, LogOut } from 'lucide-react';
+import {
+  fetchDoctorsAction,
+  createDoctorAction,
+  updateDoctorAction,
+  deleteDoctorAction,
+  verifyAdminPassword,
+} from './actions';
 
 const SESSION_KEY = 'samasante_admin_session';
 
 export default function AdminPage() {
-  const { t } = useTranslation();
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
@@ -53,20 +58,13 @@ export default function AdminPage() {
     setAuthError('');
 
     try {
-      const res = await fetch('/api/admin/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
+      const valid = await verifyAdminPassword(password);
+      if (valid) {
         sessionStorage.setItem(SESSION_KEY, 'true');
         setAuthenticated(true);
         setPassword('');
       } else {
-        setAuthError(data.error || 'Mot de passe incorrect');
+        setAuthError('Mot de passe incorrect');
       }
     } catch {
       setAuthError('Erreur de connexion. Réessayez.');
@@ -85,12 +83,9 @@ export default function AdminPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/doctors');
-      if (!res.ok) throw new Error('Erreur de chargement');
-      const data = (await res.json()) as Doctor[];
+      const data = await fetchDoctorsAction();
       setDoctors(data);
-    } catch (err) {
-      console.error('Failed to fetch doctors:', err);
+    } catch {
       setError('Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setLoading(false);
@@ -116,10 +111,10 @@ export default function AdminPage() {
   const handleFormSuccess = (saved: Doctor) => {
     if (editDoctor) {
       setDoctors((prev) => prev.map((d) => (d.id === saved.id ? saved : d)));
-      toast({ title: t('admin_success_edit') });
+      toast({ title: 'Médecin modifié avec succès' });
     } else {
       setDoctors((prev) => [...prev, saved]);
-      toast({ title: t('admin_success_add') });
+      toast({ title: 'Médecin ajouté avec succès' });
     }
   };
 
@@ -131,12 +126,12 @@ export default function AdminPage() {
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     try {
-      const res = await fetch(`/api/doctors/${deleteTarget.id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Erreur de suppression');
+      const result = await deleteDoctorAction(deleteTarget.id);
+      if (!result.success) throw new Error(result.error);
       setDoctors((prev) => prev.filter((d) => d.id !== deleteTarget.id));
-      toast({ title: t('admin_success_delete') });
+      toast({ title: 'Médecin supprimé avec succès' });
     } catch {
-      toast({ variant: 'destructive', title: t('admin_error') });
+      toast({ variant: 'destructive', title: 'Erreur lors de la suppression' });
     } finally {
       setDeleteOpen(false);
       setDeleteTarget(null);
@@ -208,7 +203,7 @@ export default function AdminPage() {
               <div className="flex items-center gap-3">
                 <Settings className="h-7 w-7" />
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                  {t('admin_title')}
+                  Gestion des médecins
                 </h1>
               </div>
               <p className="text-white/70 mt-2 max-w-lg">
@@ -238,7 +233,7 @@ export default function AdminPage() {
             </h2>
             <Button onClick={handleAdd}>
               <Plus className="h-4 w-4 mr-2" />
-              {t('admin_add_doctor')}
+              Ajouter un médecin
             </Button>
           </div>
 

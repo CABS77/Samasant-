@@ -99,22 +99,21 @@ export function DoctorFormModal({ open, onOpenChange, doctor, onSuccess }: Docto
 
     setSubmitting(true);
     try {
-      const url = isEdit ? `/api/doctors/${doctor.id}` : '/api/doctors';
-      const method = isEdit ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(result.data),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Erreur serveur');
+      // Import server actions dynamically
+      const { createDoctorAction, updateDoctorAction } = await import('@/app/admin/actions');
+      
+      let actionResult;
+      if (isEdit) {
+        actionResult = await updateDoctorAction(doctor.id, result.data);
+      } else {
+        actionResult = await createDoctorAction(result.data);
       }
 
-      const saved = (await res.json()) as Doctor;
-      onSuccess(saved);
+      if (!actionResult.success) {
+        throw new Error(actionResult.error || 'Erreur serveur');
+      }
+
+      onSuccess(actionResult.doctor!);
       onOpenChange(false);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erreur inconnue';
