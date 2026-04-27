@@ -40,12 +40,13 @@ export default function AdminPage() {
       if (!res.ok) throw new Error('Erreur de chargement');
       const data = (await res.json()) as Doctor[];
       setDoctors(data);
-    } catch {
-      setError(t('admin_error'));
+    } catch (err) {
+      console.error('Failed to fetch doctors:', err);
+      setError('Une erreur est survenue. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     fetchDoctors();
