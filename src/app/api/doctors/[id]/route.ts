@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { updateDoctor, deleteDoctor, getDoctorById } from '@/lib/doctor-store';
 import { doctorUpdateSchema } from '@/lib/doctor-validation';
 
+// Force Node.js runtime (needed for fs operations in doctor-store)
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

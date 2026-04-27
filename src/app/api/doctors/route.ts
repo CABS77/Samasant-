@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { getAllDoctors, createDoctor } from '@/lib/doctor-store';
 import { doctorCreateSchema } from '@/lib/doctor-validation';
 
+// Force Node.js runtime (needed for fs operations in doctor-store)
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const doctors = await getAllDoctors();
