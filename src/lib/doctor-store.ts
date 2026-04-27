@@ -1,12 +1,14 @@
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
 import type { Doctor } from '@/types/doctor';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const DATA_FILE = path.join(DATA_DIR, 'doctors.json');
+/**
+ * Doctor Store — Stockage en mémoire avec persistance optionnelle sur disque.
+ * 
+ * Sur Vercel (filesystem read-only), les données vivent en mémoire.
+ * En local, les données sont aussi persistées dans data/doctors.json.
+ * Les modifications sur Vercel sont perdues au redéploiement.
+ */
 
-const FALLBACK_DOCTORS: Doctor[] = [
+const INITIAL_DOCTORS: Doctor[] = [
   {
     id: 'dr-1',
     name: 'Dr. Aminata Diallo',
@@ -69,57 +71,77 @@ const FALLBACK_DOCTORS: Doctor[] = [
   },
 ];
 
-function ensureDataDir(): void {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-}
+// Store en mémoire — initialisé avec les données par défaut
+let doctorsStore: Doctor[] = [...INITIAL_DOCTORS];
+let initialized = false;
 
-function readDoctors(): Doctor[] {
-  ensureDataDir();
-
-  if (!fs.existsSync(DATA_FILE)) {
-    // Initialize with fallback doctors
-    fs.writeFileSync(DATA_FILE, JSON.stringify(FALLBACK_DOCTORS, null, 2), 'utf-8');
-    return FALLBACK_DOCTORS;
-  }
+/**
+ * Tente de charger les données depuis le disque (local uniquement).
+ * Sur Vercel, utilise les données en mémoire.
+ */
+function initFromDisk(): void {
+  if (initialized) return;
+  initialized = true;
 
   try {
-    const raw = fs.readFileSync(DATA_FILE, 'utf-8');
-    const data = JSON.parse(raw);
-    if (!Array.isArray(data)) {
-      console.error('doctor-store: data/doctors.json does not contain an array, returning fallback');
-      return FALLBACK_DOCTORS;
+    // Dynamic import pour éviter les erreurs sur les plateformes sans fs
+    const fs = require('fs');
+    const path = require('path');
+    const filePath = path.join(process.cwd(), 'data', 'doctors.json');
+
+    if (fs.existsSync(filePath)) {
+      const raw = fs.readFileSync(filePath, 'utf-8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data) && data.length > 0) {
+        doctorsStore = data;
+      }
     }
-    return data as Doctor[];
-  } catch (error) {
-    console.error('doctor-store: Failed to parse data/doctors.json, returning fallback', error);
-    return FALLBACK_DOCTORS;
+  } catch {
+    // Sur Vercel ou si le fichier n'existe pas, on garde les données en mémoire
   }
 }
 
-function writeDoctors(doctors: Doctor[]): void {
-  ensureDataDir();
-  fs.writeFileSync(DATA_FILE, JSON.stringify(doctors, null, 2), 'utf-8');
+/**
+ * Tente de persister les données sur disque (local uniquement).
+ */
+function persistToDisk(): void {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const dir = path.join(process.cwd(), 'data');
+    const filePath = path.join(dir, 'doctors.json');
+
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(filePath, JSON.stringify(doctorsStore, null, 2), 'utf-8');
+  } catch {
+    // Sur Vercel, l'écriture échoue silencieusement — les données restent en mémoire
+  }
+}
+
+function generateId(): string {
+  return `dr-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
 export async function getAllDoctors(): Promise<Doctor[]> {
-  return readDoctors();
+  initFromDisk();
+  return [...doctorsStore];
 }
 
 export async function getDoctorById(id: string): Promise<Doctor | undefined> {
-  const doctors = readDoctors();
-  return doctors.find((d) => d.id === id);
+  initFromDisk();
+  return doctorsStore.find((d) => d.id === id);
 }
 
 export async function createDoctor(data: Omit<Doctor, 'id'>): Promise<Doctor> {
-  const doctors = readDoctors();
+  initFromDisk();
   const newDoctor: Doctor = {
     ...data,
-    id: `dr-${crypto.randomUUID()}`,
+    id: generateId(),
   };
-  doctors.push(newDoctor);
-  writeDoctors(doctors);
+  doctorsStore.push(newDoctor);
+  persistToDisk();
   return newDoctor;
 }
 
@@ -127,24 +149,24 @@ export async function updateDoctor(
   id: string,
   data: Partial<Omit<Doctor, 'id'>>
 ): Promise<Doctor> {
-  const doctors = readDoctors();
-  const index = doctors.findIndex((d) => d.id === id);
+  initFromDisk();
+  const index = doctorsStore.findIndex((d) => d.id === id);
   if (index === -1) {
     throw new Error('Médecin introuvable');
   }
-  const updated: Doctor = { ...doctors[index], ...data };
-  doctors[index] = updated;
-  writeDoctors(doctors);
+  const updated: Doctor = { ...doctorsStore[index], ...data };
+  doctorsStore[index] = updated;
+  persistToDisk();
   return updated;
 }
 
 export async function deleteDoctor(id: string): Promise<boolean> {
-  const doctors = readDoctors();
-  const index = doctors.findIndex((d) => d.id === id);
+  initFromDisk();
+  const index = doctorsStore.findIndex((d) => d.id === id);
   if (index === -1) {
     throw new Error('Médecin introuvable');
   }
-  doctors.splice(index, 1);
-  writeDoctors(doctors);
+  doctorsStore.splice(index, 1);
+  persistToDisk();
   return true;
 }
