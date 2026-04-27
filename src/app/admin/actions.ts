@@ -1,12 +1,8 @@
 'use server';
 
-import { getAllDoctors, createDoctor, updateDoctor, deleteDoctor } from '@/lib/doctor-store';
+import { createDoctor, updateDoctor, deleteDoctor } from '@/lib/doctor-store';
 import { doctorCreateSchema, doctorUpdateSchema } from '@/lib/doctor-validation';
 import type { Doctor } from '@/types/doctor';
-
-export async function fetchDoctorsAction(): Promise<Doctor[]> {
-  return getAllDoctors();
-}
 
 export async function createDoctorAction(data: unknown): Promise<{ success: boolean; doctor?: Doctor; error?: string }> {
   const result = doctorCreateSchema.safeParse(data);

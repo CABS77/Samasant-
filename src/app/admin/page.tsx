@@ -18,12 +18,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, RefreshCw, Settings, Star, Lock, LogOut } from 'lucide-react';
 import {
-  fetchDoctorsAction,
   createDoctorAction,
   updateDoctorAction,
   deleteDoctorAction,
   verifyAdminPassword,
 } from './actions';
+import { fetchDoctorsServer } from '@/app/actions/doctors';
 
 const SESSION_KEY = 'samasante_admin_session';
 
@@ -83,7 +83,7 @@ export default function AdminPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await fetchDoctorsAction();
+      const data = await fetchDoctorsServer();
       setDoctors(data);
     } catch {
       setError('Une erreur est survenue. Veuillez réessayer.');

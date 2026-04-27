@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { AppointmentForm } from '@/components/appointment-form';
 import DoctorCard from '@/components/doctor-card';
 import { DoctorSearch } from '@/components/doctor-search';
 import type { Doctor } from '@/types/doctor';
-import { getDoctors } from '@/services/doctors';
+import { fetchDoctorsServer } from '@/app/actions/doctors';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users } from 'lucide-react';
@@ -23,7 +23,7 @@ export default function AppointmentBooking() {
 
   useEffect(() => {
     setLoading(true);
-    getDoctors()
+    fetchDoctorsServer()
       .then((docs) => {
         setDoctors(docs);
         setFiltered(docs);
@@ -59,7 +59,7 @@ export default function AppointmentBooking() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 bg-muted/30 rounded-2xl border border-border/50">
-            <p className="text-muted-foreground">Aucun médecin trouvé. Essayez d'autres critères.</p>
+            <p className="text-muted-foreground">Aucun médecin trouvé. Essayez d&apos;autres critères.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
