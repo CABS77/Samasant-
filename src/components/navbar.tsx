@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import { Menu, X, Settings } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 export function Navbar() {
   const { t } = useTranslation();
@@ -15,7 +15,6 @@ export function Navbar() {
     { href: '/', label: t('nav_home') },
     { href: '/app', label: t('nav_app') },
     { href: '/appointments', label: t('nav_appointments') },
-    { href: '/admin', label: t('nav_admin'), icon: Settings },
   ];
 
   const isActive = (href: string) =>
@@ -36,7 +35,7 @@ export function Navbar() {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-1">
-          {links.map(({ href, label, icon: Icon }) => (
+          {links.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
@@ -46,10 +45,7 @@ export function Navbar() {
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
               }`}
             >
-              <span className="flex items-center gap-1.5">
-                {Icon && <Icon className="h-4 w-4" />}
-                {label}
-              </span>
+              {label}
               {isActive(href) && (
                 <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-primary" />
               )}
@@ -76,7 +72,7 @@ export function Navbar() {
       {mobileOpen && (
         <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl">
           <nav className="container mx-auto px-4 py-3 flex flex-col gap-1">
-            {links.map(({ href, label, icon: Icon }) => (
+            {links.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
@@ -87,10 +83,7 @@ export function Navbar() {
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                 }`}
               >
-                <span className="flex items-center gap-1.5">
-                  {Icon && <Icon className="h-4 w-4" />}
-                  {label}
-                </span>
+                {label}
               </Link>
             ))}
           </nav>

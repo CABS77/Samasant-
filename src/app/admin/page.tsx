@@ -5,6 +5,7 @@ import type { Doctor } from '@/types/doctor';
 import { DoctorFormModal } from '@/components/doctor-form-modal';
 import { DoctorDeleteDialog } from '@/components/doctor-delete-dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -16,21 +17,69 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
 import { useTranslation } from 'react-i18next';
-import { Plus, Pencil, Trash2, RefreshCw, Settings, Star } from 'lucide-react';
+import { Plus, Pencil, Trash2, RefreshCw, Settings, Star, Lock, LogOut } from 'lucide-react';
+
+const SESSION_KEY = 'samasante_admin_session';
 
 export default function AdminPage() {
   const { t } = useTranslation();
+  const [authenticated, setAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [checkingSession, setCheckingSession] = useState(true);
+
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Modal state
   const [formOpen, setFormOpen] = useState(false);
   const [editDoctor, setEditDoctor] = useState<Doctor | undefined>(undefined);
-
-  // Delete dialog state
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Doctor | null>(null);
+
+  // Vérifier la session au chargement
+  useEffect(() => {
+    const session = sessionStorage.getItem(SESSION_KEY);
+    if (session === 'true') {
+      setAuthenticated(true);
+    }
+    setCheckingSession(false);
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError('');
+
+    try {
+      const res = await fetch('/api/admin/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        sessionStorage.setItem(SESSION_KEY, 'true');
+        setAuthenticated(true);
+        setPassword('');
+      } else {
+        setAuthError(data.error || 'Mot de passe incorrect');
+      }
+    } catch {
+      setAuthError('Erreur de connexion. Réessayez.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    setAuthenticated(false);
+    setDoctors([]);
+  };
 
   const fetchDoctors = useCallback(async () => {
     setLoading(true);
@@ -49,8 +98,10 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    fetchDoctors();
-  }, [fetchDoctors]);
+    if (authenticated) {
+      fetchDoctors();
+    }
+  }, [authenticated, fetchDoctors]);
 
   const handleAdd = () => {
     setEditDoctor(undefined);
@@ -92,20 +143,88 @@ export default function AdminPage() {
     }
   };
 
+  // Écran de chargement initial
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Skeleton className="h-12 w-48 rounded-xl" />
+      </div>
+    );
+  }
+
+  // Écran de connexion
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-sm">
+          <div className="bg-card rounded-2xl border border-border/50 p-8 shadow-lg">
+            <div className="text-center mb-8">
+              <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                <Lock className="h-7 w-7 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold">Administration</h1>
+              <p className="text-muted-foreground text-sm mt-1">
+                SamaSanté AI
+              </p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  type="password"
+                  placeholder="Mot de passe administrateur"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={authError ? 'border-destructive' : ''}
+                  autoFocus
+                />
+                {authError && (
+                  <p className="text-xs text-destructive">{authError}</p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={authLoading || !password.trim()}
+              >
+                {authLoading ? 'Vérification...' : 'Se connecter'}
+              </Button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Page admin (authentifié)
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-gradient-premium text-white">
         <div className="container mx-auto px-4 py-10 md:py-14">
-          <div className="flex items-center gap-3">
-            <Settings className="h-7 w-7" />
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-              {t('admin_title')}
-            </h1>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-3">
+                <Settings className="h-7 w-7" />
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+                  {t('admin_title')}
+                </h1>
+              </div>
+              <p className="text-white/70 mt-2 max-w-lg">
+                Gérez les médecins de l&apos;annuaire SamaSanté.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Déconnexion
+            </Button>
           </div>
-          <p className="text-white/70 mt-2 max-w-lg">
-            Gérez les médecins de l&apos;annuaire SamaSanté.
-          </p>
         </div>
       </div>
 
@@ -191,7 +310,7 @@ export default function AdminPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleEdit(doctor)}
-                              aria-label={`${t('admin_edit')} ${doctor.name}`}
+                              aria-label={`Modifier ${doctor.name}`}
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -199,7 +318,7 @@ export default function AdminPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => handleDeleteClick(doctor)}
-                              aria-label={`${t('admin_delete')} ${doctor.name}`}
+                              aria-label={`Supprimer ${doctor.name}`}
                               className="text-destructive hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
