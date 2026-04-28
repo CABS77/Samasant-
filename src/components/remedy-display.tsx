@@ -1,397 +1,327 @@
-
 // RemedyDisplay.tsx
 "use client";
 
 import type { Remedy } from "@/services/remedies";
-
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import Image from 'next/image';
+import { useState, useEffect, useCallback } from 'react';
 import { getRemedies } from "@/services/remedies";
 import { generateRemedies } from "@/ai/flows/generate-remedies-flow";
-import { getRemedyImageUrl } from "@/services/imageService";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Loader2, ImageOff } from 'lucide-react';
-import { toast } from "@/hooks/use-toast";
-import frTranslationsData from '@/locales/fr/translation.json';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-    DialogClose,
-    DialogTrigger,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Sparkles, Loader2, Search, Leaf, ChevronDown, X } from 'lucide-react';
+import { toast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDebounce } from "@/hooks/useDebounce";
-import { OptimizedImage } from "@/components/ui/optimized-image";
 
-
-// Combined type for display
 interface DisplayRemedy extends Remedy {
   id: string;
   isGenerated?: boolean;
-  imageUrlToDisplay?: string | null;
-  isLoadingImage?: boolean;
-  imageLoadError?: boolean;
 }
 
-const fr = frTranslationsData;
+const CATEGORIES = [
+  { key: 'all', label: 'Tous', emoji: '🌿' },
+  { key: 'toux', label: 'Toux', emoji: '🤧' },
+  { key: 'fièvre', label: 'Fièvre', emoji: '🌡️' },
+  { key: 'digestion', label: 'Digestion', emoji: '🫃' },
+  { key: 'peau', label: 'Peau', emoji: '🧴' },
+  { key: 'douleur', label: 'Douleurs', emoji: '💪' },
+  { key: 'stress', label: 'Stress', emoji: '🧘' },
+  { key: 'sommeil', label: 'Sommeil', emoji: '😴' },
+  { key: 'paludisme', label: 'Paludisme', emoji: '🦟' },
+  { key: 'immunité', label: 'Immunité', emoji: '🛡️' },
+  { key: 'fatigue', label: 'Fatigue', emoji: '⚡' },
+  { key: 'diarrhée', label: 'Diarrhée', emoji: '💧' },
+];
+
+const ITEMS_PER_PAGE = 8;
 
 export function RemedyDisplay() {
-  const [symptom, setSymptom] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeCategory, setActiveCategory] = useState("all");
   const [allRemedies, setAllRemedies] = useState<DisplayRemedy[]>([]);
-  const [displayedRemedies, setDisplayedRemedies] = useState<DisplayRemedy[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [generating, setGenerating] = useState<boolean>(false);
-  const [noResultsMessage, setNoResultsMessage] = useState<string>("");
-  
-  // Utiliser debounce pour optimiser la recherche
-  const debouncedSymptom = useDebounce(symptom, 300);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
 
-  const extractEnglishKeywords = useCallback((remedy: Remedy): string => {
-    const nameLower = remedy.name.toLowerCase();
-    const descriptionLower = remedy.description.toLowerCase();
-
-    const nameIngredients = [
-        'gingembre', 'lem', 'miel', 'thym', 'menthe', 'nana', 'kinkeliba', 'argile', 'ail', 'oignon',
-        'moringa', 'nebeday', 'attaya', 'ditax', 'charbon', 'lin', 'verveine', 'ananas', 'fenouil',
-        'neem', 'baobab', 'buy', 'aloe', 'karité', 'plantain', 'coco', 'gnarr', 'girofle', 'curcuma',
-        'arachide', 'gerte', 'piment', 'citronnelle', 'camomille', 'corossol', 'lavande', 'bissap', 'goyave',
-        'carotte', 'riz', 'cannelle', 'sucre', 'sel'
-    ];
-
-    const ingredientMap: { [key: string]: string } = {
-        'gingembre': 'ginger', 'lem': 'lemon', 'miel': 'honey', 'thym': 'thyme',
-        'menthe': 'mint', 'nana': 'mint', 'kinkeliba': 'kinkeliba leaves', 'argile': 'clay',
-        'ail': 'garlic', 'oignon': 'onion', 'sucre': 'sugar', 'sel': 'salt',
-        'moringa': 'moringa', 'nebeday': 'moringa leaves', 'attaya': 'senegalese tea',
-        'ditax': 'ditax fruit', 'charbon': 'charcoal', 'lin': 'flax seed',
-        'verveine': 'verbena', 'ananas': 'pineapple', 'fenouil': 'fennel seed',
-        'neem': 'neem leaves', 'baobab': 'baobab fruit', 'buy': 'baobab fruit', 'aloe': 'aloe vera',
-        'karité': 'shea butter', 'plantain': 'plantain leaf', 'coco': 'coconut',
-        'gnarr': 'coconut', 'girofle': 'clove', 'curcuma': 'turmeric',
-        'arachide': 'peanut', 'gerte': 'peanut', 'piment': 'cayenne pepper',
-        'citronnelle': 'lemongrass', 'camomille': 'chamomile', 'corossol': 'soursop leaves',
-        'lavande': 'lavender', 'bissap': 'hibiscus flower', 'goyave': 'guava leaves',
-        'carotte': 'carrot', 'riz': 'rice', 'cannelle': 'cinnamon stick',
-    };
-
-    const keywords: string[] = [];
-
-    for (const term of nameIngredients) {
-      if (nameLower.includes(term) && ingredientMap[term] && !keywords.includes(ingredientMap[term])) {
-        keywords.push(ingredientMap[term]);
-        if (keywords.length >= 2) break;
-      }
-    }
-
-    if (keywords.length < 2) {
-      for (const term of nameIngredients) {
-        if (descriptionLower.includes(term) && ingredientMap[term] && !keywords.includes(ingredientMap[term])) {
-          keywords.push(ingredientMap[term]);
-          if (keywords.length >= 2) break;
-        }
-      }
-    }
-    
-    if (keywords.length === 0) {
-        const symptomLower = remedy.symptom.toLowerCase();
-        if (symptomLower.includes('toux') || symptomLower.includes('soj')) keywords.push('cough remedy');
-        else if (symptomLower.includes('gorge') || symptomLower.includes('baat')) keywords.push('sore throat remedy');
-        else if (symptomLower.includes('tête') || symptomLower.includes('bop')) keywords.push('headache relief');
-        else if (symptomLower.includes('fièvre') || symptomLower.includes('seuf')) keywords.push('fever remedy');
-        else if (symptomLower.includes('digestion')) keywords.push('digestive aid');
-        else if (symptomLower.includes('peau') || symptomLower.includes('yaram')) keywords.push('skin remedy');
-        else if (symptomLower.includes('stress')) keywords.push('stress relief herb');
-        else if (symptomLower.includes('sommeil') || symptomLower.includes('nelaw')) keywords.push('sleep aid herb');
-    }
-
-    if (keywords.length === 0) {
-        keywords.push('medicinal plant', 'natural remedy');
-    } else if (keywords.length === 1) {
-        if (!keywords[0].includes('plant') && !keywords[0].includes('herb') && !keywords[0].includes('remedy') && !keywords[0].includes('tea') && !keywords[0].includes('fruit') && !keywords[0].includes('leaf')) {
-            keywords.push('plant');
-        }
-    }
-    return keywords.slice(0, 2).join(' ');
-  }, []);
-
-
-  const fetchAndSetImageUrl = useCallback(async (remedyToUpdate: DisplayRemedy) => {
-    if (remedyToUpdate.isLoadingImage || (remedyToUpdate.imageUrlToDisplay && !remedyToUpdate.imageLoadError)) return;
-    
-    setAllRemedies(prev => prev.map(r => r.id === remedyToUpdate.id ? { ...r, isLoadingImage: true, imageLoadError: false } : r));
-
-    const englishKeywords = extractEnglishKeywords(remedyToUpdate);
-    console.log(`Fetching image for remedy: ${remedyToUpdate.name}, keywords: "${englishKeywords}"`);
-    let fetchedUrl: string | null = null;
-
-    if (englishKeywords && englishKeywords.trim() !== "") {
-        fetchedUrl = await getRemedyImageUrl(englishKeywords);
-    } else {
-        console.warn(`No keywords extracted for remedy: ${remedyToUpdate.name}. Skipping image fetch.`);
-    }
-    
-    console.log(`Fetched URL for ${remedyToUpdate.name}: ${fetchedUrl}`);
-    setAllRemedies(prev => prev.map(r => r.id === remedyToUpdate.id ? {
-        ...r,
-        imageUrlToDisplay: fetchedUrl, // Can be null if nothing was fetched
-        isLoadingImage: false,
-        imageLoadError: !fetchedUrl 
-    } : r));
-  }, [extractEnglishKeywords]);
-
-  const loadRemedies = useCallback(async (currentSymptom: string) => {
+  const loadRemedies = useCallback(async () => {
     setLoading(true);
-    setGenerating(false);
-    setNoResultsMessage("");
-    let fetchedRemedies: Remedy[] = [];
     try {
-      fetchedRemedies = await getRemedies(currentSymptom, "franco-wolof");
-
-      if (fetchedRemedies.length > 0) {
-        const remediesWithState: DisplayRemedy[] = fetchedRemedies.map((r, index) => ({
-          ...r,
-          id: `${r.name}-${index}-${Date.now()}`, // More unique ID
-          isLoadingImage: false, // Initial state
-          imageUrlToDisplay: null, // Will be fetched
-          imageLoadError: false,
-        }));
-        setAllRemedies(remediesWithState);
-      } else if (currentSymptom.trim()) {
-        setGenerating(true);
-        toast({
-          title: fr.aiSearch_title || "Recherche IA - Wax ak IA",
-          description: `${fr.noRemediesInDb_message_part1 || 'Amoul dara ci cache wala base de données bi pour'} "${currentSymptom}". ${fr.generatingWithAi_message_part2 || 'Je tente de générer avec l\'IA...'}`,
-        });
-        try {
-          const aiResponse = await generateRemedies({ symptom: currentSymptom });
-          if (aiResponse.generatedRemedies && aiResponse.generatedRemedies.length > 0) {
-            const generated: DisplayRemedy[] = aiResponse.generatedRemedies.map((rGen, index) => ({
-              name: rGen.name,
-              description: rGen.description,
-              symptom: rGen.symptom,
-              imageUrl: '', // AI generated remedies don't have a pre-defined image
-              id: `gen-${rGen.name}-${index}-${Date.now()}`,
-              isGenerated: true,
-              isLoadingImage: false,
-              imageUrlToDisplay: null,
-              imageLoadError: false,
-            }));
-            setAllRemedies(generated);
-             toast({
-              title: fr.aiSuccess_title || "Succès IA - Liggey IA baxna",
-              description: `${fr.aiGeneratedSuggestions_message_part1 || "L'IA a généré des suggestions pour"} "${currentSymptom}".`,
-              variant: "default"
-            });
-          } else {
-            setAllRemedies([]);
-            setNoResultsMessage(fr.noRemediesFound_amul || "Aucun remède trouvé pour ce symptôme. Essayez avec d'autres termes.");
-            toast({ title: fr.aiFailure_title || "Échec IA - IA mënul dara", description: `${fr.aiFoundNothing_message_part1 || "Même l'IA n'a rien trouvé pour"} "${currentSymptom}".`, variant: "destructive" });
-          }
-        } catch (aiError: any) {
-          console.error("AI generation failed:", aiError.message);
-          setAllRemedies([]);
-          setNoResultsMessage(fr.noRemediesFound_amul || "Aucun remède trouvé pour ce symptôme. Essayez avec d'autres termes.");
-          toast({ title: fr.error_njuumte || "Erreur", description: `${fr.errorDuringAiGeneration_message_part1 || 'Erreur lors de la génération par IA'}: ${aiError.message}`, variant: "destructive" });
-        } finally {
-           setGenerating(false);
-        }
-      } else {
-         setAllRemedies([]); 
-         setNoResultsMessage(fr.enterSymptomToSearch_placeholder || "Entrez un symptôme pour rechercher ou voir les remèdes populaires.");
-      }
-    } catch (error: any) {
-      console.error("Failed to fetch remedies:", error.message);
-      setAllRemedies([]);
-      setNoResultsMessage(fr.errorFetchingRemedies_message || "Erreur lors de la récupération des remèdes.");
-      toast({ title: fr.error_njuumte || "Erreur", description: `${fr.unableToLoadRemedies_message_part1 || 'Impossible de charger les remèdes'}: ${error.message}`, variant: "destructive" });
+      const fetched = await getRemedies("", "franco-wolof");
+      const withIds: DisplayRemedy[] = fetched.map((r, i) => ({
+        ...r,
+        id: `remedy-${i}`,
+      }));
+      setAllRemedies(withIds);
+    } catch (err: any) {
+      console.error("Failed to fetch remedies:", err);
+      toast({ variant: "destructive", title: "Erreur", description: "Impossible de charger les remèdes." });
     } finally {
       setLoading(false);
     }
   }, []);
 
-   useEffect(() => {
-    loadRemedies(""); 
+  useEffect(() => {
+    loadRemedies();
   }, [loadRemedies]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (symptom.trim() !== "" || allRemedies.length === 0) { 
-         loadRemedies(symptom);
-      }
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [symptom, loadRemedies, allRemedies.length]);
+  // Filtrage par catégorie + recherche
+  const filtered = allRemedies.filter((r) => {
+    const matchesCategory =
+      activeCategory === 'all' ||
+      r.symptom.toLowerCase().includes(activeCategory) ||
+      r.name.toLowerCase().includes(activeCategory) ||
+      r.description.toLowerCase().includes(activeCategory);
 
-  useEffect(() => {
-    setDisplayedRemedies(allRemedies.slice(0, 4));
-    if (!loading && !generating && allRemedies.length === 0 && symptom.trim()) {
-        setNoResultsMessage(fr.noRemediesFound_amul || "Aucun remède trouvé pour ce symptôme. Essayez avec d'autres termes.");
-    } else if (!loading && !generating && allRemedies.length === 0 && !symptom.trim()) {
-        setNoResultsMessage(fr.enterSymptomToSearch_placeholder || "Entrez un symptôme pour rechercher ou voir les remèdes populaires.");
-    }
-  }, [allRemedies, loading, generating, symptom]);
-  
-  useEffect(() => {
-    displayedRemedies.forEach(remedy => {
-        if (!remedy.isLoadingImage && !remedy.imageUrlToDisplay && !remedy.imageLoadError) {
-            fetchAndSetImageUrl(remedy);
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      r.name.toLowerCase().includes(q) ||
+      r.description.toLowerCase().includes(q) ||
+      r.symptom.toLowerCase().includes(q);
+
+    return matchesCategory && matchesSearch;
+  });
+
+  const displayed = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    // Si pas de résultats locaux, tenter la génération IA
+    if (filtered.length === 0) {
+      setGenerating(true);
+      try {
+        const aiResponse = await generateRemedies({ symptom: searchQuery });
+        if (aiResponse.generatedRemedies && aiResponse.generatedRemedies.length > 0) {
+          const generated: DisplayRemedy[] = aiResponse.generatedRemedies.map((r, i) => ({
+            name: r.name,
+            description: r.description,
+            symptom: r.symptom,
+            imageUrl: '',
+            id: `gen-${i}-${Date.now()}`,
+            isGenerated: true,
+          }));
+          setAllRemedies((prev) => [...generated, ...prev]);
+          toast({ title: "✨ Remèdes générés par l'IA", description: `${generated.length} suggestions pour "${searchQuery}"` });
+        } else {
+          toast({ variant: "destructive", title: "Aucun résultat", description: "Essayez avec d'autres termes." });
         }
-    });
-  }, [displayedRemedies, fetchAndSetImageUrl]);
+      } catch {
+        toast({ variant: "destructive", title: "Erreur IA", description: "Impossible de générer des remèdes." });
+      } finally {
+        setGenerating(false);
+      }
+    }
+  };
 
+  const handleCategoryChange = (key: string) => {
+    setActiveCategory(key);
+    setVisibleCount(ITEMS_PER_PAGE);
+    setSearchQuery("");
+  };
 
-  const handleImageError = (remedyId: string) => {
-    console.error(`Image load error for remedy ID: ${remedyId}`);
-    setAllRemedies(prev => prev.map(r => r.id === remedyId ? { ...r, imageLoadError: true, isLoadingImage: false, imageUrlToDisplay: null } : r));
+  // Emoji basé sur le symptôme
+  const getSymptomEmoji = (symptom: string): string => {
+    const s = symptom.toLowerCase();
+    if (s.includes('toux') || s.includes('rhume') || s.includes('bronchite')) return '🤧';
+    if (s.includes('fièvre') || s.includes('paludisme')) return '🌡️';
+    if (s.includes('digestion') || s.includes('ballonnement') || s.includes('constipation')) return '🫃';
+    if (s.includes('peau') || s.includes('brûlure') || s.includes('mycose')) return '🧴';
+    if (s.includes('douleur') || s.includes('rhumatisme') || s.includes('crampe')) return '💪';
+    if (s.includes('stress') || s.includes('anxiété')) return '🧘';
+    if (s.includes('sommeil')) return '😴';
+    if (s.includes('fatigue') || s.includes('énergie')) return '⚡';
+    if (s.includes('diarrhée') || s.includes('déshydratation')) return '💧';
+    if (s.includes('immunité') || s.includes('prévention')) return '🛡️';
+    if (s.includes('gorge')) return '🗣️';
+    if (s.includes('dent') || s.includes('aphte')) return '🦷';
+    if (s.includes('yeux')) return '👁️';
+    if (s.includes('règles') || s.includes('allaitement')) return '👩';
+    if (s.includes('plaie') || s.includes('piqûre')) return '🩹';
+    return '🌿';
   };
 
   return (
-    <div>
-      <div className="mb-4">
-        <Input
-          type="text"
-          placeholder={fr.enterSymptom_bindal || "Entrez un symptôme (ex: toux) - Bindal sa malaaka (misal: soj)"}
-          value={symptom}
-          onChange={(e) => setSymptom(e.target.value)}
-          className="rounded-md shadow-sm border-border focus:ring-primary text-sm sm:text-base"
-        />
+    <div className="space-y-5">
+      {/* Barre de recherche */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Rechercher un remède ou symptôme..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setVisibleCount(ITEMS_PER_PAGE);
+            }}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            className="pl-10"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => { setSearchQuery(""); setVisibleCount(ITEMS_PER_PAGE); }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {searchQuery && filtered.length === 0 && (
+          <Button onClick={handleSearch} disabled={generating} size="sm" className="shrink-0">
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+            <span className="hidden sm:inline ml-1">IA</span>
+          </Button>
+        )}
       </div>
 
+      {/* Catégories */}
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        {CATEGORIES.map(({ key, label, emoji }) => (
+          <button
+            key={key}
+            onClick={() => handleCategoryChange(key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all border ${
+              activeCategory === key
+                ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                : 'bg-card border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30'
+            }`}
+          >
+            <span>{emoji}</span>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Compteur */}
+      {!loading && (
+        <p className="text-xs text-muted-foreground">
+          {filtered.length} remède{filtered.length > 1 ? 's' : ''} trouvé{filtered.length > 1 ? 's' : ''}
+          {activeCategory !== 'all' && ` pour "${CATEGORIES.find(c => c.key === activeCategory)?.label}"`}
+          {searchQuery && ` contenant "${searchQuery}"`}
+        </p>
+      )}
+
+      {/* Loading */}
       {(loading || generating) && (
-         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {Array.from({ length: 4 }).map((_, index) => (
-                <Card key={`skeleton-${index}`} className="rounded-lg shadow-md overflow-hidden bg-card">
-                    <CardContent className="p-3 sm:p-4 flex flex-col flex-grow">
-                        <Skeleton className="relative w-full h-24 sm:h-32 mb-2 rounded-md" />
-                        <Skeleton className="h-5 w-3/4 mb-1" />
-                        <Skeleton className="h-3 w-full" />
-                        <Skeleton className="h-3 w-5/6 mt-1" />
-                    </CardContent>
-                </Card>
-            ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex gap-3 p-4 rounded-xl border border-border/50 bg-card">
+              <Skeleton className="h-12 w-12 rounded-xl shrink-0" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-2/3" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {!loading && !generating && displayedRemedies.length === 0 && (
-        <p className="col-span-full text-center text-muted-foreground p-4">{noResultsMessage || (fr.noRemediesFound_amul || "Aucun remède trouvé...")}</p>
+      {/* Aucun résultat */}
+      {!loading && !generating && filtered.length === 0 && (
+        <div className="text-center py-10 bg-muted/20 rounded-2xl border border-border/50">
+          <Leaf className="h-10 w-10 text-muted-foreground/50 mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm">
+            {searchQuery
+              ? `Aucun remède trouvé pour "${searchQuery}". Cliquez sur le bouton IA pour générer des suggestions.`
+              : "Entrez un symptôme ou choisissez une catégorie."}
+          </p>
+        </div>
       )}
 
-       {!loading && !generating && displayedRemedies.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {displayedRemedies.map((remedy, index) => (
+      {/* Liste des remèdes */}
+      {!loading && !generating && displayed.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {displayed.map((remedy) => (
             <Dialog key={remedy.id}>
               <DialogTrigger asChild>
-                <Card className="rounded-lg shadow-md overflow-hidden bg-card text-card-foreground transition-shadow hover:shadow-xl group flex flex-col cursor-pointer">
-                  <CardContent className="p-3 sm:p-4 flex flex-col flex-grow">
-                    <div className="relative w-full h-24 sm:h-32 mb-2 rounded-md overflow-hidden bg-muted flex items-center justify-center">
-                      {remedy.isLoadingImage ? (
-                        <Skeleton className="h-full w-full" />
-                      ) : remedy.imageUrlToDisplay && !remedy.imageLoadError ? (
-                        <Image
-                          key={remedy.imageUrlToDisplay} 
-                          src={remedy.imageUrlToDisplay}
-                          alt={remedy.name}
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          style={{ objectFit: 'cover' }}
-                          data-ai-hint={extractEnglishKeywords(remedy)}
-                          className="transition-transform duration-300 ease-in-out group-hover:scale-105"
-                          priority={index < 4} 
-                          onError={() => handleImageError(remedy.id)}
-                        />
-                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-muted/70">
-                           <ImageOff className="h-10 w-10 text-destructive" data-ai-hint="broken image placeholder" />
-                        </div>
-                       )}
-                     </div>
-                    <div className="flex-grow">
-                      <h3 className="font-poppins-bold text-sm sm:text-base mb-1 text-primary flex items-center justify-between">
-                        <span className="truncate">{remedy.name}</span>
-                         {remedy.isGenerated && (
-                            <TooltipProvider delayDuration={100}>
-                               <Tooltip>
-                                   <TooltipTrigger asChild>
-                                      <Sparkles className="h-3 w-3 sm:h-4 text-accent flex-shrink-0 ml-1 cursor-help" />
-                                   </TooltipTrigger>
-                                   <TooltipContent>
-                                       <p>{fr.aiGenerated_tooltip || "Généré par l'IA / Li IA Bind"}</p>
-                                   </TooltipContent>
-                               </Tooltip>
-                            </TooltipProvider>
-                        )}
-                      </h3>
-                      <p className="font-open-sans text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-3">{remedy.description}</p>
+                <button className="flex gap-3 p-4 rounded-xl border border-border/50 bg-card hover:border-primary/30 hover:shadow-sm transition-all text-left w-full group">
+                  {/* Emoji icon */}
+                  <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-lg group-hover:bg-primary/15 transition-colors">
+                    {getSymptomEmoji(remedy.symptom)}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="font-semibold text-sm truncate">{remedy.name}</h4>
+                      {remedy.isGenerated && (
+                        <Sparkles className="h-3 w-3 text-accent shrink-0" />
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
+                    <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
+                      {remedy.description}
+                    </p>
+                    <span className="inline-block mt-1.5 text-[10px] font-medium text-primary bg-primary/10 rounded-md px-2 py-0.5">
+                      {remedy.symptom}
+                    </span>
+                  </div>
+                </button>
               </DialogTrigger>
-               <DialogContent className="sm:max-w-[425px] max-h-[80vh] overflow-y-auto bg-card">
-                 <DialogHeader>
-                   <DialogTitle className="font-poppins-bold text-xl text-primary flex items-center">
-                     {remedy.name}
-                     {remedy.isGenerated && (
-                         <TooltipProvider delayDuration={100}>
-                           <Tooltip>
-                               <TooltipTrigger asChild>
-                                  <Sparkles className="h-4 w-4 text-accent flex-shrink-0 ml-2 cursor-help" />
-                               </TooltipTrigger>
-                               <TooltipContent>
-                                   <p>{fr.aiGenerated_tooltip || "Généré par l'IA / Li IA Bind"}</p>
-                               </TooltipContent>
-                           </Tooltip>
-                        </TooltipProvider>
-                     )}
-                   </DialogTitle>
-                   <DialogDescription className="font-open-sans text-sm text-muted-foreground pt-2">
-                     {fr.remedyForSymptom_label || "Symptôme visé"} : {remedy.symptom}
-                   </DialogDescription>
-                 </DialogHeader>
-                 <div className="py-4 space-y-4">
-                    <div className="relative w-full h-48 rounded-md overflow-hidden bg-muted flex items-center justify-center">
-                       {remedy.isLoadingImage ? (
-                        <Skeleton className="h-full w-full" />
-                       ) : remedy.imageUrlToDisplay && !remedy.imageLoadError ? (
-                          <Image
-                              key={remedy.imageUrlToDisplay + "-dialog"}
-                              src={remedy.imageUrlToDisplay}
-                              alt={remedy.name}
-                              fill
-                              sizes="(max-width: 640px) 90vw, 400px"
-                              style={{ objectFit: 'cover' }}
-                              data-ai-hint={`${extractEnglishKeywords(remedy)} ingredient`}
-                              onError={() => handleImageError(remedy.id)}
-                          />
-                       ) : (
-                        <div className="absolute inset-0 flex items-center justify-center bg-muted/70">
-                           <ImageOff className="h-12 w-12 text-destructive" data-ai-hint="broken image placeholder"/>
-                        </div>
-                       )}
+
+              <DialogContent className="sm:max-w-[480px] max-h-[85vh] overflow-y-auto">
+                <DialogHeader>
+                  <div className="flex items-center gap-3 mb-1">
+                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl">
+                      {getSymptomEmoji(remedy.symptom)}
                     </div>
-                   <p className="font-open-sans text-base text-foreground leading-relaxed">
-                     {remedy.description}
-                   </p>
-                 </div>
-                 <DialogFooter>
-                   <DialogClose asChild>
-                     <Button type="button" variant="secondary">
-                        {fr.close_button_label || "Fermer (Teudj)"}
-                     </Button>
-                   </DialogClose>
-                 </DialogFooter>
-               </DialogContent>
+                    <div>
+                      <DialogTitle className="text-lg flex items-center gap-2">
+                        {remedy.name}
+                        {remedy.isGenerated && <Sparkles className="h-4 w-4 text-accent" />}
+                      </DialogTitle>
+                      <DialogDescription className="text-xs mt-0.5">
+                        Symptôme : {remedy.symptom}
+                      </DialogDescription>
+                    </div>
+                  </div>
+                </DialogHeader>
+
+                <div className="py-4">
+                  <div className="bg-muted/30 rounded-xl p-4 border border-border/30">
+                    <p className="text-sm leading-relaxed">{remedy.description}</p>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-xl border border-amber-200/50 dark:border-amber-800/30">
+                    <p className="text-xs text-amber-800 dark:text-amber-200">
+                      ⚠️ Ces remèdes sont informatifs et ne remplacent pas un avis médical. Consultez toujours un professionnel de santé.
+                    </p>
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button variant="secondary" size="sm">Fermer</Button>
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
             </Dialog>
           ))}
+        </div>
+      )}
+
+      {/* Bouton Voir plus */}
+      {hasMore && !loading && (
+        <div className="text-center pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setVisibleCount((prev) => prev + ITEMS_PER_PAGE)}
+          >
+            <ChevronDown className="h-4 w-4 mr-1" />
+            Voir plus ({filtered.length - visibleCount} restants)
+          </Button>
         </div>
       )}
     </div>
   );
 }
-
