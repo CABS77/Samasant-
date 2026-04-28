@@ -268,7 +268,7 @@ export function RemedyDisplay() {
                 </button>
               </DialogTrigger>
 
-              <DialogContent className="sm:max-w-[480px] max-h-[85vh] overflow-y-auto fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
+              <DialogContent className="sm:max-w-[480px]">
                 <DialogHeader>
                   <div className="flex items-center gap-3 mb-1">
                     <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-2xl">
