@@ -102,7 +102,20 @@ body {
   body {
     @apply bg-background text-foreground;
     filter: brightness(1);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+}
+
+/* Mobile bottom tab bar spacing */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 4rem;
+  }
+}
+
+/* Safe area for bottom tab bar */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* Premium smooth scrolling */
