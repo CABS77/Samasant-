@@ -1,21 +1,15 @@
 
 "use client";
 import React from 'react';
-import Link from 'next/link';
-import type { InitialHealthAssessmentOutput, RemedyDetailSchema } from "@/ai/flows/initial-health-assessment";
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import type { RemedyDetailSchema } from "@/ai/flows/initial-health-assessment";
+import { useEffect, useState, useRef } from 'react';
 import {Button} from "@/components/ui/button";
 import {Textarea} from "@/components/ui/textarea";
-import { useAIAssessment } from "@/hooks/ai/useAIAssessment";
-import { initialHealthAssessment } from "@/ai/flows/initial-health-assessment";
 import { toast } from "@/hooks/use-toast";
 import { hasReachedLimit, incrementDailyCount } from "@/lib/requestLimit";
 import { useTranslation } from 'react-i18next';
 import { Mic, MicOff, Volume2, VolumeX, Loader2, Info, Share2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import AppointmentBooking from '@/components/appointment-booking';
 
 interface AIChatSectionProps {}
 
@@ -275,136 +269,122 @@ export function AIChatSection({}: AIChatSectionProps) {
   };
 
   return (
-    <div className="space-y-6">
-    <Card className="shadow-xl rounded-xl bg-card text-card-foreground">
-       <CardHeader>
-        <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">{t("aiChat_waxtaan_title")}</CardTitle>
-      </CardHeader>
-      <CardContent>
-         <div className="flex items-center space-x-2 mb-4">
-          <Textarea
-            placeholder={t("typeOrSpeakWolof_maangi")}
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            className="rounded-xl shadow-sm flex-grow border-border focus:ring-primary text-sm sm:text-base p-4 min-h-[100px] resize-none"
-            rows={3}
-          />
-           <Button
-            onClick={toggleRecording}
-            variant="outline"
-            size="icon"
-            className={`rounded-xl shadow-sm h-12 w-12 flex-shrink-0 ${isRecording ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground animate-pulse border-destructive' : ''}`}
-            title={isRecording ? t("stopRecording_taxawal") : t("startRecording_door")}
-            disabled={loading}
-          >
-            {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-          </Button>
+    <div className="space-y-4">
+      {/* Input zone */}
+      <div className="flex gap-2">
+        <Textarea
+          placeholder={t("typeOrSpeakWolof_maangi")}
+          value={chatInput}
+          onChange={(e) => setChatInput(e.target.value)}
+          className="flex-grow min-h-[90px] resize-none"
+          rows={3}
+        />
+        <Button
+          onClick={toggleRecording}
+          variant="outline"
+          size="icon"
+          className={`h-11 w-11 shrink-0 self-end ${isRecording ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground animate-pulse border-destructive' : ''}`}
+          title={isRecording ? t("stopRecording_taxawal") : t("startRecording_door")}
+          disabled={loading}
+        >
+          {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+        </Button>
+      </div>
+
+      {/* Language buttons */}
+      <div className="flex gap-2">
+        <Button
+          onClick={() => handleChatSubmit('french')}
+          disabled={loading || isRecording}
+          className="flex-1"
+        >
+          {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+          {loading ? t("loading_yeggeul") : t("answerInFrench_button")}
+        </Button>
+        <Button
+          onClick={() => handleChatSubmit('wolof')}
+          disabled={loading || isRecording}
+          variant="outline"
+          className="flex-1"
+        >
+          {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+          {loading ? t("loading_yeggeul") : t("answerInWolof_button")}
+        </Button>
+      </div>
+
+      {/* Loading state */}
+      {loading && !chatOutput && (
+        <div className="py-8 space-y-4">
+          <div className="flex items-center justify-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin text-primary" />
+            <span className="text-sm text-primary font-medium">{t("aiThinking_reflechit")}</span>
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
         </div>
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-4">
-          <Button
-            onClick={() => handleChatSubmit('french')}
-            disabled={loading || isRecording}
-            className="flex-1 rounded-xl shadow-sm py-3 text-sm sm:text-base font-semibold"
-          >
-            {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
-            {loading ? t("loading_yeggeul") : t("answerInFrench_button")}
-          </Button>
-          <Button
-            onClick={() => handleChatSubmit('wolof')}
-            disabled={loading || isRecording}
-            className="flex-1 rounded-xl shadow-sm py-3 text-sm sm:text-base font-semibold"
-          >
-            {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
-            {loading ? t("loading_yeggeul") : t("answerInWolof_button")}
-          </Button>
-        </div>
-        {loading && !chatOutput && (
-          <div className="mt-6 space-y-4 sm:space-y-6">
-            <div className="flex items-center justify-center space-x-2">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <span className="text-primary font-medium">{t("aiThinking_reflechit")}</span>
+      )}
+
+      {/* Results */}
+      {chatOutput && (
+        <div className="space-y-4">
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <Button
+              onClick={() => speak(getSpeakableText())}
+              disabled={loading || !chatOutput || isRecording}
+              variant="outline"
+              size="sm"
+              className="flex-1"
+            >
+              {isSpeaking ? <VolumeX className="h-4 w-4 mr-1.5" /> : <Volume2 className="h-4 w-4 mr-1.5" />}
+              {isSpeaking ? t("stopReading_taxawal_lecture") : t("listenToResponse_deglu")}
+            </Button>
+            <Button
+              onClick={handleShareResponse}
+              disabled={loading || !chatOutput || isRecording}
+              variant="outline"
+              size="sm"
+              className="flex-1"
+            >
+              <Share2 className="h-4 w-4 mr-1.5" />
+              {t("shareResponse_partager")}
+            </Button>
+          </div>
+
+          {/* Assessment */}
+          <div className="bg-muted/30 rounded-xl p-4 border border-border/50 space-y-4">
+            <div>
+              <h3 className="font-semibold text-sm text-primary mb-2">{t("aiAssessment_title_wolof")}</h3>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">{chatOutput.assessment}</p>
             </div>
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-2/3" />
+
+            {chatOutput.traditionalRemedies && chatOutput.traditionalRemedies.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-sm text-primary mb-2">{t("suggestedRemedies_title_wolof")}</h3>
+                <ul className="space-y-2">
+                  {chatOutput.traditionalRemedies.map((remedy, index) => (
+                    <li key={index} className="p-3 bg-card rounded-lg border border-border/30">
+                      <h4 className="font-medium text-sm flex items-center gap-1.5 text-accent">
+                        <Info className="h-3.5 w-3.5 shrink-0" />
+                        {remedy.name}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-1 pl-5 leading-relaxed">{remedy.description}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div>
+              <h3 className="font-semibold text-sm text-primary mb-2">{t("nextSteps_title_wolof")}</h3>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">{chatOutput.nextSteps}</p>
             </div>
           </div>
-        )}
-
-        {chatOutput && (
-           <div className="mt-6 space-y-4 sm:space-y-6">
-             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                <Button
-                  onClick={() => speak(getSpeakableText())}
-                  disabled={loading || !chatOutput || isRecording}
-                  variant="outline"
-                  className="flex-1 rounded-lg shadow-md border-border hover:bg-accent hover:text-accent-foreground text-sm sm:text-base py-2 sm:py-3"
-                >
-                  {isSpeaking ? <VolumeX className="h-4 w-4 sm:h-5 sm:w-5 mr-2" /> : <Volume2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />}
-                  {isSpeaking ? t("stopReading_taxawal_lecture") : t("listenToResponse_deglu")}
-                </Button>
-                <Button
-                  onClick={handleShareResponse}
-                  disabled={loading || !chatOutput || isRecording}
-                  variant="outline"
-                  className="flex-1 rounded-lg shadow-md border-border hover:bg-accent hover:text-accent-foreground text-sm sm:text-base py-2 sm:py-3"
-                >
-                  <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  {t("shareResponse_partager")}
-                </Button>
-              </div>
-
-             <div className="p-4 sm:p-6 bg-muted/30 rounded-2xl space-y-4 sm:space-y-6 border border-border/50">
-              <div>
-                <h3 className="font-poppins-bold text-lg sm:text-xl text-primary mb-2 sm:mb-3 border-b pb-2 border-border/50">{t("aiAssessment_title_wolof")}</h3>
-                <p className="text-foreground/90 whitespace-pre-wrap font-open-sans text-sm sm:text-base leading-relaxed">{chatOutput.assessment}</p>
-              </div>
-
-              {chatOutput.traditionalRemedies && chatOutput.traditionalRemedies.length > 0 && (
-                <div>
-                  <h3 className="font-poppins-bold text-lg sm:text-xl text-primary mb-2 sm:mb-3 border-b pb-2 border-border/50">{t("suggestedRemedies_title_wolof")}</h3>
-                  <ul className="space-y-3 list-none pl-0">
-                    {chatOutput.traditionalRemedies.map((remedy, index) => (
-                      <li key={index} className="p-3 sm:p-4 bg-card rounded-xl border border-border/30">
-                         <h4 className="font-poppins-bold text-base sm:text-md text-accent mb-1 flex items-center">
-                           <Info className="h-4 w-4 mr-2 text-accent/80 flex-shrink-0" />
-                           {remedy.name}
-                         </h4>
-                        <p className="text-muted-foreground font-open-sans text-xs sm:text-sm leading-normal pl-6">{remedy.description}</p>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <div>
-                <h3 className="font-poppins-bold text-lg sm:text-xl text-primary mb-2 sm:mb-3 border-b pb-2 border-border/50">{t("nextSteps_title_wolof")}</h3>
-                <p className="text-foreground/90 whitespace-pre-wrap font-open-sans text-sm sm:text-base leading-relaxed">{chatOutput.nextSteps}</p>
-              </div>
-            </div>
-          </div>
-        )}
-        <div className="mt-4 text-right">
-          <Link href="/appointments" className="text-sm underline">
-            {t("appointments_book_link")}
-          </Link>
         </div>
-      </CardContent>
-    </Card>
-
-    <Card className="shadow-xl rounded-xl bg-card text-card-foreground">
-      <CardHeader>
-        <CardTitle className="font-poppins-bold text-xl sm:text-2xl text-primary">
-          {t('appointments_book_link')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <AppointmentBooking />
-      </CardContent>
-    </Card>
-
-
+      )}
     </div>
   );
 }
