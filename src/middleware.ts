@@ -36,7 +36,7 @@ export function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api/')) {
     const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
       'http://localhost:9002',
-      'https://samasante.ai',
+      'https://www.samasante.tech',
     ];
 
     const origin = request.headers.get('origin');

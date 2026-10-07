@@ -88,7 +88,7 @@ export default function MobileLanding() {
       <footer className="py-8 bg-gray-200 dark:bg-gray-800">
         <div className="max-w-5xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
           <div className="space-x-4 text-gray-700 dark:text-gray-300">
-            <Link href="#">CGU</Link>
+            <Link href="/cgu">CGU</Link>
             <Link href="#">Politique de confidentialité</Link>
             <Link href="#">Contact / support</Link>
           </div>
