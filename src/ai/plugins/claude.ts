@@ -1,4 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { serverFetch } from '@/lib/server-fetch';
+import { withAICircuit } from '@/lib/ai-request';
 import type {
   GenerateRequest,
   GenerateResponseData,
@@ -19,7 +21,7 @@ import { genkitPlugin } from 'genkit/plugin';
 
 export const CLAUDE_MODEL_NAME = 'claude/chat';
 export const DEFAULT_CLAUDE_MODEL = 'claude-sonnet-5-5';
-export const DEFAULT_MAX_TOKENS = 4096;
+export const DEFAULT_MAX_TOKENS = 2048;
 
 export interface ClaudePluginOptions {
   apiKey?: string;
@@ -82,7 +84,7 @@ export function toAnthropicRequest(
   const out: AnthropicRequest = {
     model: typeof config.version === 'string' ? config.version : defaults.model,
     max_tokens:
-      typeof config.maxOutputTokens === 'number' ? config.maxOutputTokens : defaults.maxTokens,
+      Math.min(2048, Math.max(1, typeof config.maxOutputTokens === 'number' ? config.maxOutputTokens : defaults.maxTokens)),
     messages,
   };
   if (system.length) out.system = system.join('\n\n');
@@ -150,10 +152,10 @@ export const claude = (options: ClaudePluginOptions = {}) =>
         if (!apiKey) {
           throw new Error('ANTHROPIC_API_KEY is not set: the Claude provider cannot be used.');
         }
-        client ??= new Anthropic({ apiKey });
-        const response = await client.messages.create(
+        client ??= new Anthropic({ apiKey, fetch: serverFetch, timeout: 15000, maxRetries: 0 });
+        const response = await withAICircuit('claude', () => client!.messages.create(
           toAnthropicRequest(request, { model, maxTokens })
-        );
+        ));
         return fromAnthropicResponse(response);
       }
     );

@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+vi.mock('@/lib/server-fetch', () => ({ serverFetch: (...args: Parameters<typeof fetch>) => fetch(...args) }));
 import { sendSms } from '@/services/sms';
 import { getNearbyClinics } from '@/services/mapbox';
 const fetchMock = vi.fn();

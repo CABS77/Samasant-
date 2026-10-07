@@ -3,30 +3,27 @@
 
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
+
 
 // Import translations directly
 import frTranslation from './locales/fr/translation.json';
+import woTranslation from './locales/wo/translation.json';
 
 i18n
   .use(initReactI18next) // passes i18n down to react-i18next
-  .use(LanguageDetector) // detect user language
+
   .init({
-    debug: process.env.NODE_ENV === 'development',
+    debug: false,
     fallbackLng: 'fr', // Default to French
-    lng: 'fr', // Explicitly set language to French, as we are French-only for now
+    lng: 'fr', // Stable SSR language; preference is applied after hydration.
     resources: {
+      wo: { translation: woTranslation },
       fr: {
         translation: frTranslation,
       },
     },
     interpolation: {
       escapeValue: false, // React already safes from xss
-    },
-    detection: {
-      // Configuration for language detection, though we are forcing 'fr'
-      order: ['cookie', 'localStorage', 'navigator', 'htmlTag'],
-      caches: ['cookie', 'localStorage'],
     },
     react: {
       useSuspense: false, // Important for Next.js App Router to avoid issues

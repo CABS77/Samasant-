@@ -1,6 +1,6 @@
 /* Run with PGlite installed in NODE_PATH; see docs/secure-care-workflows.md. */
 const { PGlite } = require('@electric-sql/pglite');
-const { readFileSync } = require('node:fs');
+const { readFileSync, readdirSync } = require('node:fs');
 const { resolve } = require('node:path');
 const assert = require('node:assert/strict');
 
@@ -26,8 +26,9 @@ async function main() {
         $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
       insert into auth.users values ('${patient}'), ('${other}');
     `);
-    await db.exec(readFileSync(resolve(__dirname, '../supabase/migrations/202610070000_doctor_directory.sql'), 'utf8'));
-    await db.exec(readFileSync(resolve(__dirname, '../supabase/migrations/202610070001_appointment_requests.sql'), 'utf8'));
+    for (const file of readdirSync(resolve(__dirname, '../supabase/migrations')).filter(name => name.endsWith('.sql')).sort()) {
+      await db.exec(readFileSync(resolve(__dirname, '../supabase/migrations', file), 'utf8'));
+    }
     const insert = (user, doctor, key) => `insert into public.appointment_requests
       (user_id, doctor_id, start_at, motif, phone, request_key)
       values ('${user}', '${doctor}', '2026-10-12T08:00:00Z', 'Test', '+221771234567', '${key}')`;
@@ -58,7 +59,56 @@ async function main() {
     await db.exec(insert(other, 'dr-1', '00000000-0000-4000-8000-000000000003'));
     const slots = await db.query("select count(*)::int as count from public.appointment_requests where doctor_id = 'dr-1' and status = 'requested'");
     assert.equal(slots.rows[0].count, 1); checks++;
-    console.log(`${checks} PostgreSQL checks passed: own-row access, anonymous and patient writes denied, slot uniqueness, idempotency, Auth foreign key and cancellation release.`);
+    const scalar = async (sql, expected) => { const result = await db.query(sql); assert.equal(Object.values(result.rows[0])[0], expected); checks++; };
+    await scalar("select public.check_care_schema()", true);
+    await scalar("select count(*)::int from care_audit_events where entity='appointment_requests' and from_state='requested' and to_state='cancelled'", 1);
+    for (let i = 0; i < 7; i++) await scalar("select consume_service_quota(array['global','patient-a'],array[10,7],86400)", true);
+    await scalar("select consume_service_quota(array['global','patient-a'],array[10,7],86400)", false);
+    await scalar("select count from service_quota where key='global'", 7);
+    for (let i = 0; i < 3; i++) await scalar("select consume_service_quota(array['global','patient-b'],array[10,7],86400)", true);
+    await scalar("select consume_service_quota(array['global','patient-c'],array[10,7],86400)", false);
+    await scalar("select count(*)::int from service_quota where key='patient-c'", 0);
+    const alert = '00000000-0000-4000-8000-000000000010';
+    const job = '00000000-0000-4000-8000-000000000011';
+    const enqueue = (payload = 'hash') => `select enqueue_notifications('${alert}','token','${alert}','owner','${payload}',
+      '[{"id":"${job}","partner_id":"fixture","partner_name":"Test Partner","recipient":"+221771234567","encrypted_payload":"ciphertext"}]'::jsonb)`;
+    await scalar(enqueue(), alert); await scalar(enqueue(), alert);
+    await denied(enqueue('conflict'), 'P0001');
+    await scalar("select count(*)::int from sms_notifications", 1);
+    await scalar("select count(*)::int from claim_sms_notifications(null,3)", 1);
+    await scalar("select count(*)::int from claim_sms_notifications(null,3)", 0);
+    const sid = 'SM' + '1'.repeat(32);
+    await scalar(`select record_sms_status('${job}',null,'delivered')`, false);
+    await scalar(`select record_sms_status('${job}','${sid}','accepted')`, true);
+    await scalar(`select encrypted_payload is null from sms_notifications where id='${job}'`, true);
+    await scalar(`select record_sms_status('${job}','SM${'2'.repeat(32)}','delivered')`, false);
+    await scalar(`select record_sms_status('${job}','${sid}','delivered')`, true);
+    await scalar(`select record_sms_status('${job}','${sid}','accepted')`, true);
+    await scalar(`select state from sms_notifications where id='${job}'`, 'delivered');
+    await db.exec(`insert into admin_sessions(id,operator_id,expires_at) values('${alert}','${patient}',now()+interval '1 hour')`);
+    await db.exec(`update admin_sessions set revoked_at=now() where id='${alert}'`);
+    await scalar(`select count(*)::int from admin_sessions where id='${alert}' and revoked_at is null`, 0);
+    await scalar("select count(*)::int from information_schema.columns where table_schema='public' and table_name='care_audit_events' and column_name in ('phone','motif','symptoms','encrypted_payload')", 0);
+    await scalar("select count(*)::int from care_audit_events where entity='admin_sessions'", 2);
+    await scalar("select count(*)::int from care_audit_events where entity='admin_sessions' and operator_id='" + patient + "'", 2);
+    await db.exec('set role anon');
+    for (const table of ['service_quota','sms_alerts','sms_notifications','admin_sessions','care_audit_events']) await denied(`select * from public.${table}`, '42501');
+    await denied("select consume_service_quota(array['forged'],array[1],86400)", '42501');
+    await denied("select cleanup_care_data(90)", '42501');
+    await db.exec('set role authenticated');
+    await denied(`select record_sms_status('${job}','${sid}','delivered')`, '42501');
+    await denied(`update sms_notifications set acknowledged_at=now()`, '42501');
+    await db.exec('set role service_role');
+    await db.exec(`update sms_alerts set created_at=now()-interval '8 days' where id='${alert}'`);
+    await db.exec('select cleanup_care_data(90)');
+    await scalar('select count(*)::int from sms_alerts', 0);
+    await scalar('select count(*)::int from sms_notifications', 0);
+    await db.exec('reset role');
+    const backup = await db.dumpDataDir('none');
+    const restored = new PGlite({ loadDataDir: backup });
+    try { assert.equal((await restored.query('select count(*)::int as n from public.appointment_requests')).rows[0].n, 3); checks++; }
+    finally { await restored.close(); }
+    console.log(`${checks} PostgreSQL checks passed: RLS, booking collisions, idempotency, atomic shared budgets, encrypted SMS queue lifecycle, delivery callbacks, revocation, retention and disposable backup restoration.`);
   } finally { await db.close(); }
 }
 main().catch(error => { console.error(error.message); process.exitCode = 1; });

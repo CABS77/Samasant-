@@ -4,7 +4,8 @@ import { usePathname } from 'next/navigation';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import { Menu, X, Home, MessageCircle, CalendarDays, Leaf, AlertTriangle } from 'lucide-react';
+import { LanguageSelector } from '@/components/language-selector';
+import { Menu, X, Home, MessageCircle, CalendarDays } from 'lucide-react';
 
 export function Navbar() {
   const { t } = useTranslation();
@@ -36,10 +37,11 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav aria-label={t('nav_label')} className="hidden md:flex items-center gap-1">
             {links.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
+                aria-current={isActive(href) ? 'page' : undefined}
                 href={href}
                 className={`relative flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   isActive(href)
@@ -58,11 +60,13 @@ export function Navbar() {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
-            <ThemeToggle />
+            <LanguageSelector /><ThemeToggle />
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="md:hidden flex items-center justify-center h-9 w-9 rounded-lg hover:bg-muted/50 transition-colors"
+              aria-expanded={mobileOpen}
+              aria-controls="mobile-navigation"
               aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -72,7 +76,7 @@ export function Navbar() {
 
         {/* Mobile dropdown */}
         {mobileOpen && (
-          <div className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl">
+          <div id="mobile-navigation" className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl">
             <nav className="container mx-auto px-4 py-3 flex flex-col gap-1">
               {links.map(({ href, label, icon: Icon }) => (
                 <Link
@@ -95,7 +99,7 @@ export function Navbar() {
       </header>
 
       {/* Mobile bottom tab bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50 safe-area-bottom">
+      <nav aria-label={t('nav_mobile_label')} className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50 safe-area-bottom">
         <div className="flex items-center justify-around h-16 px-2">
           {links.map(({ href, label, icon: Icon }) => (
             <Link

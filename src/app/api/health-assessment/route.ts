@@ -1,137 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { initialHealthAssessment } from '@/ai/flows/initial-health-assessment';
-import { checkRateLimit, generateRateLimitIdentifier } from '@/lib/rateLimitServer';
 import { validateAndSanitizeInput, detectSpam } from '@/lib/inputValidation';
+import { QuotaExceededError, ServiceUnavailableError } from '@/lib/service-quota';
 import { z } from 'zod';
 
-// Schéma de validation des entrées
 const RequestSchema = z.object({
-  message: z.string().min(1).max(1000),
+  message: z.string().min(3).max(1000),
   language: z.enum(['wolof', 'french', 'pulaar', 'franco-wolof']),
-  deviceId: z.string().optional(),
-  // Service réservé aux 18 ans et plus : le client doit transmettre la confirmation d'âge
+  deviceId: z.string().max(160).optional(), // compatibility only; never used for quotas
   ageConfirmed: z.boolean().optional(),
-});
+}).strict();
+const headers = { 'Cache-Control': 'no-store' };
 
-/**
- * API Route pour l'évaluation de santé initiale
- * Protégée par rate limiting côté serveur et validation des entrées
- */
 export async function POST(request: NextRequest) {
-  try {
-    // 1. Extraire l'IP et les données
-    const ip = request.headers.get('x-forwarded-for') || 
-               request.headers.get('x-real-ip') || 
-               'unknown';
-    
-    const body = await request.json();
-
-    // 2. Valider les entrées
-    const validationResult = RequestSchema.safeParse(body);
-    if (!validationResult.success) {
-      return NextResponse.json(
-        { 
-          error: 'Invalid input', 
-          details: validationResult.error.errors 
-        },
-        { status: 400 }
-      );
-    }
-
-    const { message, language, deviceId, ageConfirmed } = validationResult.data;
-
-    if (ageConfirmed !== true) {
-      return NextResponse.json(
-        {
-          error: 'Age confirmation required',
-          message: 'SamaSanté est réservé aux personnes de 18 ans ou plus. Confirmez votre âge pour continuer.',
-        },
-        { status: 403 }
-      );
-    }
-
-    // 3. Validation et sanitization avancée
-    const sanitizationResult = validateAndSanitizeInput({ message, language });
-    if (!sanitizationResult.valid) {
-      return NextResponse.json(
-        { 
-          error: 'Invalid input', 
-          message: sanitizationResult.error 
-        },
-        { status: 400 }
-      );
-    }
-
-    // 4. Détection de spam
-    if (detectSpam(message)) {
-      return NextResponse.json(
-        { 
-          error: 'Spam detected', 
-          message: 'Votre message a été identifié comme spam.' 
-        },
-        { status: 400 }
-      );
-    }
-
-    // 5. Vérifier le rate limiting
-    const identifier = generateRateLimitIdentifier(ip, undefined, deviceId);
-    const rateLimit = checkRateLimit(identifier, 7); // 7 requêtes par 24h
-
-    if (rateLimit.limited) {
-      return NextResponse.json(
-        {
-          error: 'Rate limit exceeded',
-          message: 'Vous avez atteint la limite de 7 requêtes par jour. Réessayez demain.',
-          resetTime: rateLimit.resetTime,
-        },
-        { 
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': '7',
-            'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': rateLimit.resetTime.toString(),
-          }
-        }
-      );
-    }
-
-    // 6. Appeler l'IA avec les données sanitizées
-    const result = await initialHealthAssessment(sanitizationResult.sanitized!);
-
-    // 7. Retourner la réponse avec les headers de rate limiting
-    return NextResponse.json(result, {
-      status: 200,
-      headers: {
-        'X-RateLimit-Limit': '7',
-        'X-RateLimit-Remaining': rateLimit.remaining.toString(),
-        'X-RateLimit-Reset': rateLimit.resetTime.toString(),
-      },
-    });
-
-  } catch (error: any) {
-    console.error('Error in health assessment API:', error);
-    
-    // Ne pas exposer les détails de l'erreur en production
-    const isDev = process.env.NODE_ENV === 'development';
-    
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        message: isDev ? error.message : 'Une erreur est survenue. Veuillez réessayer.',
-      },
-      { status: 500 }
-    );
+  let body: unknown;
+  try { body = await request.json(); } catch {
+    return NextResponse.json({ error: 'Requête JSON invalide.' }, { status: 400, headers });
   }
-}
-
-// Méthode OPTIONS pour CORS
-export async function OPTIONS() {
-  return NextResponse.json({}, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
+  const parsed = RequestSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: 'Entrée invalide.' }, { status: 400, headers });
+  if (!parsed.data.ageConfirmed) return NextResponse.json({ error: 'Confirmation d’âge requise.' }, { status: 403, headers });
+  const input = validateAndSanitizeInput(parsed.data);
+  if (!input.valid || detectSpam(parsed.data.message)) return NextResponse.json({ error: input.error || 'Message invalide.' }, { status: 400, headers });
+  try {
+    // The action itself protects every call path, including other Server Actions.
+    return NextResponse.json(await initialHealthAssessment({ ...input.sanitized!, ageConfirmed: true }), { headers });
+  } catch (error) {
+    if (error instanceof QuotaExceededError) return NextResponse.json({ message: error.message }, {
+      status: 429, headers: { ...headers, 'Retry-After': String(error.retryAfter) },
+    });
+    return NextResponse.json({ message: 'Assistant momentanément indisponible. Le recours humain reste accessible.' }, {
+      status: error instanceof ServiceUnavailableError ? 503 : 502, headers,
+    });
+  }
 }

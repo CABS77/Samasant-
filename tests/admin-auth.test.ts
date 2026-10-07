@@ -87,7 +87,7 @@ describe('server enforced administration', () => {
     expect(result.headers.get('set-cookie')).toContain('HttpOnly');
     expect(result.headers.get('set-cookie')).toContain('SameSite=strict');
     const check = new NextRequest('http://localhost/api/admin/verify', { headers: { cookie: `${ADMIN_COOKIE}=${cookie!.value}` } });
-    expect(await (await session(check)).json()).toEqual({ authenticated: true });
+    expect(await (await session(check)).json()).toEqual({ authenticated: true, authenticationMode: 'local' });
     expect((await logout(req('/api/admin/verify', 'DELETE'))).headers.get('set-cookie')).toContain('Max-Age=0');
   });
   it('limits repeated password attempts within an instance', async () => {

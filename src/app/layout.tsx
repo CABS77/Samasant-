@@ -1,156 +1,36 @@
-import { SpeedInsights } from '@vercel/speed-insights/next'
-import type {Metadata, Viewport} from 'next';
-import {Geist, Geist_Mono} from 'next/font/google';
+import { SkipLink } from '@/components/skip-link';
+import type { Metadata, Viewport } from 'next';
+import { headers } from 'next/headers';
 import './globals.css';
-import {Poppins, Open_Sans} from 'next/font/google';
 import { AppProviders } from '@/components/app-providers';
 import { Navbar } from '@/components/navbar';
-import { Toaster } from "@/components/ui/toaster";
-import { Analytics } from '@vercel/analytics/next'
+import { Toaster } from '@/components/ui/toaster';
+import { EmergencyHelp } from '@/components/emergency-help';
+import { NetworkStatus } from '@/components/network-status';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
-
-const poppins = Poppins({
-  weight: '700',
-  subsets: ['latin'],
-  variable: '--font-poppins',
-  display: 'swap',
-});
-
-const openSans = Open_Sans({
-  subsets: ['latin'],
-  variable: '--font-open-sans',
-  display: 'swap',
-});
-
-const APP_NAME = "SamaSanté AI";
-const APP_DESCRIPTION = "Votre assistant santé IA au Sénégal. Obtenez des évaluations de santé, découvrez des remèdes traditionnels et des conseils en Franco-Wolof. SamaSanté AI, pour une santé accessible à tous.";
-const APP_URL = "https://www.samasante.tech";
-
+const APP_URL = 'https://www.samasante.tech';
+const description = 'SamaSanté : information en français et wolof, annuaire et demandes de rendez-vous en clinique au Sénégal.';
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
-  title: {
-    default: `${APP_NAME} - Assistant Santé IA au Sénégal`,
-    template: `%s | ${APP_NAME}`,
-  },
-  description: APP_DESCRIPTION,
-  keywords: ["santé Sénégal", "médecine traditionnelle", "IA santé", "diagnostic IA", "Franco-Wolof", "remèdes naturels", "SamaSanté", "assistant médical IA", "conseils santé Sénégal", "safara"],
-  applicationName: APP_NAME,
-  appleWebApp: {
-    capable: true,
-    title: APP_NAME,
-    statusBarStyle: 'default',
-  },
-  formatDetection: {
-    telephone: false,
-  },
-  manifest: "/manifest.json",
-  openGraph: {
-    type: 'website',
-    url: APP_URL,
-    title: {
-        default: `${APP_NAME} - Assistant Santé IA Franco-Wolof`,
-        template: `%s | ${APP_NAME}`,
-    },
-    description: APP_DESCRIPTION,
-    siteName: APP_NAME,
-    images: [
-      {
-        url: `/og-image.png`, // URL relative si l'image est dans /public
-        width: 1200,
-        height: 630,
-        alt: `Logo de ${APP_NAME}`,
-      },
-    ],
-    locale: 'fr_SN', // Spécifier la locale Franco-Wolof/Sénégal
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: {
-        default: `${APP_NAME} - Votre Guide Santé IA au Sénégal`,
-        template: `%s | ${APP_NAME}`,
-    },
-    description: APP_DESCRIPTION,
-    images: [`/twitter-image.png`], // URL relative
-    // creator: "@votrenomtwitter", // Si vous avez un compte Twitter
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-  alternates: {
-    canonical: '/', // URL canonique de la page d'accueil
-  },
+  title: { default: 'SamaSanté — Information et accès aux soins', template: '%s | SamaSanté' },
+  description, applicationName: 'SamaSanté', manifest: '/manifest.json',
+  appleWebApp: { capable: true, title: 'SamaSanté', statusBarStyle: 'default' },
+  formatDetection: { telephone: false },
+  openGraph: { type: 'website', siteName: 'SamaSanté', locale: 'fr_SN', description,
+    images: [{ url: '/og', width: 1200, height: 630, alt: 'SamaSanté — Information et accès aux soins' }] },
+  twitter: { card: 'summary_large_image', images: ['/og'], description },
 };
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#166c4b' };
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get('x-nonce') || undefined;
+  return <html lang="fr" suppressHydrationWarning><head>
+    <script nonce={nonce} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+      '@context': 'https://schema.org', '@type': 'WebSite', name: 'SamaSanté', url: APP_URL, description,
+    }) }} />
+  </head><body className="antialiased">
 
-export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#3CB371' },
-    { media: '(prefers-color-scheme: dark)', color: '#1A202C' },
-  ],
-};
-
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": APP_NAME,
-    "url": APP_URL,
-    "description": APP_DESCRIPTION,
-    "potentialAction": {
-      "@type": "SearchAction",
-      "target": `${APP_URL}/search?q={search_term_string}`,
-      "query-input": "required name=search_term_string"
-    }
-  };
-
-  return (
-    <html lang="fr" suppressHydrationWarning>
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
-        <script
-          async
-          src="https://ga.jspm.io/npm:@vercel/analytics@1.5.0/dist/script.js"
-        ></script>
-      </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${openSans.variable} antialiased`}>
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white focus:text-gray-900 focus:px-3 focus:py-2 focus:rounded"
-        >
-          Aller au contenu
-        </a>
-        <SpeedInsights />
-        <AppProviders>
-          <Navbar />
-          {children}
-          <Analytics />
-          <Toaster />
-        </AppProviders>
-      </body>
-    </html>
-  );
+    <AppProviders nonce={nonce}>
+      <SkipLink /><Navbar /><EmergencyHelp /><NetworkStatus />{children}<Toaster />
+    </AppProviders>
+  </body></html>;
 }

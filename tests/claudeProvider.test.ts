@@ -1,3 +1,5 @@
+vi.mock('next/headers', () => ({ headers: async () => new Headers({ 'x-forwarded-for': 'flow-test' }) }));
+vi.mock('@/lib/service-quota', () => ({ consumeQuota: vi.fn(), clientAddress: () => 'flow-test', quotaIdentity: () => 'test-hash' }));
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   toAnthropicRequest,
@@ -24,7 +26,7 @@ describe('toAnthropicRequest', () => {
     expect(req.system).toBe('Tu es SamaSanté.');
     expect(req.messages.map((m) => m.role)).toEqual(['user', 'assistant', 'user']);
     expect(req.model).toBe(DEFAULT_CLAUDE_MODEL);
-    expect(req.max_tokens).toBe(4096);
+    expect(req.max_tokens).toBe(2048);
   });
 
   it('merges consecutive user messages, including injected JSON instructions', () => {
@@ -136,13 +138,13 @@ describe('initial health assessment through Genkit with Claude', () => {
     });
 
     const { initialHealthAssessment } = await import('../src/ai/flows/initial-health-assessment');
-    const result = await initialHealthAssessment({ message: 'Mangi am sëkk', language: 'wolof' });
+    const result = await initialHealthAssessment({ message: 'Mangi am sëkk', language: 'wolof', ageConfirmed: true });
 
     expect(result).toEqual(reply);
     expect(create).toHaveBeenCalledTimes(1);
     const sent = create.mock.calls[0][0];
     expect(sent.model).toBe(DEFAULT_CLAUDE_MODEL);
-    expect(sent.max_tokens).toBe(4096);
+    expect(sent.max_tokens).toBe(800);
     expect(sent.messages[0].role).toBe('user');
     expect(sent.messages[0].content).toContain('Mangi am sëkk');
     expect(sent.messages[0].content).toContain('traditionalRemedies'); // schema injected by Genkit

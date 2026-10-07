@@ -10,9 +10,8 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const doctors = await getAllDoctors();
-    return NextResponse.json(doctors);
-  } catch (error) {
-    console.error('GET /api/doctors error:', error);
+    return NextResponse.json(doctors, { headers: { 'Cache-Control': 'no-store', 'X-Directory-Mode': process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY ? 'live' : 'demo' } });
+  } catch {
     return NextResponse.json(
       { error: 'Erreur serveur lors de la récupération des médecins' },
       { status: 500 }
@@ -42,7 +41,6 @@ export async function POST(request: Request) {
     return NextResponse.json(doctor, { status: 201 });
   } catch (error) {
     if (error instanceof AdminAuthError) return NextResponse.json({ error: error.message }, { status: error.status });
-    console.error('POST /api/doctors error:', error);
     return NextResponse.json(
       { error: "Erreur serveur lors de la création du médecin" },
       { status: 500 }

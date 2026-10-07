@@ -73,14 +73,14 @@ describe('Input Validation', () => {
       expect(result.sanitized).toBeDefined();
     });
 
-    it('should reject SQL injection', () => {
+    it('treats punctuation and SQL-like symptom text as data', () => {
       const input = {
         message: "' OR '1'='1",
         language: 'french',
       };
       const result = validateAndSanitizeInput(input);
-      expect(result.valid).toBe(false);
-      expect(result.error).toContain('injection');
+      expect(result.valid).toBe(true);
+      expect(result.error).toBeUndefined();
     });
 
     it('should reject too short messages', () => {
@@ -153,9 +153,9 @@ describe('Rate Limiting', () => {
       expect(id).toBe('user:user123');
     });
 
-    it('should use deviceId if no userId', () => {
+    it('uses the server IP even when the client changes deviceId', () => {
       const id = generateRateLimitIdentifier('1.2.3.4', undefined, 'device456');
-      expect(id).toBe('device:device456');
+      expect(id).toBe('ip:1.2.3.4');
     });
 
     it('should use IP if no userId or deviceId', () => {

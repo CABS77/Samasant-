@@ -9,9 +9,10 @@
 
 import { ai } from '@/ai/ai-instance';
 import { z } from 'genkit';
+import { protectAIRequest } from '@/lib/ai-request';
 
 const TranslateToWolofInputSchema = z.object({
-  text: z.string().describe('French or Franco-Wolof text to translate to Wolof.'),
+  text: z.string().trim().min(3).max(1000).describe('French or Franco-Wolof text to translate to Wolof.'),
 });
 export type TranslateToWolofInput = z.infer<typeof TranslateToWolofInputSchema>;
 
@@ -23,12 +24,15 @@ export type TranslateToWolofOutput = z.infer<typeof TranslateToWolofOutputSchema
 export async function translateToWolof(
   input: TranslateToWolofInput
 ): Promise<TranslateToWolofOutput> {
+  TranslateToWolofInputSchema.parse(input);
+  await protectAIRequest();
   return translateToWolofFlow(input);
 }
 
 const translateToWolofPrompt = ai.definePrompt({
   name: 'translateToWolofPrompt',
-  input: { schema: z.object({ text: z.string().describe('Text to translate.') }) },
+  config: { maxOutputTokens: 1024, temperature: 0.7 },
+  input: { schema: z.object({ text: z.string().trim().min(3).max(1000).describe('Text to translate.') }) },
   output: { schema: z.object({ translation: z.string().describe('The text translated into Wolof.') }) },
   prompt: `Vous êtes un traducteur expert de wolof. Traduisez fidèlement le texte suivant en wolof pur et naturel, sans ajouter de commentaires :\n"{{{text}}}"`,
 });
@@ -47,8 +51,8 @@ const translateToWolofFlow = ai.defineFlow<
       throw new Error('AI failed to return translation.');
     }
     return output;
-  } catch (error: any) {
-    console.error(`Error in translateToWolofFlow: ${error.message}`, error.stack);
-    throw new Error(`Failed to translate text to Wolof: ${error.message}`);
+  } catch {
+
+    throw new Error('Traduction momentanément indisponible.');
   }
 });

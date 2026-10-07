@@ -1,37 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-const supabaseMocks = {
-  from: vi.fn(),
-};
-
-vi.mock('../src/lib/supabase', () => ({
-  supabase: { from: (...args: any[]) => supabaseMocks.from(...args) },
-}));
-
-async function loadService() {
-  vi.resetModules();
-  return await import('../src/services/doctors');
-}
-
-describe('doctors service', () => {
-  beforeEach(() => {
-    Object.values(supabaseMocks).forEach((fn) => fn.mockReset());
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { getDoctors } from '@/services/doctors';
+afterEach(() => vi.unstubAllGlobals());
+describe('doctor directory transport', () => {
+  it('reads the public server directory without caching it', async () => {
+    const doctors = [{ id: '1', name: 'Dr Fixture', specialty: 'Gen', available: [] }];
+    const fetcher = vi.fn().mockResolvedValue(Response.json(doctors)); vi.stubGlobal('fetch', fetcher);
+    expect(await getDoctors()).toEqual(doctors);
+    expect(fetcher).toHaveBeenCalledWith('/api/doctors', { cache: 'no-store' });
   });
-
-  it('getDoctors returns mapped data', async () => {
-    const selectFn = vi.fn().mockResolvedValue({
-      data: [
-        { id: '1', name: 'Dr X', specialty: 'Gen', available: [] },
-      ],
-      error: null,
-    });
-    supabaseMocks.from.mockReturnValue({ select: selectFn });
-    const { getDoctors } = await loadService();
-    const docs = await getDoctors();
-    expect(supabaseMocks.from).toHaveBeenCalledWith('doctors');
-    expect(selectFn).toHaveBeenCalledWith('*');
-    expect(docs).toEqual([
-      { id: '1', name: 'Dr X', specialty: 'Gen', available: [] },
-    ]);
+  it('preserves an empty directory and never fills it with invented practitioners', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json([])));
+    expect(await getDoctors()).toEqual([]);
+  });
+  it('reports outages without fictitious fallback doctors', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 503 })));
+    await expect(getDoctors()).rejects.toThrow('Annuaire indisponible');
   });
 });

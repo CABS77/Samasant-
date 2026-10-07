@@ -55,15 +55,12 @@ export async function getRemedies(symptom: string, language: string): Promise<Re
   if (remedyCache.has(cacheKey)) {
     const cachedEntry = remedyCache.get(cacheKey)!;
     if (Date.now() - cachedEntry.timestamp < CACHE_EXPIRY_TIME) {
-      console.log(`Cache hit for key: ${cacheKey}`);
       return cachedEntry.remedies;
     } else {
       remedyCache.delete(cacheKey);
-      console.log(`Cache expired for key: ${cacheKey}`);
     }
   }
 
-  console.log(`Cache miss for key: ${cacheKey}. Fetching from source...`);
   // Dynamically import to allow tests to spy on the function.
   const { fetchRemediesFromSource } = await import('./remedies-source');
   const freshRemedies = await fetchRemediesFromSource(symptom, language);
@@ -76,7 +73,6 @@ export async function getRemedies(symptom: string, language: string): Promise<Re
       timestamp: Date.now(),
   };
   remedyCache.set(cacheKey, newCacheEntry);
-  console.log(`Stored data in cache for key: ${cacheKey} (Items: ${freshRemedies.length})`);
 
   return freshRemedies;
 }

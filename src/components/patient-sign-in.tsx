@@ -1,13 +1,15 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-interface Props { onSessionChange: (userId: string | null) => void }
+interface Props { onSessionChange: (userId: string | null) => void; returnPath?: '/admin' | '/appointments' }
 
-export function PatientSignIn({ onSessionChange }: Props) {
+export function PatientSignIn({ onSessionChange, returnPath = '/appointments' }: Props) {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [connected, setConnected] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -38,12 +40,12 @@ export function PatientSignIn({ onSessionChange }: Props) {
     setBusy(true);
     try {
       const { error } = await supabase.auth.signInWithOtp({
-        email: email.trim(), options: { emailRedirectTo: `${window.location.origin}/appointments` },
+        email: email.trim(), options: { emailRedirectTo: `${window.location.origin}${returnPath}` },
       });
       if (error) throw error;
-      setMessage('Consultez votre e-mail et ouvrez le lien de connexion, puis revenez réserver.');
+      setMessage(t('patient_email_sent'));
     } catch {
-      setMessage('Lien de connexion indisponible. Vérifiez votre e-mail et réessayez.');
+      setMessage(t('patient_email_error'));
     } finally { setBusy(false); }
   };
   const signOut = async () => {
@@ -51,25 +53,27 @@ export function PatientSignIn({ onSessionChange }: Props) {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-    } catch { setMessage('Déconnexion impossible. Réessayez.'); }
+      setMessage('');
+      navigator.serviceWorker?.controller?.postMessage({ type: 'CLEAR_PRIVATE_DATA' });
+    } catch { setMessage(t('sign_out_error')); }
     finally { setBusy(false); }
   };
 
-  if (!configured) return <p role="status">Les réservations sont temporairement indisponibles. Contactez directement la clinique.</p>;
+  if (!configured) return <p role="status">{t('patient_unavailable')}</p>;
   if (connected) return (
     <div className="space-y-2 text-sm">
-      <p>Vous êtes connecté pour envoyer votre demande.</p>
-      <Button type="button" variant="outline" disabled={busy} onClick={signOut}>Se déconnecter</Button>
+      <p>{t('patient_connected')}</p>
+      <Button type="button" variant="outline" disabled={busy} onClick={signOut}>{t('sign_out')}</Button>
       {message && <p role="status">{message}</p>}
     </div>
   );
   return (
     <div className="space-y-2 rounded-lg border p-4">
-      <label htmlFor="patient-email" className="text-sm font-medium">Connectez-vous par e-mail pour réserver</label>
+      <label htmlFor="patient-email" className="text-sm font-medium">{t('patient_email_label')}</label>
       <Input id="patient-email" type="email" autoComplete="email" value={email}
         onChange={event => setEmail(event.target.value)} placeholder="vous@exemple.com" />
       <Button type="button" disabled={busy || !email.trim()} onClick={signIn}>
-        {busy ? 'Envoi en cours…' : 'Recevoir un lien de connexion'}
+        {busy ? t('sending') : t('send_sign_in')}
       </Button>
       {message && <p role="status" className="text-sm">{message}</p>}
     </div>

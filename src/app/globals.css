@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  font-family: var(--font-open-sans), 'Open Sans', Arial, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 @layer base {
@@ -14,13 +14,13 @@ body {
     --card-foreground: 150 10% 12%;
     --popover: 0 0% 100%;
     --popover-foreground: 150 10% 12%;
-    --primary: 152 56% 39%;
+    --primary: 152 56% 28%;
     --primary-foreground: 0 0% 100%;
     --secondary: 145 20% 96%;
     --secondary-foreground: 150 10% 15%;
     --muted: 140 12% 95%;
     --muted-foreground: 150 5% 42%;
-    --accent: 28 90% 52%;
+    --accent: 28 90% 32%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
@@ -52,13 +52,13 @@ body {
     --popover: 200 12% 11%;
     --popover-foreground: 0 0% 95%;
     --primary: 152 56% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary-foreground: 150 10% 8%;
     --secondary: 200 10% 16%;
     --secondary-foreground: 0 0% 90%;
     --muted: 200 10% 16%;
-    --muted-foreground: 200 5% 55%;
+    --muted-foreground: 200 5% 70%;
     --accent: 28 90% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent-foreground: 150 10% 8%;
     --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 100%;
     --border: 200 10% 18%;
@@ -81,16 +81,16 @@ body {
   }
 
   .font-poppins-bold {
-    font-family: 'Poppins', sans-serif;
+    font-family: system-ui, sans-serif;
     font-weight: 700;
   }
 
   .font-open-sans {
-    font-family: 'Open Sans', sans-serif;
+    font-family: system-ui, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-poppins), 'Poppins', sans-serif;
+    font-family: system-ui, sans-serif;
     font-weight: 700;
   }
 }
@@ -173,4 +173,12 @@ html {
   .bg-gradient-premium {
     background: linear-gradient(135deg, hsl(152 56% 38%) 0%, hsl(160 50% 30%) 50%, hsl(28 80% 48%) 100%);
   }
+}
+
+/* Constrain intrinsic grid widths, preserve keyboard focus and reduced motion. */
+main, main > *, .grid > * { min-width: 0; }
+:focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }

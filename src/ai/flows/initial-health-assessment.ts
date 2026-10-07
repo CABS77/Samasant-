@@ -11,12 +11,14 @@
 
 import {ai} from '@/ai/ai-instance';
 import {z} from 'genkit';
+import { protectAIRequest } from '@/lib/ai-request';
 
 const STANDARD_MEDICAL_DISCLAIMER =
   'IMPORTANT : Je ne suis pas médecin. Ces informations sont issues de la tradition et ne remplacent pas un avis professionnel. Consultez toujours un professionnel de santé et considérez ces remèdes comme complémentaires.';
 
 const InitialHealthAssessmentInputSchema = z.object({
-  message: z.string().describe('The user message describing their symptoms or health concerns.'),
+  ageConfirmed: z.boolean().optional(),
+  message: z.string().trim().min(3).max(1000).describe('The user message describing their symptoms or health concerns.'),
   language: z.enum(['wolof', 'french', 'pulaar', 'franco-wolof']).describe('The language of the user message. Franco-Wolof is a mix of French and Wolof.'),
 });
 export type InitialHealthAssessmentInput = z.infer<typeof InitialHealthAssessmentInputSchema>;
@@ -35,6 +37,9 @@ const InitialHealthAssessmentOutputSchema = z.object({
 export type InitialHealthAssessmentOutput = z.infer<typeof InitialHealthAssessmentOutputSchema>;
 
 export async function initialHealthAssessment(input: InitialHealthAssessmentInput): Promise<InitialHealthAssessmentOutput> {
+  InitialHealthAssessmentInputSchema.parse(input);
+  if (!input.ageConfirmed) throw new Error('Confirmation d’âge requise.');
+  await protectAIRequest();
   return initialHealthAssessmentFlow(input);
 }
 
@@ -42,7 +47,7 @@ const initialHealthAssessmentPrompt = ai.definePrompt({
   name: 'initialHealthAssessmentPrompt',
   input: {
     schema: z.object({
-      message: z.string().describe('The user message describing their symptoms or health concerns.'),
+      message: z.string().trim().min(3).max(1000).describe('The user message describing their symptoms or health concerns.'),
       language: z.enum(['wolof', 'french', 'pulaar', 'franco-wolof']).describe('The language of the user message. Franco-Wolof is a mix of French and Wolof.'),
     }),
   },
@@ -65,29 +70,8 @@ Basé sur '{{{message}}}', retournez un objet JSON :
 3. 'nextSteps' – conseils généraux et rappel de consulter un professionnel.
   `,
   config: {
-    safetySettings: [
-      {
-        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-        threshold: 'BLOCK_NONE',
-      },
-      {
-        category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-        threshold: 'BLOCK_NONE',
-      },
-      {
-        category: 'HARM_CATEGORY_HATE_SPEECH',
-        threshold: 'BLOCK_MEDIUM_AND_ABOVE',
-      },
-      {
-        category: 'HARM_CATEGORY_HARASSMENT',
-        threshold: 'BLOCK_MEDIUM_AND_ABOVE',
-      },
-    ],
-    generationConfig: {
-      // Increase token limit to allow more detailed Wolof responses
-      maxOutputTokens: 600,
-      temperature: 0.7,
-    },
+    maxOutputTokens: 800,
+    temperature: 0.7,
   },
 });
 
@@ -110,38 +94,9 @@ const initialHealthAssessmentFlow = ai.defineFlow<
       console.warn('AI output for traditionalRemedies was not an array, correcting.');
       output.traditionalRemedies = [];
     }
-//     if (input.language === 'wolof') {
-//       const translations = [
-//         translateToWolof({ text: output.assessment })
-//           .then(res => {
-//             output.assessment = res.translation;
-//           })
-//           .catch(e => {
-//             console.error('Failed to translate assessment to Wolof', e);
-//           }),
-//         translateToWolof({ text: output.nextSteps })
-//           .then(res => {
-//             output.nextSteps = res.translation;
-//           })
-//           .catch(e => {
-//             console.error('Failed to translate next steps to Wolof', e);
-//           }),
-//         ...output.traditionalRemedies.map(r =>
-//           translateToWolof({ text: r.description })
-//             .then(res => {
-//               r.description = res.translation;
-//             })
-//             .catch(e => {
-//               console.error('Failed to translate remedy description', e);
-//             })
-//         ),
-//       ];
-// 
-//       await Promise.all(translations);
-//     }
     return output;
-  } catch (error: any) {
-    console.error(`Error in initialHealthAssessmentFlow: ${error.message}`, error.stack);
-    throw new Error(`Failed to process health assessment: ${error.message}`);
+  } catch {
+
+    throw new Error('Assistant momentanément indisponible.');
   }
 });

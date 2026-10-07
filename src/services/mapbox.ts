@@ -15,7 +15,7 @@ export async function getNearbyClinics(coordinate: Coordinate): Promise<Clinic[]
   try {
     const url = new URL('https://api.mapbox.com/geocoding/v5/mapbox.places/hospital,clinic,health.json');
     url.search = new URLSearchParams({
-      proximity: `${coordinate.longitude},${coordinate.latitude}`, limit: '10', access_token: token,
+      country: 'sn', proximity: `${coordinate.longitude},${coordinate.latitude}`, limit: '10', access_token: token,
     }).toString();
     const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
     if (!response.ok) return [];

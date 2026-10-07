@@ -107,20 +107,14 @@ export function detectCommandInjection(input: string): boolean {
 export function validateAndSanitizeInput(input: {
   message: string;
   language: string;
-}): { valid: boolean; sanitized?: any; error?: string } {
+}): { valid: boolean; sanitized?: z.infer<typeof SymptomMessageSchema>; error?: string } {
   try {
-    // Vérifier les injections
-    if (detectSQLInjection(input.message)) {
-      return { valid: false, error: 'Tentative d\'injection SQL détectée' };
-    }
-
-    if (detectCommandInjection(input.message)) {
-      return { valid: false, error: 'Tentative d\'injection de commande détectée' };
-    }
-
-    // Nettoyer et valider
+    // Messages are data: never execute them as SQL, shell or HTML.
+    // Check the original length before cleaning to refuse overlong input.
+    const checked = SymptomMessageSchema.safeParse(input);
+    if (!checked.success) return { valid: false, error: checked.error.errors[0]?.message || 'Entrée invalide' };
     const sanitized = {
-      message: sanitizeString(input.message),
+      message: sanitizeString(input.message.normalize('NFC')),
       language: input.language,
     };
 
@@ -134,8 +128,8 @@ export function validateAndSanitizeInput(input: {
     }
 
     return { valid: true, sanitized: result.data };
-  } catch (error: any) {
-    return { valid: false, error: error.message };
+  } catch {
+    return { valid: false, error: 'Entrée invalide' };
   }
 }
 

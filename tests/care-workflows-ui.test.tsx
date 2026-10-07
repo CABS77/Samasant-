@@ -14,6 +14,7 @@ vi.mock('@/components/patient-sign-in', () => ({ PatientSignIn: ({ onSessionChan
 vi.mock('@/components/patient-appointments', () => ({ PatientAppointments: () => <p>Mes demandes</p> }));
 vi.mock('@/components/date-picker', () => ({ DatePicker: ({ onChange }: { onChange: (date: Date) => void }) => <button type="button" onClick={() => onChange(new Date(2026, 9, 12))}>Choisir lundi</button> }));
 vi.mock('@/components/time-picker', () => ({ TimePicker: ({ onChange }: { onChange: (time: string) => void }) => <button type="button" onClick={() => onChange('08:00')}>Choisir 08:00</button> }));
+vi.mock('react-i18next', async () => { const fr = (await import('@/locales/fr/translation.json')).default; return { useTranslation: () => ({ t: (key: string) => fr[key as keyof typeof fr] || key, i18n: { language: 'fr' } }) }; });
 import { AppointmentForm } from '@/components/appointment-form';
 import { EmergencyAlert } from '@/components/emergency-alert';
 const doctors = [{ id: 'dr-test', name: 'Dr Test', specialty: 'Généraliste', available: ['Lun'] }];
@@ -79,20 +80,21 @@ describe('patient reservation wording', () => {
 describe('patient emergency notification wording', () => {
   async function submit() {
     render(<EmergencyAlert />);
-    fireEvent.change(screen.getByPlaceholderText(/Décrivez les symptômes/), { target: { value: 'Test' } });
-    fireEvent.change(screen.getByPlaceholderText('+221 7X XXX XX XX'), { target: { value: '+221771234567' } });
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Vérifier l’urgence|Vérifier l'urgence/ })); });
+    fireEvent.change(screen.getByLabelText('Message aux partenaires'), { target: { value: 'Test' } });
+    fireEvent.change(screen.getByLabelText('Téléphone de contact'), { target: { value: '+221771234567' } });
+    for (const box of screen.getAllByRole('checkbox')) if (!(box as HTMLInputElement).checked) fireEvent.click(box);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Envoyer une demande d’assistance' })); });
   }
   it('clearly reports that no delivery is confirmed when the service is unavailable', async () => {
     mocks.emergency.mockResolvedValue({ isEmergency: true, reason: 'Test', clinicsAlerted: [], clinicsPending: [], notificationsFailed: 3, notificationStatus: 'unavailable' });
     await submit();
-    expect(await screen.findByText(/Aucun envoi de SMS confirmé/)).toBeInTheDocument();
-    expect(screen.queryByText('SMS livrés aux cliniques :')).not.toBeInTheDocument();
+    expect(await screen.findByText(/Aucun SMS livré/)).toBeInTheDocument();
+    expect(screen.queryByText(/SMS livrés : Partner/)).not.toBeInTheDocument();
   });
   it('reports accepted messages as unconfirmed rather than delivered', async () => {
     mocks.emergency.mockResolvedValue({ isEmergency: true, reason: 'Test', clinicsAlerted: [], clinicsPending: ['Partner'], notificationsFailed: 0, notificationStatus: 'pending' });
     await submit();
-    expect(await screen.findByText(/Livraison non confirmée/)).toBeInTheDocument();
-    expect(screen.queryByText('SMS livrés aux cliniques :')).not.toBeInTheDocument();
+    expect(await screen.findByText(/livraison non confirmée/)).toBeInTheDocument();
+    expect(screen.queryByText(/SMS livrés : Partner/)).not.toBeInTheDocument();
   });
 });

@@ -1,3 +1,5 @@
+vi.mock('next/headers', () => ({ headers: async () => new Headers({ 'x-forwarded-for': 'flow-test' }) }));
+vi.mock('@/lib/service-quota', () => ({ consumeQuota: vi.fn(), clientAddress: () => 'flow-test', quotaIdentity: () => 'test-hash' }));
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 let promptOutputs: Record<string, any>;
@@ -33,7 +35,7 @@ describe('initialHealthAssessment flow', () => {
       nextSteps: 'next fr',
     };
 
-    const result = await initialHealthAssessment({ message: 'm', language: 'wolof' });
+    const result = await initialHealthAssessment({ message: 'Malaaka', language: 'wolof', ageConfirmed: true });
 
     expect(result.assessment).toBe('assess fr');
     expect(result.traditionalRemedies[0].description).toBe('desc1');

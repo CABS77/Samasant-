@@ -8,8 +8,7 @@ import type { Remedy } from './remedies';
  * @param language The language (currently unused in mock).
  * @returns A promise that resolves to an array of Remedy objects.
  */
-export async function fetchRemediesFromSource(symptom: string, language: string): Promise<Remedy[]> {
-    console.log(`Fetching remedies from source for symptom: ${symptom}, language: ${language}`);
+export async function fetchRemediesFromSource(symptom: string, _language: string): Promise<Remedy[]> {
     // This expanded mock data should be replaced with actual database calls.
     const allRemedies: Remedy[] = [
       // Common Ailments

@@ -1,76 +1,34 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 
-/**
- * Middleware Next.js pour la sécurité globale
- * Applique les headers de sécurité et la protection CORS
- */
 export function middleware(request: NextRequest) {
-  const response = NextResponse.next();
-
-  // Content Security Policy (CSP)
-  const cspHeader = [
+  const isApi = request.nextUrl.pathname.startsWith('/api/');
+  const development = process.env.NODE_ENV !== 'production';
+  const nonce = btoa(crypto.randomUUID());
+  const csp = isApi ? "default-src 'none'; frame-ancestors 'none'; base-uri 'none'" : [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://ga.jspm.io https://vercel.live",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https: blob:",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ''}`,
+    "style-src 'self' 'unsafe-inline'", "img-src 'self' data: https: blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://api.deepseek.com https://*.supabase.co https://api.mapbox.com https://api.twilio.com wss://*.supabase.co",
-    "frame-ancestors 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
+    `connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.mapbox.com${development ? ' ws: http:' : ''}`,
+    "worker-src 'self'", "frame-ancestors 'none'", "base-uri 'self'", "form-action 'self'",
   ].join('; ');
-
-  // Headers de sécurité
-  response.headers.set('Content-Security-Policy', cspHeader);
+  const forwarded = new Headers(request.headers);
+  forwarded.set('x-nonce', nonce);
+  forwarded.set('Content-Security-Policy', csp);
+  const response = NextResponse.next({ request: { headers: forwarded } });
+  response.headers.set('Content-Security-Policy', csp);
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-  response.headers.set(
-    'Permissions-Policy',
-    'camera=(), microphone=(self), geolocation=(self), interest-cohort=()'
-  );
-
-  // CORS pour les API routes
-  if (request.nextUrl.pathname.startsWith('/api/')) {
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
-      'http://localhost:9002',
-      'https://www.samasante.tech',
-    ];
-
-    const origin = request.headers.get('origin');
-    if (origin && allowedOrigins.includes(origin)) {
-      response.headers.set('Access-Control-Allow-Origin', origin);
-      response.headers.set(
-        'Access-Control-Allow-Methods',
-        'GET, POST, PUT, DELETE, OPTIONS'
-      );
-      response.headers.set(
-        'Access-Control-Allow-Headers',
-        'Content-Type, Authorization'
-      );
-      response.headers.set('Access-Control-Max-Age', '86400');
-    }
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(self), geolocation=(self)');
+  if (process.env.NODE_ENV === 'production') response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  if (isApi || request.nextUrl.pathname.startsWith('/admin') || request.nextUrl.pathname.startsWith('/appointments')) {
+    response.headers.set('Cache-Control', 'private, no-store');
   }
-
-  // Protection contre le clickjacking
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-
+  if (request.nextUrl.pathname.startsWith('/admin') || isApi) response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  // Same-origin application: no wildcard CORS or credentials exposed to other sites.
   return response;
 }
-
-// Configuration du middleware
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes - handled separately)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff2?)$).*)'],
 };

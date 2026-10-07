@@ -50,8 +50,8 @@ export function DoctorFormModal({ open, onOpenChange, doctor, onSuccess }: Docto
         setLocation(doctor.location ?? '');
         setBio(doctor.bio ?? '');
         setAvailable(doctor.available);
-        setRating(doctor.rating != null ? String(doctor.rating) : '');
-        setReviews(doctor.reviews != null ? String(doctor.reviews) : '');
+        setRating(doctor.rating !== undefined && doctor.rating !== null ? String(doctor.rating) : '');
+        setReviews(doctor.reviews !== undefined && doctor.reviews !== null ? String(doctor.reviews) : '');
       } else {
         setName('');
         setSpecialty('');

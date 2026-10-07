@@ -1,3 +1,4 @@
+import { serverFetch } from '@/lib/server-fetch';
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { getDoctorById } from '@/lib/doctor-store';
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
   if (!url || !key || !serviceKey) return reply('Les réservations sont temporairement indisponibles.', 503);
 
   try {
-    const options = { auth: { persistSession: false, autoRefreshToken: false } };
+    const options = { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: (input: RequestInfo | URL, init?: RequestInit) => serverFetch(input, { ...init, signal: init?.signal || AbortSignal.timeout(10000) }) } };
     const authClient = createClient(url, key, options);
     const { data: auth, error: authError } = await authClient.auth.getUser(token);
     if (authError || !auth.user) return reply('Session expirée. Reconnectez-vous.', 401);

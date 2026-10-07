@@ -41,7 +41,6 @@ export async function PUT(
     return NextResponse.json(doctor);
   } catch (error) {
     if (error instanceof AdminAuthError) return NextResponse.json({ error: error.message }, { status: error.status });
-    console.error('PUT /api/doctors/[id] error:', error);
     return NextResponse.json(
       { error: 'Erreur serveur lors de la mise à jour du médecin' },
       { status: 500 }
@@ -69,7 +68,6 @@ export async function DELETE(
     return NextResponse.json({ success: true, message: 'Médecin supprimé' });
   } catch (error) {
     if (error instanceof AdminAuthError) return NextResponse.json({ error: error.message }, { status: error.status });
-    console.error('DELETE /api/doctors/[id] error:', error);
     return NextResponse.json(
       { error: 'Erreur serveur lors de la suppression du médecin' },
       { status: 500 }

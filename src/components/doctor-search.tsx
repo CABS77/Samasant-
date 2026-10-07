@@ -82,10 +82,11 @@ export function DoctorSearch({ doctors, onFilter }: Props) {
   };
 
   return (
-    <div className="my-4 flex items-start gap-2 max-w-lg">
-      <div ref={containerRef} className="relative flex-1">
+    <div className="my-4 grid min-w-0 gap-3 sm:grid-cols-3">
+      <div ref={containerRef} className="relative min-w-0">
         <Input
-          placeholder="Rechercher un médecin (nom, spécialité, lieu…)"
+          aria-label={t('doctor_search')}
+          placeholder={t('doctor_search')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -95,16 +96,16 @@ export function DoctorSearch({ doctors, onFilter }: Props) {
               <li
                 key={doc.id}
                 className="px-3 py-2 cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSelect(doc)}
+
               >
-                {doc.name} — {doc.specialty}
+                <button type="button" className="min-h-11 w-full text-left" onClick={() => handleSelect(doc)}>{doc.name} — {doc.specialty}</button>
               </li>
             ))}
           </ul>
         )}
       </div>
       <Select value={specialty} onValueChange={setSpecialty}>
-        <SelectTrigger className="w-40">
+        <SelectTrigger aria-label={t('specialty_label')} className="w-full">
           <SelectValue placeholder={t('doctor_filter_specialty_all')} />
         </SelectTrigger>
         <SelectContent>
@@ -118,7 +119,7 @@ export function DoctorSearch({ doctors, onFilter }: Props) {
         </SelectContent>
       </Select>
       <Select value={location} onValueChange={setLocation}>
-        <SelectTrigger className="w-40">
+        <SelectTrigger aria-label={t('location_label')} className="w-full">
           <SelectValue placeholder={t('doctor_filter_location_all')} />
         </SelectTrigger>
         <SelectContent>

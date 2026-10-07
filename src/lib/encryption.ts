@@ -19,7 +19,7 @@ async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKe
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: salt,
+      salt: new Uint8Array(salt).buffer,
       iterations: 100000,
       hash: 'SHA-256',
     },

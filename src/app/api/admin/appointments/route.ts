@@ -1,3 +1,4 @@
+import { serverFetch } from '@/lib/server-fetch';
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -11,7 +12,7 @@ function database() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) throw new AdminAuthError(503, 'Les réservations sont indisponibles.');
-  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: (input: RequestInfo | URL, init?: RequestInit) => serverFetch(input, { ...init, signal: init?.signal || AbortSignal.timeout(10000) }) } });
 }
 
 function failure(error: unknown) {

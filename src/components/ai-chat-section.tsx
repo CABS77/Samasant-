@@ -24,7 +24,6 @@ import { confirmAdult, hasConfirmedAdult } from "@/lib/ageConfirmation";
 
 type AssessmentLanguage = 'french' | 'wolof' | 'franco-wolof';
 
-interface AIChatSectionProps {}
 
 interface ChatOutput {
   assessment: string;
@@ -32,15 +31,27 @@ interface ChatOutput {
   nextSteps: string;
 }
 
-export function AIChatSection({}: AIChatSectionProps) {
-  const { t } = useTranslation();
+interface BrowserRecognition {
+  continuous: boolean; interimResults: boolean; lang: string;
+  onstart: (() => void) | null; onend: (() => void) | null;
+  onresult: ((event: { results: { [index: number]: { [index: number]: { transcript: string } } } }) => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
+  start(): void; stop(): void; abort(): void;
+}
+type VoiceWindow = Window & { SpeechRecognition?: new () => BrowserRecognition; webkitSpeechRecognition?: new () => BrowserRecognition };
+
+export function AIChatSection() {
+  const { t, i18n } = useTranslation();
+  const [voiceLanguage, setVoiceLanguage] = useState('fr');
+  const [voiceConsent, setVoiceConsent] = useState(false);
+  const [responseLanguage, setResponseLanguage] = useState<AssessmentLanguage>('french');
   const [chatInput, setChatInput] = useState("");
   const [chatOutput, setChatOutput] = useState<ChatOutput | null>(null);
   const [loading, setLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const synthRef = useRef<SpeechSynthesis | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<BrowserRecognition | null>(null);
   // Cache last submitted message and responses by language to avoid
   // unnecessary API calls when switching languages without changing the text
   const [lastSubmittedMessage, setLastSubmittedMessage] = useState("");
@@ -51,7 +62,8 @@ export function AIChatSection({}: AIChatSectionProps) {
 
   useEffect(() => {
     setAdultConfirmed(hasConfirmedAdult());
-  }, []);
+    }, []);
+  useEffect(() => setVoiceLanguage(i18n.language === 'wo' ? 'wo' : 'fr'), [i18n.language]);
 
   const handleConfirmAdult = () => {
     confirmAdult();
@@ -98,6 +110,7 @@ export function AIChatSection({}: AIChatSectionProps) {
       cachedResponses[language]
     ) {
       setChatOutput(cachedResponses[language]);
+      setResponseLanguage(language);
       return;
     }
 
@@ -121,19 +134,15 @@ export function AIChatSection({}: AIChatSectionProps) {
     setChatOutput(null);
     try {
       // Appel à l'API Route sécurisée avec rate limiting serveur
-      const deviceId = localStorage.getItem('deviceId') || 
-                      `device-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      localStorage.setItem('deviceId', deviceId);
-
       const apiResponse = await fetch('/api/health-assessment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: AbortSignal.timeout(20000),
         body: JSON.stringify({
           message: messageToSubmit,
           language: language,
-          deviceId: deviceId,
           ageConfirmed: true,
         }),
       });
@@ -155,7 +164,7 @@ export function AIChatSection({}: AIChatSectionProps) {
       }
 
       const response = await apiResponse.json();
-      
+
       // Incrémenter le compteur local seulement si la requête a réussi
       incrementDailyCount();
 
@@ -166,17 +175,18 @@ export function AIChatSection({}: AIChatSectionProps) {
           : [],
       };
       setChatOutput(outputWithArrayRemedies);
+      setResponseLanguage(language);
       setCachedResponses((prev) => ({ ...prev, [language]: outputWithArrayRemedies }));
       toast({
         title: t("aiAssessmentComplete_saafara"),
         description: t("checkChatResponseBelow_seetal"),
       });
-    } catch (error: any) {
-      console.error("Error during health assessment:", error);
+    } catch (error) {
+
       toast({
         variant: "destructive",
         title: t("error_njuumte"),
-        description: error.message || t("failedToGetAiAssessment_munul"),
+        description: (error instanceof Error ? error.message : undefined) || t("failedToGetAiAssessment_munul"),
       });
     } finally {
       setLoading(false);
@@ -188,20 +198,20 @@ export function AIChatSection({}: AIChatSectionProps) {
     if (typeof window !== 'undefined') {
       synthRef.current = window.speechSynthesis;
 
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognition = (window as VoiceWindow).SpeechRecognition || (window as VoiceWindow).webkitSpeechRecognition;
       if (SpeechRecognition) {
         recognitionRef.current = new SpeechRecognition();
         recognitionRef.current.continuous = false;
         recognitionRef.current.interimResults = false;
-        recognitionRef.current.lang = 'fr-FR';
+        recognitionRef.current.lang = voiceLanguage === 'wo' ? 'wo-SN' : 'fr-FR';
 
         recognitionRef.current.onstart = () => setIsRecording(true);
-        recognitionRef.current.onresult = (event: any) => {
+        recognitionRef.current.onresult = (event) => {
           const transcript = event.results[0][0].transcript;
           setChatInput(transcript);
           setIsRecording(false);
         };
-        recognitionRef.current.onerror = (event: any) => {
+        recognitionRef.current.onerror = (event) => {
           console.error("Speech recognition error", event.error);
           let errorMessage = t("failedToRecognizeSpeech_garum");
           if (event.error === 'network') {
@@ -217,7 +227,7 @@ export function AIChatSection({}: AIChatSectionProps) {
           setIsRecording(false);
         };
         recognitionRef.current.onend = () => {
-          if (isRecording) setIsRecording(false);
+          setIsRecording(false);
         };
       } else {
         console.warn("SpeechRecognition API is not supported in this browser.");
@@ -225,11 +235,14 @@ export function AIChatSection({}: AIChatSectionProps) {
     }
     return () => {
       if (synthRef.current && synthRef.current.speaking) synthRef.current.cancel();
-      if (recognitionRef.current && recognitionRef.current.readyState !== 'inactive') {
-        // recognitionRef.current.stop(); // Consider if this is needed
+      if (recognitionRef.current) {
+        recognitionRef.current.onend = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.abort();
       }
     };
-  }, [t, isRecording]);
+  }, [t, voiceLanguage]);
 
 
   const toggleRecording = () => {
@@ -238,18 +251,12 @@ export function AIChatSection({}: AIChatSectionProps) {
       return;
     }
     if (isRecording) {
-       try { recognitionRef.current.stop(); } catch (e) { console.warn("Error stopping speech recognition:", e); setIsRecording(false); }
+       try { recognitionRef.current.stop(); } catch { setIsRecording(false); }
     } else {
-       navigator.mediaDevices.getUserMedia({ audio: true })
-       .then(() => {
-           recognitionRef.current.lang = 'fr-FR'; // ou la langue détectée/choisie
-           try { recognitionRef.current.start(); } catch (e) { console.error("Error starting speech recognition:", e); toast({ variant: "destructive", title: t("error_njuumte"), description: t("cannotStartRecording_description")}); setIsRecording(false); }
-       })
-       .catch(err => {
-           console.error("Microphone access denied:", err);
-           toast({ variant: "destructive", title: t("microphonePermissionDenied_mayunu"), description: t("allowMicrophoneAccess_joxaal") });
-           setIsRecording(false);
-       });
+       if (!voiceConsent) return;
+       recognitionRef.current.lang = voiceLanguage === 'wo' ? 'wo-SN' : 'fr-FR';
+       try { recognitionRef.current.start(); }
+       catch { toast({ variant: 'destructive', title: t('cannotStartRecording_description') }); setIsRecording(false); }
     }
   };
 
@@ -262,7 +269,11 @@ export function AIChatSection({}: AIChatSectionProps) {
       return;
     }
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = 'fr-FR'; // Adapter dynamiquement si possible
+    const language = responseLanguage === 'wolof' ? 'wo' : 'fr';
+    const voice = synthRef.current.getVoices().find(v => v.lang.toLowerCase().startsWith(language));
+    if (language === 'wo' && !voice) { toast({ title: t('voice_unsupported') }); return; }
+    utterance.lang = language === 'wo' ? 'wo-SN' : 'fr-FR';
+    if (voice) utterance.voice = voice;
     utterance.onstart = () => setIsSpeaking(true);
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = (e) => {
@@ -276,8 +287,8 @@ export function AIChatSection({}: AIChatSectionProps) {
 
   const getSpeakableText = () => {
     if (!chatOutput) return "";
-    const remediesText = chatOutput.traditionalRemedies?.map(r => `${t(r.name)}: ${t(r.description)}`).join('\n') || "";
-    return `${t("shareIntro_samaSanteResponse")}\n\n${t("aiAssessment_title_wolof")}:\n${t(chatOutput.assessment)}\n\n${t("suggestedRemedies_title_wolof")}:\n${remediesText}\n\n${t("nextSteps_title_wolof")}:\n${t(chatOutput.nextSteps)}\n\n${t("shareOutro_trySamaSante")}`;
+    const remediesText = chatOutput.traditionalRemedies?.map(r => `${r.name}: ${r.description}`).join('\n') || "";
+    return `${t("shareIntro_samaSanteResponse")}\n\n${t("aiAssessment_title_wolof")}:\n${chatOutput.assessment}\n\n${t("suggestedRemedies_title_wolof")}:\n${remediesText}\n\n${t("nextSteps_title_wolof")}:\n${chatOutput.nextSteps}\n\n${t("shareOutro_trySamaSante")}`;
   }
 
   const handleShareResponse = async () => {
@@ -293,9 +304,9 @@ export function AIChatSection({}: AIChatSectionProps) {
       try {
         await navigator.share(shareData);
         toast({ title: t("shareSuccess_title") });
-      } catch (err: any) {
-        console.error('Error sharing:', err);
-        if (err.name !== 'AbortError') {
+      } catch (err) {
+
+        if (!(err instanceof Error && err.name === 'AbortError')) {
             toast({ variant: "destructive", title: t("shareError_title"), description: t("shareError_description") });
         }
       }
@@ -303,8 +314,7 @@ export function AIChatSection({}: AIChatSectionProps) {
       try {
         await navigator.clipboard.writeText(shareData.text);
         toast({ title: t("copySuccess_title") });
-      } catch (err) {
-        console.error('Failed to copy:', err);
+      } catch {
         toast({ variant: "destructive", title: t("copyError_title"), description: t("copyError_description") });
       }
     }
@@ -336,9 +346,13 @@ export function AIChatSection({}: AIChatSectionProps) {
         </AlertDialogContent>
       </AlertDialog>
 
+      <p className="text-sm text-muted-foreground"><a href="/confidentialite" className="underline">{t('privacy')}</a> — {t('voice_notice')}</p>
+      <label htmlFor="chat-message" className="text-sm font-medium">{t('symptom_input_label')}</label>
       {/* Input zone */}
       <div className="flex gap-2">
         <Textarea
+          id="chat-message"
+          maxLength={1000}
           placeholder={t("typeOrSpeakWolof_maangi")}
           value={chatInput}
           onChange={(e) => setChatInput(e.target.value)}
@@ -350,15 +364,24 @@ export function AIChatSection({}: AIChatSectionProps) {
           variant="outline"
           size="icon"
           className={`h-11 w-11 shrink-0 self-end ${isRecording ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground animate-pulse border-destructive' : ''}`}
+          aria-pressed={isRecording}
+          aria-label={isRecording ? t("stopRecording_taxawal") : t("startRecording_door")}
           title={isRecording ? t("stopRecording_taxawal") : t("startRecording_door")}
-          disabled={loading}
+          disabled={loading || !voiceConsent}
         >
           {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
         </Button>
       </div>
 
+      <div className="flex flex-wrap items-center gap-3 text-sm">
+        <label htmlFor="voice-language">{t('voice_language')}</label>
+        <select id="voice-language" value={voiceLanguage} onChange={event => setVoiceLanguage(event.target.value)} className="min-h-11 rounded border bg-background px-2">
+          <option value="fr">Français</option><option value="wo">Wolof</option>
+        </select>
+        <label className="flex items-center gap-2"><input type="checkbox" checked={voiceConsent} onChange={event => setVoiceConsent(event.target.checked)} />{t('voice_consent')}</label>
+      </div>
       {/* Language buttons */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button
           onClick={() => handleChatSubmit('french')}
           disabled={loading || isRecording}
@@ -396,8 +419,13 @@ export function AIChatSection({}: AIChatSectionProps) {
       {/* Results */}
       {chatOutput && (
         <div className="space-y-4">
+          <Button variant="outline" onClick={() => {
+            setChatInput(''); setChatOutput(null); setCachedResponses({}); setLastSubmittedMessage('');
+            synthRef.current?.cancel(); recognitionRef.current?.abort(); setIsSpeaking(false); setIsRecording(false);
+          }}>{t('clear_chat')}</Button>
+          <p className="text-xs text-muted-foreground">{t('share_notice')}</p>
           {/* Action buttons */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button
               onClick={() => speak(getSpeakableText())}
               disabled={loading || !chatOutput || isRecording}

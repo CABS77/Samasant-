@@ -5,7 +5,7 @@ import { AppointmentForm } from '@/components/appointment-form';
 import DoctorCard from '@/components/doctor-card';
 import { DoctorSearch } from '@/components/doctor-search';
 import type { Doctor } from '@/types/doctor';
-import { fetchDoctorsServer } from '@/app/actions/doctors';
+
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users } from 'lucide-react';
@@ -14,6 +14,8 @@ export default function AppointmentBooking() {
   const { t } = useTranslation();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [filtered, setFiltered] = useState<Doctor[]>([]);
+  const [error, setError] = useState(false);
+  const [demo, setDemo] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedDoctor, setSelectedDoctor] = useState('');
 
@@ -23,12 +25,13 @@ export default function AppointmentBooking() {
 
   useEffect(() => {
     setLoading(true);
-    fetchDoctorsServer()
+    fetch('/api/doctors', { cache: 'no-store' })
+      .then(async response => { if (!response.ok) throw new Error(); setDemo(response.headers.get('X-Directory-Mode') === 'demo'); return response.json() as Promise<Doctor[]>; })
       .then((docs) => {
         setDoctors(docs);
         setFiltered(docs);
       })
-      .catch((err) => console.error('Error fetching doctors', err))
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -36,6 +39,8 @@ export default function AppointmentBooking() {
 
   return (
     <div className="space-y-8">
+      {demo && <p role="status" className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-950">{t('local_demo')}</p>}
+      {error && <p role="alert">{t('patient_unavailable')}</p>}
       {/* Search */}
       <DoctorSearch doctors={doctors} onFilter={handleFilter} />
 

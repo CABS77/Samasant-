@@ -1,54 +1,51 @@
 import { genkitPlugin } from 'genkit/plugin';
-import deepseek, { deepseekChat, deepseekReasoner } from 'genkitx-deepseek';
-import { SUPPORTED_DEEPSEEK_MODELS } from 'genkitx-deepseek/dist/models';
-import { deepseekRunner } from 'genkitx-deepseek/dist/runner';
-import { OpenAI } from 'openai';
+import { GenerationCommonConfigSchema, type GenerateRequest } from 'genkit/model';
+import OpenAI from 'openai';
+import { serverFetch } from '@/lib/server-fetch';
+import { withAICircuit } from '@/lib/ai-request';
 
-export interface PluginOptions {
-  apiKey?: string;
-  baseURL?: string;
+export const deepseekChat = 'deepseek/chat';
+export const deepseekReasoner = 'deepseek/reasoner';
+export interface PluginOptions { apiKey?: string; baseURL?: string }
+
+export function toDeepseekRequest(request: GenerateRequest, model: string): OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming {
+  const config = request.config || {};
+  return {
+    model,
+    messages: request.messages.map(message => ({
+      role: message.role === 'model' ? 'assistant' : message.role === 'system' ? 'system' : 'user',
+      content: message.content.map(part => 'text' in part ? part.text : '').join('\n'),
+    })),
+    max_tokens: Math.min(2048, Math.max(1, Number(config.maxOutputTokens) || 1024)),
+    temperature: typeof config.temperature === 'number' ? config.temperature : 0.7,
+    stream: false,
+  };
 }
 
-export { deepseekChat, deepseekReasoner };
-
-export const wrappedDeepseek = (options?: PluginOptions) =>
-  genkitPlugin('wrapped-deepseek', async (ai) => {
-    // Initialize original deepseek plugin to ensure any side effects
-    await deepseek(options)(ai);
-
-    const apiKey = options?.apiKey || process.env.DEEPSEEK_API_KEY;
-    if (!apiKey) {
-      throw new Error('Deepseek API key is required. Pass plugin options or set DEEPSEEK_API_KEY environment variable.');
-    }
-
-    const baseURL = options?.baseURL || process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com';
-    const client = new OpenAI({ apiKey, baseURL });
-
-    const wrapRunner = (runner: any) => async (request: any, streamingCallback?: any) => {
-      const result = await runner(request, streamingCallback);
-      if (result?.candidates) {
-        result.candidates = result.candidates.map((c: any) => ({
-          ...c,
-          message: {
-            role: c.message.role === 'assistant' ? 'model' : c.message.role,
-            content: [{ text: c.message.text }],
-          },
-        }));
-      }
-      return result;
-    };
-
-    for (const name of Object.keys(SUPPORTED_DEEPSEEK_MODELS)) {
-      const model = SUPPORTED_DEEPSEEK_MODELS[name];
-      ai.defineModel(
-        {
-          name: model.name,
-          ...model.info,
-          configSchema: model.configSchema,
-        },
-        wrapRunner(deepseekRunner(name, client))
-      );
-    }
-  });
-
+export const wrappedDeepseek = (options: PluginOptions = {}) => genkitPlugin('deepseek', async ai => {
+  for (const [name, model] of [
+    [deepseekChat, 'deepseek-flash'], [deepseekReasoner, 'deepseek-v4-pro'],
+  ]) {
+    let client: OpenAI | undefined;
+    ai.defineModel({
+      name, configSchema: GenerationCommonConfigSchema.passthrough(),
+      supports: { multiturn: true, systemRole: true, media: false, tools: false, output: ['text', 'json'], constrained: 'none' },
+    }, async request => {
+      const apiKey = options.apiKey || process.env.DEEPSEEK_API_KEY;
+      if (!apiKey) throw new Error('Assistant indisponible.');
+      client ??= new OpenAI({ apiKey, baseURL: options.baseURL || process.env.DEEPSEEK_API_URL || 'https://api.deepseek.com',
+        fetch: serverFetch, timeout: 15000, maxRetries: 0 });
+      return withAICircuit('deepseek', async () => {
+        const result = await client!.chat.completions.create(toDeepseekRequest(request, model));
+        const choice = result.choices[0];
+        if (!choice?.message.content) throw new Error('Empty output');
+        return {
+          message: { role: 'model', content: [{ text: choice.message.content }] },
+          finishReason: choice.finish_reason === 'length' ? 'length' : 'stop',
+          usage: { inputTokens: result.usage?.prompt_tokens, outputTokens: result.usage?.completion_tokens },
+        };
+      });
+    });
+  }
+});
 export default wrappedDeepseek;

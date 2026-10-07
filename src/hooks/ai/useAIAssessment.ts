@@ -15,6 +15,7 @@ export function useAIAssessment(
   options?: UseAIAssessmentOptions
 ) {
   const queryClient = useQueryClient();
+  const { onSuccess, onError } = options || {};
 
   const query = useQuery({
     queryKey: ['ai-assessment', input?.message, input?.language],
@@ -37,22 +38,22 @@ export function useAIAssessment(
     enabled: !!input && (options?.enabled ?? true),
     staleTime: 1000 * 60 * 60, // 1 heure - les données restent fraîches
     gcTime: 1000 * 60 * 60 * 24, // 24 heures - garde en cache
-    retry: options?.retry ?? 2, // Réessayer 2 fois par défaut
+    retry: options?.retry ?? false, // Réessayer 2 fois par défaut
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Gérer les callbacks onSuccess et onError avec useEffect
   useEffect(() => {
-    if (query.isSuccess && query.data && options?.onSuccess) {
-      options.onSuccess(query.data);
+    if (query.isSuccess && query.data && onSuccess) {
+      onSuccess(query.data);
     }
-  }, [query.isSuccess, query.data, options?.onSuccess]);
+  }, [query.isSuccess, query.data, onSuccess]);
 
   useEffect(() => {
-    if (query.isError && query.error && options?.onError) {
-      options.onError(query.error);
+    if (query.isError && query.error && onError) {
+      onError(query.error);
     }
-  }, [query.isError, query.error, options?.onError]);
+  }, [query.isError, query.error, onError]);
 
   return query;
 }

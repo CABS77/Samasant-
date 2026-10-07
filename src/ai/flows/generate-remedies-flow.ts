@@ -10,10 +10,12 @@
 
 import {ai} from '@/ai/ai-instance';
 import {z} from 'genkit';
+import { protectAIRequest } from '@/lib/ai-request';
 
 // Input Schema
 const GenerateRemediesInputSchema = z.object({
-  symptom: z.string().describe('The symptom for which remedies are needed.'),
+  ageConfirmed: z.boolean().optional(),
+  symptom: z.string().trim().min(3).max(1000).describe('The symptom for which remedies are needed.'),
 });
 export type GenerateRemediesInput = z.infer<typeof GenerateRemediesInputSchema>;
 
@@ -21,8 +23,8 @@ export type GenerateRemediesInput = z.infer<typeof GenerateRemediesInputSchema>;
 const GeneratedRemedySchema = z.object({
   name: z.string().describe("Nom franco-wolof du remède/astuce."),
   description: z.string().describe("Description franco-wolof et utilisation pratique du remède/astuce."),
-  symptom: z.string().describe("Le symptôme principal que ce remède vise (repeat of input)."),
-  isGenerated: z.literal(true).describe("Indique que ce remède a été généré par l'IA.") 
+  symptom: z.string().trim().min(3).max(1000).describe("Le symptôme principal que ce remède vise (repeat of input)."),
+  isGenerated: z.literal(true).describe("Indique que ce remède a été généré par l'IA.")
 });
 export type GeneratedRemedy = z.infer<typeof GeneratedRemedySchema>;
 
@@ -36,12 +38,16 @@ export type GenerateRemediesOutput = z.infer<typeof GenerateRemediesOutputSchema
 
 // Exported wrapper function
 export async function generateRemedies(input: GenerateRemediesInput): Promise<GenerateRemediesOutput> {
+  GenerateRemediesInputSchema.parse(input);
+  if (!input.ageConfirmed) throw new Error('Confirmation d’âge requise.');
+  await protectAIRequest();
   return generateRemediesFlow(input);
 }
 
 // Prompt Definition
 const generateRemediesPrompt = ai.definePrompt({
   name: 'generateRemediesPrompt',
+  config: { maxOutputTokens: 1024, temperature: 0.7 },
   input: { schema: GenerateRemediesInputSchema },
   output: { schema: GenerateRemediesOutputSchema },
   prompt: `You are an AI assistant knowledgeable about traditional Senegalese remedies ('safara yu mag ñi').
@@ -79,8 +85,8 @@ const generateRemediesFlow = ai.defineFlow<
       throw new Error("AI failed to generate remedies or returned an invalid format.");
     }
     return output;
-  } catch (error: any) {
-    console.error(`Error in generateRemediesFlow: ${error.message}`, error.stack);
-    throw new Error(`Failed to generate remedies: ${error.message}`);
+  } catch {
+
+    throw new Error('Assistant momentanément indisponible.');
   }
 });

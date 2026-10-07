@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+  alternates: { canonical: '/cgu' },
+  openGraph: { url: '/cgu' },
   title: "Conditions générales d'utilisation – SamaSanté AI",
   description: "Conditions d'utilisation de SamaSanté AI, assistant santé IA réservé aux adultes.",
 };
@@ -30,14 +32,14 @@ const sections: { title: string; body: string[] }[] = [
   {
     title: '4. Utilisation de l’intelligence artificielle',
     body: [
-      "Les réponses sont générées par un système d'intelligence artificielle. Elles peuvent être incomplètes ou inexactes. Vos messages sont transmis à notre prestataire d'IA uniquement pour produire la réponse.",
+      "Les réponses sont générées par un système d'intelligence artificielle. Elles peuvent être incomplètes ou inexactes. Vos messages sont transmis au prestataire d’IA pour produire la réponse ; ses propres traitements sont décrits dans sa politique. Consultez notre notice de confidentialité.",
       "Évitez d'indiquer dans vos messages des informations permettant de vous identifier (nom, adresse, numéro de téléphone).",
     ],
   },
   {
     title: "5. Limites d'utilisation",
     body: [
-      "Pour un usage équitable, le nombre de pré-diagnostics est limité à 7 par jour et par appareil.",
+      "Pour un usage équitable, le nombre de pré-diagnostics est limité à 7 par jour, avec un plafond partagé par connexion réseau pour limiter les abus.",
     ],
   },
   {
@@ -51,7 +53,7 @@ const sections: { title: string; body: string[] }[] = [
 
 export default function CguPage() {
   return (
-    <main className="min-h-screen bg-background">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-background">
       <div className="container mx-auto max-w-3xl px-4 py-12">
         <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
           ← Retour à l&apos;accueil
@@ -59,6 +61,7 @@ export default function CguPage() {
         <h1 className="mt-6 text-3xl font-bold tracking-tight">Conditions générales d&apos;utilisation</h1>
         <p className="mt-2 text-sm text-muted-foreground">Dernière mise à jour : 7 octobre 2026</p>
 
+        <Link href="/confidentialite" className="mt-4 inline-block underline">Notice de confidentialité</Link>
         <div className="mt-8 space-y-8">
           {sections.map((section) => (
             <section key={section.title} id={section.title.split('.')[0]}>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import React, { useCallback, useRef, useState } from 'react';
 import { createAppointment } from '@/services/appointments';
 import { weekdays, type AppointmentReceipt } from '@/lib/appointment-validation';
@@ -22,6 +23,7 @@ interface Props {
 }
 
 export function AppointmentForm({ doctors, selectedDoctor, onSelectDoctor }: Props) {
+  const { t, i18n } = useTranslation();
   const [date, setDate] = useState<Date | undefined>();
   const [time, setTime] = useState('');
   const [motif, setMotif] = useState('');
@@ -79,15 +81,16 @@ export function AppointmentForm({ doctors, selectedDoctor, onSelectDoctor }: Pro
     <div role="status" className="text-center py-8 space-y-4">
       <PatientSignIn onSessionChange={onSessionChange} />
       <CheckCircle2 className="h-8 w-8 text-primary mx-auto" />
-      <h3 className="text-xl font-semibold">Demande enregistrée</h3>
-      <p>Avec {receipt.doctorName}, le {new Date(receipt.startAt).toLocaleString('fr-FR', { timeZone: 'Africa/Dakar' })} (Sénégal), en clinique.</p>
-      <p className="font-medium">En attente de confirmation par le médecin.</p>
-      <p className="text-sm break-all">Référence : {receipt.id}</p>
-      <p className="text-sm text-muted-foreground">Conservez cette référence et contactez la clinique pour suivre votre demande.</p>
+      <h3 className="text-xl font-semibold">{t('appointment_saved')}</h3>
+      <p>Avec {receipt.doctorName}, le {new Date(receipt.startAt).toLocaleString(i18n.language === 'wo' ? 'wo-SN' : 'fr-FR', { timeZone: 'Africa/Dakar' })} (Sénégal), en clinique.</p>
+      <p className="font-medium">{t('requested')}</p>
+      <p className="text-sm break-all">{t('reference')} : {receipt.id}</p>
+      <p className="text-sm"><a href="/confidentialite" className="underline">{t('privacy')}</a></p>
+      <p className="text-sm text-muted-foreground">{t('keep_reference')}</p>
       {patientId && <PatientAppointments key={patientId} doctors={doctors} />}
       <Button type="button" variant="outline" onClick={() => {
         setReceipt(null); setDate(undefined); setTime(''); setMotif(''); request.current = undefined;
-      }}>Nouvelle demande</Button>
+      }}>{t('appointment_new')}</Button>
     </div>
   );
 
@@ -97,40 +100,40 @@ export function AppointmentForm({ doctors, selectedDoctor, onSelectDoctor }: Pro
       {patientId && <PatientAppointments key={patientId} doctors={doctors} />}
       {errors.session && <p role="alert" className="text-sm text-destructive">{errors.session}</p>}
       <div className="space-y-2">
-        <label htmlFor="appointment-doctor" className="text-sm font-medium">Médecin</label>
+        <label htmlFor="appointment-doctor" className="text-sm font-medium">{t('doctor_label')}</label>
         <Select value={selectedDoctor} onValueChange={id => { onSelectDoctor(id); setDate(undefined); setTime(''); }}>
-          <SelectTrigger id="appointment-doctor"><SelectValue placeholder="Choisissez un médecin" /></SelectTrigger>
+          <SelectTrigger id="appointment-doctor"><SelectValue placeholder={t('doctor_choose')} /></SelectTrigger>
           <SelectContent>{doctors.map(d => <SelectItem key={d.id} value={d.id}>{d.name} — {d.specialty}</SelectItem>)}</SelectContent>
         </Select>
         {errors.doctor && <p className="text-xs text-destructive">{errors.doctor}</p>}
       </div>
       <div className="space-y-2">
-        <p className="text-sm font-medium">Date</p>
+        <p className="text-sm font-medium">{t('appointment_date_label')}</p>
         <DatePicker date={date} onChange={value => { setDate(value); setTime(''); }} disabledDates={disabledDate} />
         {errors.date && <p className="text-xs text-destructive">{errors.date}</p>}
       </div>
       {date && <div className="space-y-2">
-        <p className="text-sm font-medium">Horaire (heure du Sénégal)</p>
+        <p className="text-sm font-medium">{t('appointment_time_label')} ({t('senegal_time')})</p>
         <TimePicker value={time} onChange={setTime} />
         {errors.time && <p className="text-xs text-destructive">{errors.time}</p>}
       </div>}
       <div className="space-y-2">
-        <label htmlFor="appointment-phone" className="text-sm font-medium">Téléphone de contact</label>
+        <label htmlFor="appointment-phone" className="text-sm font-medium">{t('appointment_phone_label')}</label>
         <Input id="appointment-phone" type="tel" autoComplete="tel" maxLength={30} value={phone}
           onChange={event => setPhone(event.target.value)} placeholder="+221…" required />
         {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
       </div>
       <div className="space-y-2">
-        <label htmlFor="appointment-motif" className="text-sm font-medium">Motif de consultation</label>
+        <label htmlFor="appointment-motif" className="text-sm font-medium">{t('appointment_reason_label')}</label>
         <Textarea id="appointment-motif" maxLength={1000} value={motif} required
-          onChange={event => setMotif(event.target.value)} placeholder="Motif de votre consultation" />
+          onChange={event => setMotif(event.target.value)} placeholder={t('appointment_reason_label')} />
         {errors.motif && <p className="text-xs text-destructive">{errors.motif}</p>}
       </div>
-      <p className="text-sm text-muted-foreground">Consultation en clinique. Les consultations vidéo ne sont pas encore disponibles.</p>
+      <p className="text-sm text-muted-foreground">{t('clinic_only')}</p>
       <Button type="submit" disabled={submitting || !patientId} className="w-full" size="lg">
-        {submitting ? <><Loader2 className="animate-spin mr-2 h-4 w-4" />Enregistrement…</> : 'Envoyer la demande de rendez-vous'}
+        {submitting ? <><Loader2 className="animate-spin mr-2 h-4 w-4" />{t('appointment_sending')}</> : t('appointment_send')}
       </Button>
-      <p className="text-xs text-center text-muted-foreground">La demande sera enregistrée ; le rendez-vous reste à confirmer par le médecin.</p>
+      <p className="text-xs text-center text-muted-foreground">{t('appointment_request_pending')}</p>
     </form>
   );
 }

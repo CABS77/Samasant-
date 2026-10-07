@@ -25,7 +25,7 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      captionLayout={captionLayout as any}
+      captionLayout={captionLayout}
       fromYear={fromYear}
       toYear={toYear}
       className={cn("p-3", className)}

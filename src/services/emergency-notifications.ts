@@ -59,3 +59,14 @@ export async function notifyEmergencyClinics(
   else if (nearby.length && unavailable !== nearby.length) result.notificationStatus = 'failed';
   return result;
 }
+
+export function emergencyPartners(coordinate: Coordinate) {
+  const parsed = recipientsSchema.safeParse(JSON.parse(process.env.EMERGENCY_CLINICS_JSON || '[]'));
+  if (!parsed.success) return [];
+  const phones = new Set<string>();
+  const ids = new Set<string>();
+  return parsed.data.sort((a, b) => distanceKm(coordinate, a) - distanceKm(coordinate, b)).filter(clinic => {
+    if (distanceKm(coordinate, clinic) > 10 || phones.has(clinic.phoneNumber) || ids.has(clinic.id)) return false;
+    phones.add(clinic.phoneNumber); ids.add(clinic.id); return true;
+  }).slice(0, 3);
+}

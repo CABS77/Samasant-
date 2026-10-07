@@ -17,11 +17,14 @@ import {
   deleteDoctorAction,
 } from './actions';
 import { fetchDoctorsServer } from '@/app/actions/doctors';
+import { AdminNotifications } from '@/components/admin-notifications';
+import { AdminSignIn } from '@/components/admin-sign-in';
 import { AdminAppointments } from '@/components/admin-appointments';
 
 const VALID_DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] as const;
 
 export default function AdminPage() {
+  const [authMode, setAuthMode] = useState<'local' | 'mfa'>('mfa');
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
@@ -55,7 +58,7 @@ export default function AdminPage() {
   useEffect(() => {
     fetch('/api/admin/verify', { cache: 'no-store' })
       .then((response) => response.json())
-      .then((session) => setAuthenticated(session.authenticated === true))
+      .then((session) => { setAuthenticated(session.authenticated === true); setAuthMode(session.authenticationMode === 'local' ? 'local' : 'mfa'); })
       .catch(() => setAuthenticated(false))
       .finally(() => setCheckingSession(false));
   }, []);
@@ -88,6 +91,7 @@ export default function AdminPage() {
       if (!response.ok) throw new Error('Déconnexion impossible.');
       setAuthenticated(false);
       setDoctors([]);
+      navigator.serviceWorker?.controller?.postMessage({ type: 'CLEAR_PRIVATE_DATA' });
     } catch {
       toast({ variant: 'destructive', title: 'Déconnexion impossible. Réessayez.' });
     }
@@ -213,13 +217,13 @@ export default function AdminPage() {
 
   // Loading
   if (checkingSession) {
-    return <div className="min-h-screen bg-background flex items-center justify-center"><Skeleton className="h-12 w-48 rounded-xl" /></div>;
+    return <main id="main-content" tabIndex={-1} className="min-h-screen bg-background flex items-center justify-center"><Skeleton className="h-12 w-48 rounded-xl" /></main>;
   }
 
   // Login
   if (!authenticated) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <main id="main-content" tabIndex={-1} className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-sm bg-card rounded-2xl border border-border/50 p-8 shadow-lg">
           <div className="text-center mb-8">
             <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
@@ -228,21 +232,21 @@ export default function AdminPage() {
             <h1 className="text-2xl font-bold">Administration</h1>
             <p className="text-muted-foreground text-sm mt-1">SamaSanté AI</p>
           </div>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <Input type="password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} className={authError ? 'border-destructive' : ''} autoFocus />
+          {authMode === 'mfa' ? <AdminSignIn onAuthenticated={() => setAuthenticated(true)} /> : <form onSubmit={handleLogin} className="space-y-4">
+            <Input aria-label="Mot de passe de développement local" type="password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} className={authError ? 'border-destructive' : ''} autoFocus />
             {authError && <p className="text-xs text-destructive">{authError}</p>}
             <Button type="submit" className="w-full" disabled={authLoading || !password.trim()}>
               {authLoading ? 'Vérification...' : 'Se connecter'}
             </Button>
-          </form>
+          </form>}
         </div>
-      </div>
+      </main>
     );
   }
 
   // Admin page
   return (
-    <div className="min-h-screen bg-background">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-gradient-premium text-white">
         <div className="container mx-auto px-4 py-10 md:py-14">
@@ -263,6 +267,7 @@ export default function AdminPage() {
 
       <div className="container mx-auto px-4 py-8 max-w-4xl -mt-4 space-y-6">
         <AdminAppointments doctors={doctors} />
+        <AdminNotifications />
 
         {/* Inline delete confirmation */}
         {deleteTarget && (
@@ -291,7 +296,7 @@ export default function AdminPage() {
           <div ref={formRef} className="bg-card rounded-2xl border border-primary/30 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-semibold">{editDoctor ? `Modifier ${editDoctor.name}` : 'Ajouter un médecin'}</h2>
-              <Button variant="ghost" size="icon" onClick={closeForm}><X className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" aria-label="Fermer le formulaire" onClick={closeForm}><X className="h-4 w-4" /></Button>
             </div>
 
             {formErrors._form && (
@@ -406,10 +411,10 @@ export default function AdminPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-1 shrink-0">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditForm(doctor)}>
+                    <Button variant="ghost" size="icon" aria-label={`Modifier ${doctor.name}`} className="h-11 w-11" onClick={() => openEditForm(doctor)}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => handleDeleteClick(doctor)}>
+                    <Button variant="ghost" size="icon" aria-label={`Supprimer ${doctor.name}`} className="h-11 w-11 text-destructive hover:text-destructive" onClick={() => handleDeleteClick(doctor)}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -419,6 +424,6 @@ export default function AdminPage() {
           )}
         </div>
       </div>
-    </div>
+    </main>
   );
 }

@@ -1,188 +1,66 @@
-"use client";
-
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { prioritizeEmergencyAndAlert, type PrioritizeEmergencyAndAlertOutput } from "@/ai/flows/emergency-alert-prioritization";
-import { toast } from "@/hooks/use-toast";
-import { Loader2, MapPin, Phone, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+'use client';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { prioritizeEmergencyAndAlert, type PrioritizeEmergencyAndAlertOutput } from '@/ai/flows/emergency-alert-prioritization';
+import { hasConfirmedAdult, confirmAdult } from '@/lib/ageConfirmation';
+import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
+import { Input } from './ui/input';
+import { LocationPicker, type SelectedPlace } from './location-picker';
+import type { NotificationRow } from '@/services/notification-outbox';
 
 export function EmergencyAlert() {
-  const [symptoms, setSymptoms] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [latitude, setLatitude] = useState<number | null>(null);
-  const [longitude, setLongitude] = useState<number | null>(null);
-  const [alertResult, setAlertResult] = useState<PrioritizeEmergencyAndAlertOutput | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const getCurrentPosition = (): Promise<GeolocationPosition> => {
-    return new Promise((resolve, reject) => {
-      if (!navigator.geolocation) {
-        reject(new Error('Géolocalisation non supportée'));
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
-    });
-  };
-
-  const handleSubmit = async () => {
-    if (!symptoms.trim() || !phoneNumber.trim()) return;
-
-    setLoading(true);
-    setAlertResult(null);
-
+  const { t } = useTranslation();
+  const [symptoms, setSymptoms] = useState('');
+  const [phone, setPhone] = useState('');
+  const [place, setPlace] = useState<SelectedPlace | null>(null);
+  const [consent, setConsent] = useState(false);
+  const [adult, setAdult] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<PrioritizeEmergencyAndAlertOutput | null>(null);
+  const [notifications, setNotifications] = useState<NotificationRow[]>([]);
+  const [error, setError] = useState('');
+  const replay = useRef<{ payload: string; key: string; token: string }>();
+  useEffect(() => setAdult(hasConfirmedAdult()), []);
+  const refresh = async () => {
+    if (!result?.receipt) return;
     try {
-      toast({ title: "📍 Localisation en cours..." });
-      const position = await getCurrentPosition();
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-      setLatitude(lat);
-      setLongitude(lng);
-
-      const response = await prioritizeEmergencyAndAlert({
-        symptoms,
-        phoneNumber: phoneNumber.replace(/[\s()-]/g, ''),
-        latitude: lat,
-        longitude: lng,
-      });
-
-      setAlertResult(response);
-      toast({
-        title: response.isEmergency ? "🚨 Urgence détectée" : "✅ Pas d'urgence détectée",
-        description: response.isEmergency
-          ? `${response.clinicsAlerted.length} SMS livré(s), ${response.clinicsPending.length} en attente de livraison. Appelez le 1515 si nécessaire.`
-          : "Continuez à surveiller vos symptômes.",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: error instanceof Error ? error.message : "Impossible de traiter l'alerte.",
-      });
-    } finally {
-      setLoading(false);
-    }
+      const response = await fetch('/api/notifications/status', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result.receipt) });
+      if (!response.ok) throw new Error();
+      const rows = (await response.json()).notifications as NotificationRow[];
+      setNotifications(rows);
+      setResult(previous => previous && ({ ...previous, clinicsAlerted: rows.filter(row => row.state === 'delivered').map(row => row.partner_name), clinicsPending: rows.filter(row => ['accepted', 'processing', 'queued'].includes(row.state)).map(row => row.partner_name) }));
+    } catch { setError(t('error')); }
   };
-
-  return (
-    <div className="space-y-4">
-      {/* Symptômes */}
-      <div className="space-y-1.5">
-        <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <AlertCircle className="h-3.5 w-3.5" />
-          Symptômes
-        </label>
-        <Textarea
-          placeholder="Décrivez les symptômes (fièvre, maux de tête, frissons...)"
-          value={symptoms}
-          onChange={(e) => setSymptoms(e.target.value)}
-          className="min-h-[70px] resize-none text-sm"
-        />
-      </div>
-
-      {/* Téléphone */}
-      <div className="space-y-1.5">
-        <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <Phone className="h-3.5 w-3.5" />
-          Numéro de téléphone
-        </label>
-        <Input
-          type="tel"
-          placeholder="+221 7X XXX XX XX"
-          value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
-          className="text-sm"
-        />
-      </div>
-
-      {/* Coordonnées (si disponibles) */}
-      {latitude !== null && longitude !== null && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg px-3 py-2">
-          <MapPin className="h-3.5 w-3.5 text-primary" />
-          <span>Position : {latitude.toFixed(4)}, {longitude.toFixed(4)}</span>
-        </div>
-      )}
-
-      {/* Bouton */}
-      <Button
-        onClick={handleSubmit}
-        disabled={loading || !symptoms.trim() || !phoneNumber.trim()}
-        variant="destructive"
-        className="w-full"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="animate-spin mr-2 h-4 w-4" />
-            Analyse en cours...
-          </>
-        ) : (
-          <>
-            <AlertCircle className="mr-2 h-4 w-4" />
-            Vérifier l&apos;urgence
-          </>
-        )}
-      </Button>
-
-      {/* Résultat */}
-      {alertResult && (
-        <div className={`rounded-xl p-4 border space-y-3 ${
-          alertResult.isEmergency
-            ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800/30'
-            : 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/30'
-        }`}>
-          {/* Status */}
-          <div className="flex items-center gap-2">
-            {alertResult.isEmergency ? (
-              <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-            ) : (
-              <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-            )}
-            <span className={`font-semibold text-sm ${
-              alertResult.isEmergency
-                ? 'text-red-700 dark:text-red-300'
-                : 'text-emerald-700 dark:text-emerald-300'
-            }`}>
-              {alertResult.isEmergency ? '🚨 Urgence détectée' : '✅ Pas d\'urgence'}
-            </span>
-          </div>
-
-          {/* Raison */}
-          <p className="text-xs leading-relaxed">{alertResult.reason}</p>
-
-          {/* Cliniques alertées */}
-          {alertResult.clinicsAlerted.length > 0 && (
-            <div className="pt-2 border-t border-current/10">
-              <p className="text-xs font-medium mb-1">SMS livrés aux cliniques :</p>
-              <ul className="space-y-1">
-                {alertResult.clinicsAlerted.map((clinic, i) => (
-                  <li key={i} className="text-xs flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                    {clinic}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {alertResult.clinicsPending.length > 0 && (
-            <p className="text-xs">SMS acceptés par le prestataire pour {alertResult.clinicsPending.join(', ')}. Livraison non confirmée.</p>
-          )}
-          {alertResult.isEmergency && (
-            <p role="status" className="text-xs font-medium">
-              {alertResult.notificationStatus === 'unavailable' || alertResult.notificationStatus === 'failed'
-                ? 'Aucun envoi de SMS confirmé : le service est indisponible ou les envois ont échoué. '
-                : alertResult.notificationsFailed > 0
-                  ? `${alertResult.notificationsFailed} envoi(s) non confirmé(s). ` : ''}
-              La prise en charge par une clinique n’est pas confirmée. N’attendez pas une réponse : appelez le 1515 en cas d’urgence.
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Avertissement */}
-      <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
-        En cas d&apos;urgence vitale, appelez le 1515 (SAMU Sénégal) ou rendez-vous aux urgences les plus proches.
-      </p>
-    </div>
-  );
+  const submit = async () => {
+    setBusy(true); setResult(null); setNotifications([]); setError('');
+    try {
+      const input = { symptoms, phoneNumber: phone.replace(/[\s()-]/g, ''), latitude: place?.latitude, longitude: place?.longitude, ageConfirmed: adult, shareConsent: consent };
+      const payload = JSON.stringify(input);
+      if (replay.current?.payload !== payload) replay.current = { payload, key: crypto.randomUUID(), token: Array.from(crypto.getRandomValues(new Uint8Array(32)), b => b.toString(16).padStart(2, '0')).join('') };
+      const response = await prioritizeEmergencyAndAlert({ ...input, requestKey: replay.current.key, receiptToken: replay.current.token });
+      setResult(response);
+    } catch { setError(t('error')); } finally { setBusy(false); }
+  };
+  return <section className="min-w-0 space-y-4">
+    <p className="text-sm">{t('emergency_form_notice')}</p>
+    <label className="block space-y-2 text-sm"><span>{t('emergency_symptoms')}</span><Textarea value={symptoms} maxLength={2000} onChange={event => setSymptoms(event.target.value)} /></label>
+    <label className="block space-y-2 text-sm"><span>{t('phone_label')}</span><Input type="tel" autoComplete="tel" value={phone} maxLength={30} onChange={event => setPhone(event.target.value)} placeholder="+221…" /></label>
+    <LocationPicker onSelect={setPlace} />
+    {place && <p className="break-words text-sm">{place.name || `${place.latitude.toFixed(3)}, ${place.longitude.toFixed(3)}`}</p>}
+    <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={adult} onChange={event => { setAdult(event.target.checked); if (event.target.checked) confirmAdult(); }} />{t('ageGate_confirm')}</label>
+    <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={consent} onChange={event => setConsent(event.target.checked)} />{t('share_emergency_consent')}</label>
+    <a href="/confidentialite" className="inline-block text-sm underline">{t('privacy')}</a>
+    <Button type="button" className="h-auto min-h-11 w-full whitespace-normal" disabled={busy || !consent || !adult || symptoms.trim().length < 3 || !phone.trim()} onClick={() => void submit()}>{busy ? t('emergency_waiting') : t('emergency_submit')}</Button>
+    {error && <p role="alert">{error}</p>}
+    {result && <div role="status" className="space-y-3 rounded-xl border p-4 text-sm">
+      <h3 className="font-semibold">{t('emergency_result')}</h3><p>{result.reason}</p>
+      <p>{t('sms_delivered')} : {result.clinicsAlerted.join(', ') || '0'}</p>
+      <p>{t('sms_pending')} : {result.clinicsPending.join(', ') || '0'}</p>
+      {!result.clinicsAlerted.length && <p>{t('sms_none')}</p>}
+      <p className="font-semibold">{t('care_unconfirmed')}</p>
+      {result.receipt && <Button type="button" variant="outline" onClick={() => void refresh()}>{t('refresh_requests')}</Button>}
+      {notifications.map(row => <p key={row.id}>{row.partner_name} — {row.state === 'delivered' ? t('sms_delivered') : row.state === 'accepted' ? t('sms_pending') : t('care_unconfirmed')}{row.acknowledged_at ? ' · Accusé humain enregistré' : ''}</p>)}
+    </div>}
+  </section>;
 }

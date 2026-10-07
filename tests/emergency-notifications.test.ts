@@ -1,4 +1,6 @@
 // @vitest-environment node
+vi.mock('next/headers', () => ({ headers: async () => new Headers({ 'x-forwarded-for': 'flow-test' }) }));
+vi.mock('@/lib/service-quota', () => ({ consumeQuota: vi.fn(), clientAddress: () => 'flow-test', quotaIdentity: () => 'test-hash' }));
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({ sms: vi.fn(), prompt: vi.fn() }));
 vi.mock('@/services/sms', () => ({ sendSms: mocks.sms }));
@@ -19,7 +21,7 @@ afterEach(() => { vi.unstubAllEnvs(); });
 describe('emergency notification regression', () => {
   it('never announces the three clinics as alerted when no SMS is sent', async () => {
     mocks.sms.mockResolvedValue({ status: 'unavailable' });
-    const result = await prioritizeEmergencyAndAlert({ ...location, symptoms: 'test', phoneNumber: '+221771234567' });
+    const result = await prioritizeEmergencyAndAlert({ ...location, ageConfirmed: true, shareConsent: true, symptoms: 'test', phoneNumber: '+221771234567' });
     expect(result.clinicsAlerted).toEqual([]); expect(result.clinicsPending).toEqual([]);
     expect(result.notificationStatus).toBe('unavailable'); expect(result.notificationsFailed).toBe(3);
   });
@@ -43,7 +45,7 @@ describe('emergency notification regression', () => {
   });
   it('does not send any SMS for a non emergency result', async () => {
     mocks.prompt.mockResolvedValue({ output: { isEmergency: false, reason: 'Test' } });
-    expect((await prioritizeEmergencyAndAlert({ ...location, symptoms: 'test', phoneNumber: '+221771234567' })).notificationStatus).toBe('not-needed');
+    expect((await prioritizeEmergencyAndAlert({ ...location, ageConfirmed: true, shareConsent: true, symptoms: 'test', phoneNumber: '+221771234567' })).notificationStatus).toBe('not-needed');
     expect(mocks.sms).not.toHaveBeenCalled();
   });
 });

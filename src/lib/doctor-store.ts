@@ -1,3 +1,4 @@
+import { serverFetch } from '@/lib/server-fetch';
 import type { Doctor } from '@/types/doctor';
 import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
@@ -5,68 +6,11 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 // The demo directory is local only. Configured deployments use the shared database.
-const INITIAL_DOCTORS: Doctor[] = [
-  {
-    id: 'dr-1',
-    name: 'Dr. Aminata Diallo',
-    specialty: 'Généraliste',
-    location: 'Dakar',
-    bio: "Médecin généraliste avec 12 ans d'expérience. Spécialisée dans la médecine familiale et la prévention.",
-    available: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'],
-    rating: 4.8,
-    reviews: 124,
-  },
-  {
-    id: 'dr-2',
-    name: 'Dr. Ousmane Ndiaye',
-    specialty: 'Cardiologie',
-    location: 'Dakar',
-    bio: "Cardiologue certifié, ancien chef de service à l'Hôpital Principal de Dakar.",
-    available: ['Lun', 'Mer', 'Ven'],
-    rating: 4.9,
-    reviews: 89,
-  },
-  {
-    id: 'dr-3',
-    name: 'Dr. Fatou Sow',
-    specialty: 'Pédiatrie',
-    location: 'Thiès',
-    bio: 'Pédiatre passionnée par la santé infantile. Consultations en français et wolof.',
-    available: ['Mar', 'Jeu', 'Sam'],
-    rating: 4.7,
-    reviews: 156,
-  },
-  {
-    id: 'dr-4',
-    name: 'Dr. Ibrahima Fall',
-    specialty: 'Dermatologie',
-    location: 'Dakar',
-    bio: 'Dermatologue spécialisé dans les affections cutanées tropicales.',
-    available: ['Lun', 'Mar', 'Jeu'],
-    rating: 4.6,
-    reviews: 67,
-  },
-  {
-    id: 'dr-5',
-    name: 'Dr. Mariama Ba',
-    specialty: 'Gynécologie',
-    location: 'Saint-Louis',
-    bio: 'Gynécologue-obstétricienne avec une approche bienveillante et culturellement adaptée.',
-    available: ['Mer', 'Ven', 'Sam'],
-    rating: 4.9,
-    reviews: 203,
-  },
-  {
-    id: 'dr-6',
-    name: 'Dr. Moussa Diop',
-    specialty: 'Généraliste',
-    location: 'Kaolack',
-    bio: 'Médecin de terrain, engagé pour la santé rurale. Consultations vidéo disponibles.',
-    available: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
-    rating: 4.5,
-    reviews: 98,
-  },
-];
+const INITIAL_DOCTORS: Doctor[] = ['Généraliste', 'Cardiologie', 'Pédiatrie', 'Dermatologie', 'Gynécologie', 'Généraliste'].map((specialty, index) => ({
+  id: `dr-${index + 1}`, name: `Praticien de démonstration ${index + 1}`, specialty,
+  location: 'Dakar', bio: 'Fiche de démonstration locale, aucun praticien réel ni disponibilité de soins attestée.',
+  available: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven'],
+}));
 
 type Store = { doctors: Doctor[] };
 const shared = globalThis as typeof globalThis & { samasanteDoctorStore?: Store };
@@ -75,7 +19,7 @@ const columns = 'id,name,specialty,location,bio,available,rating,reviews';
 function database() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (url && key) return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  if (url && key) return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: (input: RequestInfo | URL, init?: RequestInit) => serverFetch(input, { ...init, signal: init?.signal || AbortSignal.timeout(10000) }) } });
   if (process.env.VERCEL) throw new Error('Annuaire indisponible : configurez Supabase.');
   return null;
 }

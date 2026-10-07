@@ -13,14 +13,14 @@ interface RateLimitEntry {
 const rateLimitCache = new Map<string, RateLimitEntry>();
 
 // Nettoyage automatique des entrées expirées toutes les heures
-setInterval(() => {
+function pruneExpired() {
   const now = Date.now();
   for (const [key, entry] of rateLimitCache.entries()) {
     if (entry.resetTime < now) {
       rateLimitCache.delete(key);
     }
   }
-}, 60 * 60 * 1000); // 1 heure
+}
 
 /**
  * Vérifie si une requête dépasse la limite autorisée
@@ -37,6 +37,7 @@ export function checkRateLimit(
 ): { limited: boolean; remaining: number; resetTime: number } {
   const now = Date.now();
   const entry = rateLimitCache.get(identifier);
+  pruneExpired();
 
   // Si pas d'entrée ou entrée expirée, créer une nouvelle
   if (!entry || entry.resetTime < now) {
@@ -87,9 +88,9 @@ export function generateRateLimitIdentifier(
   userId?: string,
   deviceId?: string
 ): string {
-  // Priorité : userId > deviceId > IP
+  // A caller-supplied device ID is never an authority for a quota.
   if (userId) return `user:${userId}`;
-  if (deviceId) return `device:${deviceId}`;
+  void deviceId;
   if (ip) return `ip:${ip}`;
   return 'anonymous';
 }

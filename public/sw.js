@@ -1,147 +1,44 @@
-// Service Worker pour SamaSanté
-// Version: 1.0.0
+/* Public assets only. Patient records, API responses and authenticated HTML are never cached. */
+const PUBLIC_CACHE = 'samasante-public-v2';
+const ASSET_CACHE = 'samasante-assets-v2';
+const KEEP = new Set([PUBLIC_CACHE, ASSET_CACHE]);
+const PUBLIC_ASSETS = ['/offline.html', '/manifest.json', '/icon-192x192.png', '/icon-512x512.png'];
 
-const CACHE_NAME = 'samasante-v1';
-const DYNAMIC_CACHE = 'samasante-dynamic-v1';
-
-// Ressources essentielles à mettre en cache
-const STATIC_ASSETS = [
-  '/',
-  '/offline.html',
-  '/manifest.json',
-  '/favicon.ico'
-];
-
-// Stratégies de cache
-const CACHE_STRATEGIES = {
-  // Cache First - pour les assets statiques
-  cacheFirst: async (request) => {
-    const method = request.method.toUpperCase();
-    if (method !== 'GET') {
-      // Avoid attempting to cache non-GET requests entirely
-      return fetch(request);
-    }
-    const cache = await caches.open(CACHE_NAME);
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(PUBLIC_CACHE).then(cache => cache.addAll(PUBLIC_ASSETS)).then(() => self.skipWaiting()));
+});
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('samasante-') && !KEEP.has(key)).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+});
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).catch(async () => {
+      const cache = await caches.open(PUBLIC_CACHE);
+      return await cache.match('/offline.html') || new Response('Hors ligne : appelez le 1515 en cas d’urgence.', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+    }));
+    return;
+  }
+  if (!url.pathname.startsWith('/_next/static/') && !PUBLIC_ASSETS.includes(url.pathname)) return;
+  event.respondWith((async () => {
+    const cache = await caches.open(PUBLIC_ASSETS.includes(url.pathname) ? PUBLIC_CACHE : ASSET_CACHE);
     const cached = await cache.match(request);
     if (cached) return cached;
-    
-    try {
-      const response = await fetch(request);
-      if (response.ok && method === 'GET') {
-        cache.put(request, response.clone());
-      }
-      return response;
-    } catch (error) {
-      return new Response('Offline', { status: 503 });
+    const response = await fetch(request);
+    if (response.ok) {
+      await cache.put(request, response.clone());
+      const keys = await cache.keys();
+      if (keys.length > 100) await cache.delete(keys[0]);
     }
-  },
-  
-  // Network First - pour les API calls
-  networkFirst: async (request) => {
-    const method = request.method.toUpperCase();
-    if (method !== 'GET') {
-      // Non-GET requests bypass the cache completely
-      return fetch(request);
-    }
-    try {
-      const response = await fetch(request);
-      if (response.ok && method === 'GET') {
-        const cache = await caches.open(DYNAMIC_CACHE);
-        cache.put(request, response.clone());
-      }
-      return response;
-    } catch (error) {
-      const cache = await caches.open(DYNAMIC_CACHE);
-      const cached = await cache.match(request);
-      return cached || new Response('Offline', { status: 503 });
-    }
-  },
-  
-  // Stale While Revalidate
-  staleWhileRevalidate: async (request) => {
-    const method = request.method.toUpperCase();
-    if (method !== 'GET') {
-      return fetch(request);
-    }
-    const cache = await caches.open(CACHE_NAME);
-    const cached = await cache.match(request);
-
-    const fetchPromise = fetch(request).then(response => {
-      if (response.ok && method === 'GET') {
-        cache.put(request, response.clone());
-      }
-      return response;
-    });
-    
-    return cached || fetchPromise;
-  }
-};
-
-// Installation du Service Worker
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('Mise en cache des ressources statiques');
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
-  self.skipWaiting();
+    return response;
+  })());
 });
-
-// Activation et nettoyage des anciens caches
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name.startsWith('samasante-') && name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      );
-    })
-  );
-  self.clients.claim();
-});
-
-// Interception des requêtes
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
-  const method = request.method.toUpperCase();
-
-  if (method !== 'GET') {
-    // Let non-GET requests pass through without caching
-    event.respondWith(fetch(request));
-    return;
-  }
-  
-  // Ignorer les requêtes vers des domaines externes (sauf APIs)
-  if (!url.origin.includes(self.location.origin) && 
-      !url.origin.includes('api.deepseek.com')) {
-    return;
-  }
-  
-  // Stratégies par type de ressource
-  if (request.destination === 'image') {
-    event.respondWith(CACHE_STRATEGIES.cacheFirst(request));
-  } else if (url.pathname.startsWith('/api/')) {
-    event.respondWith(CACHE_STRATEGIES.networkFirst(request));
-  } else if (request.destination === 'document') {
-    event.respondWith(CACHE_STRATEGIES.staleWhileRevalidate(request));
-  } else {
-    event.respondWith(CACHE_STRATEGIES.cacheFirst(request));
-  }
-});
-
-// Gestion des messages du client
-self.addEventListener('message', (event) => {
-  if (event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-  
-  if (event.data.type === 'CACHE_REMEDIES') {
-    // Mettre en cache les remèdes pour l'utilisation hors ligne
-    caches.open(DYNAMIC_CACHE).then((cache) => {
-      cache.addAll(event.data.urls);
-    });
+self.addEventListener('message', event => {
+  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data?.type === 'CLEAR_PRIVATE_DATA') {
+    // Clear any legacy private/dynamic caches from earlier application versions.
+    event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('samasante-') && !KEEP.has(key)).map(key => caches.delete(key)))));
   }
 });
