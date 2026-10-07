@@ -410,7 +410,7 @@ export default function LandingPage() {
               </div>
 
               <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                <a href="#" className="hover:text-foreground transition-colors">CGU</a>
+                <a href="/cgu" className="hover:text-foreground transition-colors">CGU</a>
                 <a href="#" className="hover:text-foreground transition-colors">Confidentialité</a>
                 <a href="mailto:cheikh@samasante.tech" className="hover:text-foreground transition-colors">Contact</a>
               </div>

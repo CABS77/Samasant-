@@ -138,5 +138,12 @@
   "admin_success_add": "Médecin ajouté avec succès",
   "admin_success_edit": "Médecin modifié avec succès",
   "admin_success_delete": "Médecin supprimé avec succès",
-  "admin_error": "Une erreur est survenue. Veuillez réessayer."
+  "admin_error": "Une erreur est survenue. Veuillez réessayer.",
+  "ageGate_title": "Service réservé aux adultes",
+  "ageGate_description": "SamaSanté est réservé aux personnes de 18 ans ou plus. Si vous consultez pour votre enfant, c'est vous, en tant qu'adulte, qui utilisez le service.",
+  "ageGate_terms_link": "Voir les conditions d'utilisation",
+  "ageGate_confirm": "J'ai 18 ans ou plus",
+  "ageGate_decline": "J'ai moins de 18 ans",
+  "ageGate_declined_title": "SamaSanté est réservé aux adultes",
+  "ageGate_declined_description": "Demandez à un parent ou à un adulte de confiance de faire la consultation pour vous. En cas d'urgence, rendez-vous dans le centre de santé le plus proche ou appelez le SAMU (1515 au Sénégal)."
 }

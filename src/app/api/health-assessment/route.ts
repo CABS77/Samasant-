@@ -9,6 +9,8 @@ const RequestSchema = z.object({
   message: z.string().min(1).max(1000),
   language: z.enum(['wolof', 'french', 'pulaar', 'franco-wolof']),
   deviceId: z.string().optional(),
+  // Service réservé aux 18 ans et plus : le client doit transmettre la confirmation d'âge
+  ageConfirmed: z.boolean().optional(),
 });
 
 /**
@@ -36,7 +38,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { message, language, deviceId } = validationResult.data;
+    const { message, language, deviceId, ageConfirmed } = validationResult.data;
+
+    if (ageConfirmed !== true) {
+      return NextResponse.json(
+        {
+          error: 'Age confirmation required',
+          message: 'SamaSanté est réservé aux personnes de 18 ans ou plus. Confirmez votre âge pour continuer.',
+        },
+        { status: 403 }
+      );
+    }
 
     // 3. Validation et sanitization avancée
     const sanitizationResult = validateAndSanitizeInput({ message, language });
