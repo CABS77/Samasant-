@@ -15,11 +15,10 @@ import {
   createDoctorAction,
   updateDoctorAction,
   deleteDoctorAction,
-  verifyAdminPassword,
 } from './actions';
 import { fetchDoctorsServer } from '@/app/actions/doctors';
+import { AdminAppointments } from '@/components/admin-appointments';
 
-const SESSION_KEY = 'samasante_admin_session';
 const VALID_DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] as const;
 
 export default function AdminPage() {
@@ -54,9 +53,11 @@ export default function AdminPage() {
 
   // Session check
   useEffect(() => {
-    const session = sessionStorage.getItem(SESSION_KEY);
-    if (session === 'true') setAuthenticated(true);
-    setCheckingSession(false);
+    fetch('/api/admin/verify', { cache: 'no-store' })
+      .then((response) => response.json())
+      .then((session) => setAuthenticated(session.authenticated === true))
+      .catch(() => setAuthenticated(false))
+      .finally(() => setCheckingSession(false));
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -64,13 +65,15 @@ export default function AdminPage() {
     setAuthLoading(true);
     setAuthError('');
     try {
-      const valid = await verifyAdminPassword(password);
-      if (valid) {
-        sessionStorage.setItem(SESSION_KEY, 'true');
+      const response = await fetch('/api/admin/verify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }),
+      });
+      const result = await response.json();
+      if (response.ok && result.success === true) {
         setAuthenticated(true);
         setPassword('');
       } else {
-        setAuthError('Mot de passe incorrect');
+        setAuthError(result.error || 'Connexion refusée.');
       }
     } catch {
       setAuthError('Erreur de connexion.');
@@ -79,10 +82,15 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem(SESSION_KEY);
-    setAuthenticated(false);
-    setDoctors([]);
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/admin/verify', { method: 'DELETE' });
+      if (!response.ok) throw new Error('Déconnexion impossible.');
+      setAuthenticated(false);
+      setDoctors([]);
+    } catch {
+      toast({ variant: 'destructive', title: 'Déconnexion impossible. Réessayez.' });
+    }
   };
 
   const fetchDoctors = useCallback(async () => {
@@ -123,8 +131,8 @@ export default function AdminPage() {
     setFormLocation(doctor.location ?? '');
     setFormBio(doctor.bio ?? '');
     setFormAvailable(doctor.available);
-    setFormRating(doctor.rating != null ? String(doctor.rating) : '');
-    setFormReviews(doctor.reviews != null ? String(doctor.reviews) : '');
+    setFormRating(typeof doctor.rating === 'number' ? String(doctor.rating) : '');
+    setFormReviews(typeof doctor.reviews === 'number' ? String(doctor.reviews) : '');
     setFormErrors({});
     setShowForm(true);
     setDeleteTarget(null);
@@ -254,6 +262,7 @@ export default function AdminPage() {
       </div>
 
       <div className="container mx-auto px-4 py-8 max-w-4xl -mt-4 space-y-6">
+        <AdminAppointments doctors={doctors} />
 
         {/* Inline delete confirmation */}
         {deleteTarget && (
@@ -391,7 +400,7 @@ export default function AdminPage() {
                     </div>
                     <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                       {doctor.location && <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{doctor.location}</span>}
-                      {doctor.rating != null && <span className="flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{doctor.rating}</span>}
+                      {typeof doctor.rating === 'number' && <span className="flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{doctor.rating}</span>}
                     </div>
                   </div>
 

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { prioritizeEmergencyAndAlert } from "@/ai/flows/emergency-alert-prioritization";
+import { prioritizeEmergencyAndAlert, type PrioritizeEmergencyAndAlertOutput } from "@/ai/flows/emergency-alert-prioritization";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, MapPin, Phone, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 
@@ -13,11 +13,7 @@ export function EmergencyAlert() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [alertResult, setAlertResult] = useState<{
-    isEmergency: boolean;
-    reason: string;
-    clinicsAlerted: string[];
-  } | null>(null);
+  const [alertResult, setAlertResult] = useState<PrioritizeEmergencyAndAlertOutput | null>(null);
   const [loading, setLoading] = useState(false);
 
   const getCurrentPosition = (): Promise<GeolocationPosition> => {
@@ -46,7 +42,7 @@ export function EmergencyAlert() {
 
       const response = await prioritizeEmergencyAndAlert({
         symptoms,
-        phoneNumber,
+        phoneNumber: phoneNumber.replace(/[\s()-]/g, ''),
         latitude: lat,
         longitude: lng,
       });
@@ -55,15 +51,14 @@ export function EmergencyAlert() {
       toast({
         title: response.isEmergency ? "🚨 Urgence détectée" : "✅ Pas d'urgence détectée",
         description: response.isEmergency
-          ? `${response.clinicsAlerted.length} clinique(s) alertée(s)`
+          ? `${response.clinicsAlerted.length} SMS livré(s), ${response.clinicsPending.length} en attente de livraison. Appelez le 1515 si nécessaire.`
           : "Continuez à surveiller vos symptômes.",
       });
-    } catch (error: any) {
-      console.error("Emergency alert error:", error);
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: error.message || "Impossible de traiter l'alerte.",
+        description: error instanceof Error ? error.message : "Impossible de traiter l'alerte.",
       });
     } finally {
       setLoading(false);
@@ -158,7 +153,7 @@ export function EmergencyAlert() {
           {/* Cliniques alertées */}
           {alertResult.clinicsAlerted.length > 0 && (
             <div className="pt-2 border-t border-current/10">
-              <p className="text-xs font-medium mb-1">Cliniques alertées :</p>
+              <p className="text-xs font-medium mb-1">SMS livrés aux cliniques :</p>
               <ul className="space-y-1">
                 {alertResult.clinicsAlerted.map((clinic, i) => (
                   <li key={i} className="text-xs flex items-center gap-1.5">
@@ -168,6 +163,18 @@ export function EmergencyAlert() {
                 ))}
               </ul>
             </div>
+          )}
+          {alertResult.clinicsPending.length > 0 && (
+            <p className="text-xs">SMS acceptés par le prestataire pour {alertResult.clinicsPending.join(', ')}. Livraison non confirmée.</p>
+          )}
+          {alertResult.isEmergency && (
+            <p role="status" className="text-xs font-medium">
+              {alertResult.notificationStatus === 'unavailable' || alertResult.notificationStatus === 'failed'
+                ? 'Aucun envoi de SMS confirmé : le service est indisponible ou les envois ont échoué. '
+                : alertResult.notificationsFailed > 0
+                  ? `${alertResult.notificationsFailed} envoi(s) non confirmé(s). ` : ''}
+              La prise en charge par une clinique n’est pas confirmée. N’attendez pas une réponse : appelez le 1515 en cas d’urgence.
+            </p>
           )}
         </div>
       )}

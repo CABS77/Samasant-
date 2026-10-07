@@ -1,13 +1,10 @@
 import type { Doctor } from '@/types/doctor';
+import { createClient } from '@supabase/supabase-js';
+import { randomUUID } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
-/**
- * Doctor Store — Stockage en mémoire avec persistance optionnelle sur disque.
- * 
- * Sur Vercel (filesystem read-only), les données vivent en mémoire.
- * En local, les données sont aussi persistées dans data/doctors.json.
- * Les modifications sur Vercel sont perdues au redéploiement.
- */
-
+// The demo directory is local only. Configured deployments use the shared database.
 const INITIAL_DOCTORS: Doctor[] = [
   {
     id: 'dr-1',
@@ -71,102 +68,99 @@ const INITIAL_DOCTORS: Doctor[] = [
   },
 ];
 
-// Store en mémoire — initialisé avec les données par défaut
-let doctorsStore: Doctor[] = [...INITIAL_DOCTORS];
-let initialized = false;
+type Store = { doctors: Doctor[] };
+const shared = globalThis as typeof globalThis & { samasanteDoctorStore?: Store };
+const columns = 'id,name,specialty,location,bio,available,rating,reviews';
 
-/**
- * Tente de charger les données depuis le disque (local uniquement).
- * Sur Vercel, utilise les données en mémoire.
- */
-function initFromDisk(): void {
-  if (initialized) return;
-  initialized = true;
-
-  try {
-    // Dynamic import pour éviter les erreurs sur les plateformes sans fs
-    const fs = require('fs');
-    const path = require('path');
-    const filePath = path.join(process.cwd(), 'data', 'doctors.json');
-
-    if (fs.existsSync(filePath)) {
-      const raw = fs.readFileSync(filePath, 'utf-8');
-      const data = JSON.parse(raw);
-      if (Array.isArray(data) && data.length > 0) {
-        doctorsStore = data;
-      }
-    }
-  } catch {
-    // Sur Vercel ou si le fichier n'existe pas, on garde les données en mémoire
-  }
+function database() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (url && key) return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  if (process.env.VERCEL) throw new Error('Annuaire indisponible : configurez Supabase.');
+  return null;
 }
 
-/**
- * Tente de persister les données sur disque (local uniquement).
- */
-function persistToDisk(): void {
-  try {
-    const fs = require('fs');
-    const path = require('path');
-    const dir = path.join(process.cwd(), 'data');
-    const filePath = path.join(dir, 'doctors.json');
-
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(filePath, JSON.stringify(doctorsStore, null, 2), 'utf-8');
-  } catch {
-    // Sur Vercel, l'écriture échoue silencieusement — les données restent en mémoire
+function localStore(): Store {
+  if (!shared.samasanteDoctorStore) shared.samasanteDoctorStore = { doctors: [...INITIAL_DOCTORS] };
+  const store = shared.samasanteDoctorStore;
+  const file = join(process.cwd(), 'data', 'doctors.json');
+  // Read again across compiled routes and separate local server processes. Empty is valid.
+  if (existsSync(file)) {
+    const data: unknown = JSON.parse(readFileSync(file, 'utf8'));
+    if (!Array.isArray(data)) throw new Error('Annuaire local invalide.');
+    store.doctors = data as Doctor[];
   }
+  return store;
 }
 
-function generateId(): string {
-  return `dr-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+function persist(store: Store): void {
+  const dir = join(process.cwd(), 'data');
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, 'doctors.json'), JSON.stringify(store.doctors, null, 2), 'utf8');
 }
 
 export async function getAllDoctors(): Promise<Doctor[]> {
-  initFromDisk();
-  return [...doctorsStore];
+  const db = database();
+  if (db) {
+    const { data, error } = await db.from('doctor_directory').select(columns).order('name');
+    if (error) throw new Error('Annuaire temporairement indisponible.');
+    return (data || []) as Doctor[];
+  }
+  return [...localStore().doctors];
 }
 
 export async function getDoctorById(id: string): Promise<Doctor | undefined> {
-  initFromDisk();
-  return doctorsStore.find((d) => d.id === id);
+  const db = database();
+  if (db) {
+    const { data, error } = await db.from('doctor_directory').select(columns).eq('id', id).maybeSingle();
+    if (error) throw new Error('Annuaire temporairement indisponible.');
+    return (data || undefined) as Doctor | undefined;
+  }
+  return localStore().doctors.find(d => d.id === id);
 }
 
 export async function createDoctor(data: Omit<Doctor, 'id'>): Promise<Doctor> {
-  initFromDisk();
-  const newDoctor: Doctor = {
-    ...data,
-    id: generateId(),
-  };
-  doctorsStore.push(newDoctor);
-  persistToDisk();
-  return newDoctor;
+  const doctor = { ...data, id: `dr-${randomUUID()}` };
+  const db = database();
+  if (db) {
+    const result = await db.from('doctor_directory').insert(doctor).select(columns).single();
+    if (result.error || !result.data) throw new Error('Impossible d’enregistrer le médecin.');
+    return result.data as Doctor;
+  }
+  const store = localStore();
+  const updated = { doctors: [...store.doctors, doctor] };
+  persist(updated); shared.samasanteDoctorStore = updated;
+  return doctor;
 }
 
-export async function updateDoctor(
-  id: string,
-  data: Partial<Omit<Doctor, 'id'>>
-): Promise<Doctor> {
-  initFromDisk();
-  const index = doctorsStore.findIndex((d) => d.id === id);
-  if (index === -1) {
-    throw new Error('Médecin introuvable');
+export async function updateDoctor(id: string, data: Partial<Omit<Doctor, 'id'>>): Promise<Doctor> {
+  const db = database();
+  if (db) {
+    const result = await db.from('doctor_directory').update(data).eq('id', id).select(columns).maybeSingle();
+    if (result.error) throw new Error('Impossible de modifier le médecin.');
+    if (!result.data) throw new Error('Médecin introuvable');
+    return result.data as Doctor;
   }
-  const updated: Doctor = { ...doctorsStore[index], ...data };
-  doctorsStore[index] = updated;
-  persistToDisk();
-  return updated;
+  const store = localStore();
+  const existing = store.doctors.find(d => d.id === id);
+  if (!existing) throw new Error('Médecin introuvable');
+  const doctor = { ...existing, ...data };
+  const updated = { doctors: store.doctors.map(d => d.id === id ? doctor : d) };
+  persist(updated); shared.samasanteDoctorStore = updated;
+  return doctor;
 }
 
 export async function deleteDoctor(id: string): Promise<boolean> {
-  initFromDisk();
-  const index = doctorsStore.findIndex((d) => d.id === id);
-  if (index === -1) {
-    throw new Error('Médecin introuvable');
+  const db = database();
+  if (db) {
+    const { data, error } = await db.from('doctor_directory').delete().eq('id', id).select('id').maybeSingle();
+    if (error) throw new Error('Impossible de supprimer le médecin.');
+    if (!data) throw new Error('Médecin introuvable');
+    return true;
   }
-  doctorsStore.splice(index, 1);
-  persistToDisk();
+  const store = localStore();
+  if (!store.doctors.some(d => d.id === id)) throw new Error('Médecin introuvable');
+  const updated = { doctors: store.doctors.filter(d => d.id !== id) };
+  persist(updated); shared.samasanteDoctorStore = updated;
   return true;
 }

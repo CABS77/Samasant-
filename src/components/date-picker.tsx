@@ -7,11 +7,12 @@ import { fr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarDays, ChevronDown, ChevronUp } from 'lucide-react';
+import type { Matcher } from 'react-day-picker';
 
 interface DatePickerProps {
   date: Date | undefined;
   onChange: (date: Date | undefined) => void;
-  disabledDates?: Date[];
+  disabledDates?: Matcher | Matcher[];
 }
 
 export function DatePicker({ date, onChange, disabledDates }: DatePickerProps) {

@@ -1,68 +1,19 @@
-import { supabase } from '@/lib/supabase';
-import type { RendezVous } from '@/types/firestore';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { appointmentReceiptSchema, type AppointmentRequest, type AppointmentReceipt } from '@/lib/appointment-validation';
 
-const COLLECTION_NAME = 'rendezVous';
-
-function isSupabaseConfigured(): boolean {
-  return !!(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-}
-
-export async function createAppointment(data: RendezVous): Promise<string> {
-  if (!isSupabaseConfigured()) {
-    // Mode démo : simuler la création
-    const fakeId = `demo-${Date.now()}`;
-    console.warn('⚠️ Supabase non configuré. Rendez-vous simulé:', fakeId);
-    return fakeId;
-  }
-
-  const { data: res, error } = await supabase
-    .from(COLLECTION_NAME)
-    .insert(data)
-    .select('id')
-    .single();
-  if (error) throw error;
-  return res!.id as string;
-}
-
-export async function getAppointment(id: string): Promise<RendezVous | null> {
-  if (!isSupabaseConfigured()) return null;
-
-  const { data, error } = await supabase
-    .from(COLLECTION_NAME)
-    .select('*')
-    .eq('id', id)
-    .single();
-  if (error) return null;
-  return data as RendezVous;
-}
-
-export async function updateAppointment(id: string, data: Partial<RendezVous>): Promise<void> {
-  if (!isSupabaseConfigured()) return;
-
-  const { error } = await supabase
-    .from(COLLECTION_NAME)
-    .update(data)
-    .eq('id', id);
-  if (error) throw error;
-}
-
-export async function deleteAppointment(id: string): Promise<void> {
-  if (!isSupabaseConfigured()) return;
-
-  const { error } = await supabase
-    .from(COLLECTION_NAME)
-    .delete()
-    .eq('id', id);
-  if (error) throw error;
-}
-
-export async function getAppointmentsForUser(userId: string): Promise<RendezVous[]> {
-  if (!isSupabaseConfigured()) return [];
-
-  const { data, error } = await supabase
-    .from(COLLECTION_NAME)
-    .select('*')
-    .eq('jefandikukat_id', userId);
-  if (error) throw error;
-  return (data as RendezVous[]) || [];
+/** A receipt is returned only after the server has persisted the patient's request. */
+export async function createAppointment(input: AppointmentRequest): Promise<AppointmentReceipt> {
+  if (!isSupabaseConfigured()) throw new Error('Les réservations sont temporairement indisponibles.');
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session) throw new Error('Connectez-vous pour réserver.');
+  const response = await fetch('/api/appointments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },
+    body: JSON.stringify(input),
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'Enregistrement impossible. Réessayez.');
+  const receipt = appointmentReceiptSchema.safeParse(result);
+  if (!receipt.success) throw new Error('Enregistrement non confirmé. Réessayez avec la même demande.');
+  return receipt.data;
 }

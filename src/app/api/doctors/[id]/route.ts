@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { updateDoctor, deleteDoctor, getDoctorById } from '@/lib/doctor-store';
 import { doctorUpdateSchema } from '@/lib/doctor-validation';
+import { AdminAuthError, requireAdmin, requireSameOrigin } from '@/lib/admin-auth';
 
 // Force Node.js runtime (needed for fs operations in doctor-store)
 export const runtime = 'nodejs';
@@ -11,6 +12,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAdmin();
+    requireSameOrigin(request);
     const { id } = await params;
     const existing = await getDoctorById(id);
     if (!existing) {
@@ -37,6 +40,7 @@ export async function PUT(
     const doctor = await updateDoctor(id, result.data);
     return NextResponse.json(doctor);
   } catch (error) {
+    if (error instanceof AdminAuthError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error('PUT /api/doctors/[id] error:', error);
     return NextResponse.json(
       { error: 'Erreur serveur lors de la mise à jour du médecin' },
@@ -46,10 +50,12 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAdmin();
+    requireSameOrigin(request);
     const { id } = await params;
     const existing = await getDoctorById(id);
     if (!existing) {
@@ -62,6 +68,7 @@ export async function DELETE(
     await deleteDoctor(id);
     return NextResponse.json({ success: true, message: 'Médecin supprimé' });
   } catch (error) {
+    if (error instanceof AdminAuthError) return NextResponse.json({ error: error.message }, { status: error.status });
     console.error('DELETE /api/doctors/[id] error:', error);
     return NextResponse.json(
       { error: 'Erreur serveur lors de la suppression du médecin' },

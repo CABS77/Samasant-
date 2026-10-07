@@ -2,7 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import AppointmentBooking from '@/components/appointment-booking';
-import { CalendarDays, Clock, Video, Stethoscope } from 'lucide-react';
+import { CalendarDays, Clock, Stethoscope } from 'lucide-react';
 
 export default function AppointmentsPage() {
   const { t } = useTranslation();
@@ -15,14 +15,13 @@ export default function AppointmentsPage() {
             {t('appointments_book_link')}
           </h1>
           <p className="text-white/70 mt-2 max-w-lg">
-            Consultez nos médecins partenaires en clinique ou en vidéo. Choisissez votre créneau en quelques clics.
+            Choisissez un médecin et envoyez une demande de consultation en clinique. La clinique doit ensuite confirmer le rendez-vous.
           </p>
           <div className="flex flex-wrap gap-4 mt-6">
             {[
-              { icon: Stethoscope, label: '15+ spécialistes' },
-              { icon: CalendarDays, label: 'Disponible 7j/7' },
+              { icon: Stethoscope, label: 'Consultation en clinique' },
+              { icon: CalendarDays, label: 'Selon les disponibilités du médecin' },
               { icon: Clock, label: 'Créneaux de 30 min' },
-              { icon: Video, label: 'Vidéo ou clinique' },
             ].map(({ icon: Icon, label }) => (
               <div key={label} className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2 text-sm border border-white/10">
                 <Icon className="h-4 w-4 text-white/80" />

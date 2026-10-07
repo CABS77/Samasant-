@@ -3,6 +3,10 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+export function isSupabaseConfigured(): boolean {
+  return Boolean(url && key);
+}
+
 /**
  * Create the Supabase client only when the required environment
  * variables are available. Otherwise export a proxy object that will

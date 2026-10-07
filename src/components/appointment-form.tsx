@@ -1,26 +1,19 @@
-"use client";
+'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { createAppointment } from '@/services/appointments';
-import type { RendezVous } from '@/types/firestore';
+import { weekdays, type AppointmentReceipt } from '@/lib/appointment-validation';
 import type { Doctor } from '@/types/doctor';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/date-picker';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Icons } from '@/components/icons';
 import { TimePicker } from '@/components/time-picker';
+import { PatientSignIn } from '@/components/patient-sign-in';
+import { PatientAppointments } from '@/components/patient-appointments';
 import { toast } from '@/hooks/use-toast';
-import { useTranslation } from 'react-i18next';
-import { Loader2, CheckCircle2, CalendarDays, Clock, User, FileText, Stethoscope, Video } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Props {
   doctors: Doctor[];
@@ -29,234 +22,115 @@ interface Props {
 }
 
 export function AppointmentForm({ doctors, selectedDoctor, onSelectDoctor }: Props) {
-  const { t } = useTranslation();
   const [date, setDate] = useState<Date | undefined>();
   const [time, setTime] = useState('');
   const [motif, setMotif] = useState('');
-  const [mode, setMode] = useState<'clinic' | 'video'>('clinic');
+  const [phone, setPhone] = useState('');
+  const [patientId, setPatientId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [receipt, setReceipt] = useState<(AppointmentReceipt & { doctorName: string }) | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const session = useRef<string | null>(null);
+  const onSessionChange = useCallback((userId: string | null) => {
+    if (session.current !== userId) {
+      session.current = userId;
+      setReceipt(null);
+      setMotif(''); setPhone('');
+      setDate(undefined); setTime('');
+    }
+    setPatientId(userId);
+  }, []);
+  // Keep a stable key after a network failure, but use a new key if the payload changes.
+  const request = useRef<{ payload: string; key: string }>();
+  const doctor = doctors.find(d => d.id === selectedDoctor);
+  const dateKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const todayInSenegal = new Date().toISOString().slice(0, 10);
+  const disabledDate = (d: Date) => dateKey(d) < todayInSenegal || !doctor?.available.includes(weekdays[d.getDay()]);
 
-  const today = new Date();
-  // Désactiver les dimanches et les jours passés
-  const isDateDisabled = (d: Date) => {
-    return d < today || d.getDay() === 0;
-  };
-
-  const validate = (): boolean => {
-    const newErrors: Record<string, string> = {};
-    if (!selectedDoctor) newErrors.doctor = 'Veuillez sélectionner un médecin';
-    if (!date) newErrors.date = 'Veuillez choisir une date';
-    if (!time) newErrors.time = 'Veuillez choisir un horaire';
-    if (!motif.trim()) newErrors.motif = 'Veuillez indiquer le motif de consultation';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (submitting) return;
+    const issues: Record<string, string> = {};
+    const contact = phone.replace(/[\s()-]/g, '');
+    if (!doctor) issues.doctor = 'Veuillez sélectionner un médecin';
+    if (!date || disabledDate(date)) issues.date = 'Choisissez un jour disponible à venir';
+    if (!time) issues.time = 'Veuillez choisir un horaire';
+    if (!motif.trim()) issues.motif = 'Veuillez indiquer le motif de consultation';
+    if (!/^\+[1-9]\d{7,14}$/.test(contact)) issues.phone = 'Utilisez le format international, par exemple +221…';
+    if (!patientId) issues.session = 'Connectez-vous pour réserver';
+    setErrors(issues);
+    if (Object.keys(issues).length) return;
     setSubmitting(true);
     try {
-      const [hours, minutes] = time.split(':').map(Number);
-      const dateTime = new Date(date!);
-      dateTime.setHours(hours);
-      dateTime.setMinutes(minutes);
-      const timestamp = { seconds: Math.floor(dateTime.getTime() / 1000), nanoseconds: 0 };
-
-      const data: RendezVous = {
-        jefandikukat_id: 'demo-user',
-        doktoor_id: selectedDoctor,
-        dat: timestamp,
-        estatu: 'planifie',
-        motif,
-        notes_jefandikukat: mode,
-      };
-
-      await createAppointment(data);
-
-      setSuccess(true);
-      const doctorName = doctors.find((d) => d.id === selectedDoctor)?.name || 'le médecin';
-      toast({
-        title: '✅ Rendez-vous confirmé',
-        description: `Votre rendez-vous avec ${doctorName} est enregistré pour le ${date!.toLocaleDateString('fr-FR')} à ${time}.`,
-      });
-
-      // Reset après 3 secondes
-      setTimeout(() => {
-        setSuccess(false);
-        setMotif('');
-        setDate(undefined);
-        setTime('');
-      }, 4000);
-    } catch (error: any) {
-      console.error('Error creating appointment:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: 'Impossible de créer le rendez-vous. Veuillez réessayer.',
-      });
-    } finally {
-      setSubmitting(false);
-    }
+      const input = { doctorId: selectedDoctor, startAt: `${dateKey(date!)}T${time}:00.000Z`, motif: motif.trim(), phone: contact, mode: 'clinic' as const };
+      const payload = JSON.stringify(input);
+      if (request.current?.payload !== payload) request.current = { payload, key: crypto.randomUUID() };
+      const saved = await createAppointment({ ...input, requestKey: request.current!.key });
+      if (session.current !== patientId) return;
+      setReceipt({ ...saved, doctorName: doctor!.name });
+      toast({ title: 'Demande enregistrée', description: 'Le médecin doit encore confirmer ce rendez-vous.' });
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Demande non confirmée',
+        description: error instanceof Error ? error.message : 'Impossible d’enregistrer la demande. Réessayez.' });
+    } finally { setSubmitting(false); }
   };
 
-  // Écran de succès
-  if (success) {
-    const doctorName = doctors.find((d) => d.id === selectedDoctor)?.name;
-    return (
-      <div className="text-center py-12 space-y-4">
-        <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-          <CheckCircle2 className="h-8 w-8 text-primary" />
-        </div>
-        <h3 className="text-xl font-semibold">Rendez-vous confirmé !</h3>
-        <div className="text-muted-foreground space-y-1">
-          <p>Avec <span className="font-medium text-foreground">{doctorName}</span></p>
-          <p>{date?.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} à {time}</p>
-          <p className="text-sm">{mode === 'video' ? '📹 Consultation vidéo' : '🏥 En clinique'}</p>
-        </div>
-        <p className="text-xs text-muted-foreground mt-4">
-          Un SMS de confirmation sera envoyé. Vous pouvez annuler jusqu'à 2h avant.
-        </p>
-      </div>
-    );
-  }
+  if (receipt) return (
+    <div role="status" className="text-center py-8 space-y-4">
+      <PatientSignIn onSessionChange={onSessionChange} />
+      <CheckCircle2 className="h-8 w-8 text-primary mx-auto" />
+      <h3 className="text-xl font-semibold">Demande enregistrée</h3>
+      <p>Avec {receipt.doctorName}, le {new Date(receipt.startAt).toLocaleString('fr-FR', { timeZone: 'Africa/Dakar' })} (Sénégal), en clinique.</p>
+      <p className="font-medium">En attente de confirmation par le médecin.</p>
+      <p className="text-sm break-all">Référence : {receipt.id}</p>
+      <p className="text-sm text-muted-foreground">Conservez cette référence et contactez la clinique pour suivre votre demande.</p>
+      {patientId && <PatientAppointments key={patientId} doctors={doctors} />}
+      <Button type="button" variant="outline" onClick={() => {
+        setReceipt(null); setDate(undefined); setTime(''); setMotif(''); request.current = undefined;
+      }}>Nouvelle demande</Button>
+    </div>
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Étape 1 : Médecin */}
+      <PatientSignIn onSessionChange={onSessionChange} />
+      {patientId && <PatientAppointments key={patientId} doctors={doctors} />}
+      {errors.session && <p role="alert" className="text-sm text-destructive">{errors.session}</p>}
       <div className="space-y-2">
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <User className="h-4 w-4 text-primary" />
-          Médecin
-        </label>
-        <Select value={selectedDoctor} onValueChange={onSelectDoctor}>
-          <SelectTrigger className={errors.doctor ? 'border-destructive' : ''}>
-            <SelectValue placeholder="Choisissez un médecin" />
-          </SelectTrigger>
-          <SelectContent>
-            {doctors.map((d) => (
-              <SelectItem key={d.id} value={d.id}>
-                <span className="flex items-center gap-2">
-                  {d.name} — <span className="text-muted-foreground">{d.specialty}</span>
-                  {d.location && <span className="text-xs text-muted-foreground">({d.location})</span>}
-                </span>
-              </SelectItem>
-            ))}
-          </SelectContent>
+        <label htmlFor="appointment-doctor" className="text-sm font-medium">Médecin</label>
+        <Select value={selectedDoctor} onValueChange={id => { onSelectDoctor(id); setDate(undefined); setTime(''); }}>
+          <SelectTrigger id="appointment-doctor"><SelectValue placeholder="Choisissez un médecin" /></SelectTrigger>
+          <SelectContent>{doctors.map(d => <SelectItem key={d.id} value={d.id}>{d.name} — {d.specialty}</SelectItem>)}</SelectContent>
         </Select>
         {errors.doctor && <p className="text-xs text-destructive">{errors.doctor}</p>}
       </div>
-
-      {/* Étape 2 : Date */}
       <div className="space-y-2">
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <CalendarDays className="h-4 w-4 text-primary" />
-          Date
-        </label>
-        <DatePicker date={date} onChange={setDate} />
-        {date && (
-          <p className="text-sm text-muted-foreground">
-            📅 {date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-          </p>
-        )}
+        <p className="text-sm font-medium">Date</p>
+        <DatePicker date={date} onChange={value => { setDate(value); setTime(''); }} disabledDates={disabledDate} />
         {errors.date && <p className="text-xs text-destructive">{errors.date}</p>}
       </div>
-
-      {/* Étape 3 : Heure */}
-      {date && (
-        <div className="space-y-2">
-          <label className="flex items-center gap-2 text-sm font-medium">
-            <Clock className="h-4 w-4 text-primary" />
-            Horaire
-          </label>
-          <TimePicker value={time} onChange={setTime} />
-          {errors.time && <p className="text-xs text-destructive">{errors.time}</p>}
-        </div>
-      )}
-
-      {/* Étape 4 : Motif */}
+      {date && <div className="space-y-2">
+        <p className="text-sm font-medium">Horaire (heure du Sénégal)</p>
+        <TimePicker value={time} onChange={setTime} />
+        {errors.time && <p className="text-xs text-destructive">{errors.time}</p>}
+      </div>}
       <div className="space-y-2">
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <FileText className="h-4 w-4 text-primary" />
-          Motif de consultation
-        </label>
-        <Textarea
-          value={motif}
-          onChange={(e) => setMotif(e.target.value)}
-          placeholder="Décrivez brièvement la raison de votre consultation..."
-          className={`min-h-[80px] resize-none ${errors.motif ? 'border-destructive' : ''}`}
-        />
+        <label htmlFor="appointment-phone" className="text-sm font-medium">Téléphone de contact</label>
+        <Input id="appointment-phone" type="tel" autoComplete="tel" maxLength={30} value={phone}
+          onChange={event => setPhone(event.target.value)} placeholder="+221…" required />
+        {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
+      </div>
+      <div className="space-y-2">
+        <label htmlFor="appointment-motif" className="text-sm font-medium">Motif de consultation</label>
+        <Textarea id="appointment-motif" maxLength={1000} value={motif} required
+          onChange={event => setMotif(event.target.value)} placeholder="Motif de votre consultation" />
         {errors.motif && <p className="text-xs text-destructive">{errors.motif}</p>}
       </div>
-
-      {/* Étape 5 : Mode */}
-      <div className="space-y-3">
-        <label className="text-sm font-medium">Type de consultation</label>
-        <RadioGroup
-          value={mode}
-          onValueChange={(v) => setMode(v as 'clinic' | 'video')}
-          className="grid grid-cols-2 gap-3"
-        >
-          <label
-            htmlFor="clinic"
-            className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              mode === 'clinic'
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:border-primary/30'
-            }`}
-          >
-            <RadioGroupItem value="clinic" id="clinic" />
-            <div>
-              <div className="flex items-center gap-2 font-medium">
-                <Stethoscope className="h-4 w-4" />
-                En clinique
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">Consultation sur place</p>
-            </div>
-          </label>
-          <label
-            htmlFor="video"
-            className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-              mode === 'video'
-                ? 'border-primary bg-primary/5'
-                : 'border-border hover:border-primary/30'
-            }`}
-          >
-            <RadioGroupItem value="video" id="video" />
-            <div>
-              <div className="flex items-center gap-2 font-medium">
-                <Video className="h-4 w-4" />
-                En vidéo
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">Depuis chez vous</p>
-            </div>
-          </label>
-        </RadioGroup>
-      </div>
-
-      {/* Submit */}
-      <Button
-        type="submit"
-        disabled={submitting}
-        className="w-full py-3 text-base font-semibold"
-        size="lg"
-      >
-        {submitting ? (
-          <>
-            <Loader2 className="animate-spin mr-2 h-4 w-4" />
-            Réservation en cours...
-          </>
-        ) : (
-          'Confirmer le rendez-vous'
-        )}
+      <p className="text-sm text-muted-foreground">Consultation en clinique. Les consultations vidéo ne sont pas encore disponibles.</p>
+      <Button type="submit" disabled={submitting || !patientId} className="w-full" size="lg">
+        {submitting ? <><Loader2 className="animate-spin mr-2 h-4 w-4" />Enregistrement…</> : 'Envoyer la demande de rendez-vous'}
       </Button>
-
-      <p className="text-xs text-center text-muted-foreground">
-        En confirmant, vous acceptez nos conditions d'utilisation. Annulation gratuite jusqu'à 2h avant.
-      </p>
+      <p className="text-xs text-center text-muted-foreground">La demande sera enregistrée ; le rendez-vous reste à confirmer par le médecin.</p>
     </form>
   );
 }

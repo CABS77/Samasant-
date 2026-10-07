@@ -9,14 +9,13 @@
 
 import {ai} from '@/ai/ai-instance';
 import {z} from 'genkit';
-import {getNearbyClinics} from '@/services/mapbox';
-import {sendSms} from '@/services/sms';
+import {notifyEmergencyClinics, type EmergencyNotifications} from '@/services/emergency-notifications';
 
 const PrioritizeEmergencyAndAlertInputSchema = z.object({
-  symptoms: z.string().describe('The symptoms reported by the user.'),
-  phoneNumber: z.string().describe('The phone number of the user.'),
-  latitude: z.number().describe('The latitude of the user.'),
-  longitude: z.number().describe('The longitude of the user.'),
+  symptoms: z.string().trim().min(1).max(2000),
+  phoneNumber: z.string().trim().regex(/^\+[1-9]\d{7,14}$/),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
 });
 export type PrioritizeEmergencyAndAlertInput = z.infer<typeof PrioritizeEmergencyAndAlertInputSchema>;
 
@@ -24,6 +23,9 @@ const PrioritizeEmergencyAndAlertOutputSchema = z.object({
   isEmergency: z.boolean().describe('Whether the case is an emergency.'),
   reason: z.string().describe('The reason for the emergency determination.'),
   clinicsAlerted: z.array(z.string()).describe('The names of the clinics that were alerted.'),
+  clinicsPending: z.array(z.string()),
+  notificationsFailed: z.number().int().nonnegative(),
+  notificationStatus: z.enum(['not-needed', 'unavailable', 'failed', 'pending', 'delivered', 'partial']),
 });
 export type PrioritizeEmergencyAndAlertOutput = z.infer<typeof PrioritizeEmergencyAndAlertOutputSchema>;
 
@@ -72,30 +74,21 @@ async input => {
       throw new Error("AI failed to determine emergency status. Output was empty.");
     }
 
-    const nearbyClinics = await getNearbyClinics({latitude, longitude});
-    const clinicsAlerted: string[] = [];
+    let notifications: EmergencyNotifications = {
+      clinicsAlerted: [], clinicsPending: [], notificationsFailed: 0, notificationStatus: 'not-needed',
+    };
 
     if (emergencyOutput.isEmergency) {
-      const message = `Emergency alert: Possible malaria case reported near you. Symptoms: ${symptoms}. Contact: ${phoneNumber}.`;
-      for (const clinic of nearbyClinics) {
-        try {
-            await sendSms(clinic.phoneNumber, message);
-            clinicsAlerted.push(clinic.name);
-        } catch (smsError: any) {
-            console.error(`Failed to send SMS to ${clinic.name}: ${smsError.message}`);
-            // Optionally, decide if this should stop the whole process or just log and continue
-            // For now, it logs and continues.
-        }
-      }
+      const message = `SamaSanté : demande d'assistance urgente. Symptômes rapportés : ${symptoms}. Contact : ${phoneNumber}.`;
+      notifications = await notifyEmergencyClinics({latitude, longitude}, message);
     }
 
     return {
       isEmergency: emergencyOutput.isEmergency,
       reason: emergencyOutput.reason,
-      clinicsAlerted: clinicsAlerted,
+      ...notifications,
     };
-  } catch (error: any) {
-    console.error(`Error in prioritizeEmergencyAndAlertFlow: ${error.message}`, error.stack);
-    throw new Error(`Failed to process emergency alert: ${error.message}`);
+  } catch {
+    throw new Error("Impossible de traiter l'alerte. Appelez le 1515 en cas d'urgence.");
   }
 });
