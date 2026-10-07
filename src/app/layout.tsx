@@ -33,7 +33,7 @@ const openSans = Open_Sans({
 
 const APP_NAME = "SamaSanté AI";
 const APP_DESCRIPTION = "Votre assistant santé IA au Sénégal. Obtenez des évaluations de santé, découvrez des remèdes traditionnels et des conseils en Franco-Wolof. SamaSanté AI, pour une santé accessible à tous.";
-const APP_URL = "https://samasante.ai"; // Remplacez par votre URL de production
+const APP_URL = "https://www.samasante.tech";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),

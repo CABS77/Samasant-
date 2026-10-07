@@ -67,7 +67,7 @@ export default function LandingPage() {
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
                 <a
-                  href="mailto:contact@samasante.com"
+                  href="mailto:cheikh@samasante.tech"
                   className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white px-7 py-3.5 rounded-xl hover:bg-white/15 transition-all duration-300"
                 >
                   Nous contacter
@@ -295,7 +295,7 @@ export default function LandingPage() {
                   role: 'Fondateur',
                   desc: 'Direction produit & partenariats médicaux',
                   img: '/assets/cheikh-sall.jpeg',
-                  linkedin: 'https://www.linkedin.com/in/ahmed-sall/',
+                  linkedin: 'https://www.linkedin.com/in/cheikh-sall/',
                 },
                 {
                   name: 'Salif Jordan Marigo',
@@ -389,7 +389,7 @@ export default function LandingPage() {
                 <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
               <a
-                href="mailto:contact@samasante.com"
+                href="mailto:cheikh@samasante.tech"
                 className="text-white/80 hover:text-white underline underline-offset-4 text-sm transition-colors"
               >
                 Parler à l'équipe
@@ -412,7 +412,7 @@ export default function LandingPage() {
               <div className="flex items-center gap-6 text-sm text-muted-foreground">
                 <a href="#" className="hover:text-foreground transition-colors">CGU</a>
                 <a href="#" className="hover:text-foreground transition-colors">Confidentialité</a>
-                <a href="mailto:contact@samasante.com" className="hover:text-foreground transition-colors">Contact</a>
+                <a href="mailto:cheikh@samasante.tech" className="hover:text-foreground transition-colors">Contact</a>
               </div>
 
               <div className="flex items-center gap-1">
