@@ -10,6 +10,19 @@ import { hasReachedLimit, incrementDailyCount } from "@/lib/requestLimit";
 import { useTranslation } from 'react-i18next';
 import { Mic, MicOff, Volume2, VolumeX, Loader2, Info, Share2 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { confirmAdult, hasConfirmedAdult } from "@/lib/ageConfirmation";
+
+type AssessmentLanguage = 'french' | 'wolof' | 'franco-wolof';
 
 interface AIChatSectionProps {}
 
@@ -32,13 +45,35 @@ export function AIChatSection({}: AIChatSectionProps) {
   // unnecessary API calls when switching languages without changing the text
   const [lastSubmittedMessage, setLastSubmittedMessage] = useState("");
   const [cachedResponses, setCachedResponses] = useState<Record<string, ChatOutput>>({});
+  // Confirmation d'âge (18 ans ou plus) demandée avant le premier pré-diagnostic
+  const [adultConfirmed, setAdultConfirmed] = useState(false);
+  const [pendingLanguage, setPendingLanguage] = useState<AssessmentLanguage | null>(null);
 
+  useEffect(() => {
+    setAdultConfirmed(hasConfirmedAdult());
+  }, []);
 
+  const handleConfirmAdult = () => {
+    confirmAdult();
+    setAdultConfirmed(true);
+    const language = pendingLanguage;
+    setPendingLanguage(null);
+    if (language) void handleChatSubmit(language, undefined, true);
+  };
 
+  const handleDeclineAdult = () => {
+    setPendingLanguage(null);
+    toast({
+      variant: "destructive",
+      title: t("ageGate_declined_title"),
+      description: t("ageGate_declined_description"),
+    });
+  };
 
   const handleChatSubmit = async (
-    language: 'french' | 'wolof' | 'franco-wolof',
-    message?: string
+    language: AssessmentLanguage,
+    message?: string,
+    justConfirmed = false
   ) => {
     const messageToSubmit = message || chatInput;
     if (!messageToSubmit.trim()) {
@@ -47,6 +82,12 @@ export function AIChatSection({}: AIChatSectionProps) {
         title: t("error_njuumte"),
         description: t("enterSymptoms_bindal_sa_malaaka"),
       });
+      return;
+    }
+
+    // Service réservé aux adultes : confirmation demandée avant le premier pré-diagnostic
+    if (!adultConfirmed && !justConfirmed) {
+      setPendingLanguage(language);
       return;
     }
 
@@ -93,6 +134,7 @@ export function AIChatSection({}: AIChatSectionProps) {
           message: messageToSubmit,
           language: language,
           deviceId: deviceId,
+          ageConfirmed: true,
         }),
       });
 
@@ -270,6 +312,30 @@ export function AIChatSection({}: AIChatSectionProps) {
 
   return (
     <div className="space-y-4">
+      {/* Confirmation d'âge */}
+      <AlertDialog
+        open={pendingLanguage !== null}
+        onOpenChange={(open) => {
+          if (!open && pendingLanguage !== null) setPendingLanguage(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("ageGate_title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("ageGate_description")}{" "}
+              <a href="/cgu" target="_blank" rel="noopener" className="underline underline-offset-2">
+                {t("ageGate_terms_link")}
+              </a>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDeclineAdult}>{t("ageGate_decline")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAdult}>{t("ageGate_confirm")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Input zone */}
       <div className="flex gap-2">
         <Textarea

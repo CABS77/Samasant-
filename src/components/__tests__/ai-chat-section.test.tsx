@@ -65,6 +65,9 @@ const createWrapper = () => {
 describe('AIChatSection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Âge déjà confirmé : ces tests portent sur le parcours après la confirmation
+    // (la confirmation elle-même est testée dans tests/ageGate.test.tsx)
+    localStorage.setItem('samasante.ageConfirmed.v1', 'true');
   });
 
   it('should render the component with all elements', () => {
