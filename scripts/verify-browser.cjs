@@ -94,4 +94,14 @@ async function main() {
     if(process.env.BROWSER_TEST_REPORT) writeFileSync(process.env.BROWSER_TEST_REPORT,JSON.stringify({checks:results.length,results},null,2)+'\n');
   } finally { if(browser) await browser.close(); server.kill('SIGTERM'); rmSync(dir,{recursive:true,force:true}); }
 }
-main().catch(error=>{ console.error(error.message); if(logs.includes('Error')) console.error(logs.slice(-1500)); process.exitCode=1; });
+main().catch(error=>{
+  const message = `Browser check ${results.length + 1} failed: ${error.message}`;
+  console.error(message);
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    const annotation = message.slice(0,6000).replace(/%/g,'%25').replace(/\r/g,'%0D').replace(/\n/g,'%0A');
+    console.error(`::error title=Browser verification failed::${annotation}`);
+  }
+  if(process.env.BROWSER_TEST_REPORT) writeFileSync(process.env.BROWSER_TEST_REPORT,JSON.stringify({checks:results.length,results,error:message},null,2)+'\n');
+  if(logs.includes('Error')) console.error(logs.slice(-1500));
+  process.exitCode=1;
+});
