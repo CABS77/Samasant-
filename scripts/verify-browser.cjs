@@ -152,6 +152,8 @@ async function main() {
     await page.getByRole('button',{name:'Sélectionner',exact:true}).click();
     assert.equal(await page.getByRole('button',{name:'Praticien sélectionné'}).getAttribute('aria-pressed'),'true');
     assert.equal(await page.locator('#appointment-doctor').innerText(),'Dr Fixture — Généraliste');
+    // Selection schedules focus on the next animation frame; wait for that state.
+    await page.waitForFunction(()=>document.activeElement?.id==='booking-form-heading');
     assert.equal(await page.evaluate(()=>document.activeElement.id),'booking-form-heading');
     await context.unroute(`${base}/api/doctors`,directoryRoute);
     pass('Directory filters reset and selecting a practitioner moves focus to the request form');
