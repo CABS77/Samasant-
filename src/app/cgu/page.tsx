@@ -53,8 +53,8 @@ const sections: { title: string; body: string[] }[] = [
 
 export default function CguPage() {
   return (
-    <main id="main-content" tabIndex={-1} className="min-h-screen bg-background">
-      <div className="container mx-auto max-w-3xl px-4 py-12">
+    <main id="main-content" tabIndex={-1} className="legal-content min-h-screen bg-background">
+      <div className="container mx-auto max-w-3xl px-4">
         <Link href="/" className="text-sm text-muted-foreground hover:text-foreground">
           ← Retour à l&apos;accueil
         </Link>

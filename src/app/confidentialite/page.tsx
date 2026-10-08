@@ -3,7 +3,8 @@ import Link from 'next/link';
 
 export const metadata: Metadata = { title: 'Confidentialité', alternates: { canonical: '/confidentialite' }, openGraph: { url: '/confidentialite' } };
 export default function PrivacyPage() {
-  return <main id="main-content" tabIndex={-1} className="mx-auto max-w-3xl space-y-6 px-4 py-12">
+  return <main id="main-content" tabIndex={-1} className="legal-content mx-auto max-w-3xl space-y-6 px-4">
+    <Link href="/" className="inline-flex min-h-11 items-center text-sm text-primary">← Retour à l’accueil</Link>
     <h1 className="text-3xl font-bold">Vos données et leur utilisation</h1>
     <p className="text-sm text-muted-foreground">Notice de cette version — 7 octobre 2026</p>
     <section className="space-y-2"><h2 className="text-xl font-semibold">Conversation et intelligence artificielle</h2>

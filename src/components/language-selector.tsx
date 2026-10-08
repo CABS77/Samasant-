@@ -12,7 +12,7 @@ export function LanguageSelector() {
   return <label className="text-sm">
     <span className="sr-only">{t('choose_language')}</span>
     <select aria-label={t('choose_language')} value={i18n.language === 'wo' ? 'wo' : 'fr'}
-      className="min-h-11 max-w-28 rounded-lg border bg-background px-2 text-foreground"
+      className="min-h-11 max-w-28 rounded-full border border-border/70 bg-transparent px-3 text-xs text-foreground"
       onChange={event => { localStorage.setItem('samasante.language', event.target.value); void i18n.changeLanguage(event.target.value); }}>
       <option value="fr">Français</option><option value="wo">Wolof</option>
     </select>

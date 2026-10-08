@@ -8,7 +8,7 @@ import {Textarea} from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { hasReachedLimit, incrementDailyCount } from "@/lib/requestLimit";
 import { useTranslation } from 'react-i18next';
-import { Mic, MicOff, Volume2, VolumeX, Loader2, Info, Share2 } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, Loader2, Info, Share2, ArrowUpRight, ShieldCheck, Languages } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
@@ -321,7 +321,7 @@ export function AIChatSection() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Confirmation d'âge */}
       <AlertDialog
         open={pendingLanguage !== null}
@@ -346,24 +346,47 @@ export function AIChatSection() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <p className="text-sm text-muted-foreground"><a href="/confidentialite" className="underline">{t('privacy')}</a> — {t('voice_notice')}</p>
-      <label htmlFor="chat-message" className="text-sm font-medium">{t('symptom_input_label')}</label>
+      {!chatOutput && !loading && <div className="rounded-2xl bg-secondary/50 px-5 py-6"><p className="text-base font-medium">{t('design_chat_welcome')}</p><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t('design_chat_welcome_text')}</p></div>}
+      <label htmlFor="chat-message" className="block text-sm font-medium">{t('symptom_input_label')}</label>
       {/* Input zone */}
-      <div className="flex gap-2">
+      <div className="chat-composer">
         <Textarea
           id="chat-message"
           maxLength={1000}
           placeholder={t("typeOrSpeakWolof_maangi")}
           value={chatInput}
           onChange={(e) => setChatInput(e.target.value)}
-          className="flex-grow min-h-[90px] resize-none"
-          rows={3}
+          className="resize-none"
+          rows={5}
         />
+        <div className="flex items-center justify-between gap-3 border-t border-border/60 px-4 py-2"><span className="text-xs text-muted-foreground">{t('design_chat_input_hint')}</span><span className="shrink-0 text-xs text-muted-foreground" aria-live="off">{chatInput.length}/1000</span></div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Button onClick={() => handleChatSubmit('french')} disabled={loading || isRecording} className="h-auto min-h-12 whitespace-normal">
+          {loading ? <Loader2 aria-hidden="true" className="animate-spin" /> : <ArrowUpRight aria-hidden="true" />}
+          {loading ? t('loading_yeggeul') : t('answerInFrench_button')}
+        </Button>
+        <Button onClick={() => handleChatSubmit('wolof')} disabled={loading || isRecording} variant="outline" className="h-auto min-h-12 whitespace-normal">
+          {loading ? <Loader2 aria-hidden="true" className="animate-spin" /> : <Languages aria-hidden="true" />}
+          {loading ? t('loading_yeggeul') : t('answerInWolof_button')}
+        </Button>
+      </div>
+
+      <details className="rounded-xl border px-4 py-1">
+        <summary className="min-h-11 cursor-pointer py-3 text-xs font-medium">{t('design_voice_options')}</summary>
+        <p className="mb-3 text-xs leading-relaxed text-muted-foreground">{t('voice_notice')}</p>
+        <div className="flex flex-wrap items-center gap-3 pb-3 text-sm">
+          <label htmlFor="voice-language">{t('voice_language')}</label>
+          <select id="voice-language" value={voiceLanguage} onChange={event => setVoiceLanguage(event.target.value)} className="min-h-11 rounded-lg border bg-background px-3">
+            <option value="fr">Français</option><option value="wo">Wolof</option>
+          </select>
+          <label className="flex items-start gap-2 text-xs leading-relaxed"><input type="checkbox" checked={voiceConsent} onChange={event => setVoiceConsent(event.target.checked)} />{t('voice_consent')}</label>
         <Button
           onClick={toggleRecording}
           variant="outline"
           size="icon"
-          className={`h-11 w-11 shrink-0 self-end ${isRecording ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground animate-pulse border-destructive' : ''}`}
+          className={`h-11 w-11 shrink-0 ${isRecording ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground animate-pulse border-destructive' : ''}`}
           aria-pressed={isRecording}
           aria-label={isRecording ? t("stopRecording_taxawal") : t("startRecording_door")}
           title={isRecording ? t("stopRecording_taxawal") : t("startRecording_door")}
@@ -371,39 +394,13 @@ export function AIChatSection() {
         >
           {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
         </Button>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3 text-sm">
-        <label htmlFor="voice-language">{t('voice_language')}</label>
-        <select id="voice-language" value={voiceLanguage} onChange={event => setVoiceLanguage(event.target.value)} className="min-h-11 rounded border bg-background px-2">
-          <option value="fr">Français</option><option value="wo">Wolof</option>
-        </select>
-        <label className="flex items-center gap-2"><input type="checkbox" checked={voiceConsent} onChange={event => setVoiceConsent(event.target.checked)} />{t('voice_consent')}</label>
-      </div>
-      {/* Language buttons */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          onClick={() => handleChatSubmit('french')}
-          disabled={loading || isRecording}
-          className="flex-1"
-        >
-          {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
-          {loading ? t("loading_yeggeul") : t("answerInFrench_button")}
-        </Button>
-        <Button
-          onClick={() => handleChatSubmit('wolof')}
-          disabled={loading || isRecording}
-          variant="outline"
-          className="flex-1"
-        >
-          {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
-          {loading ? t("loading_yeggeul") : t("answerInWolof_button")}
-        </Button>
-      </div>
+        </div>
+      </details>
+      <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"><ShieldCheck aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><span>{t('design_chat_privacy')} <a href="/confidentialite" className="underline underline-offset-2">{t('privacy')}</a></span></p>
 
       {/* Loading state */}
       {loading && !chatOutput && (
-        <div className="py-8 space-y-4">
+        <div role="status" aria-live="polite" className="py-8 space-y-4">
           <div className="flex items-center justify-center gap-2">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
             <span className="text-sm text-primary font-medium">{t("aiThinking_reflechit")}</span>
@@ -418,7 +415,7 @@ export function AIChatSection() {
 
       {/* Results */}
       {chatOutput && (
-        <div className="space-y-4">
+        <div aria-live="polite" className="space-y-4 border-t pt-6">
           <Button variant="outline" onClick={() => {
             setChatInput(''); setChatOutput(null); setCachedResponses({}); setLastSubmittedMessage('');
             synthRef.current?.cancel(); recognitionRef.current?.abort(); setIsSpeaking(false); setIsRecording(false);

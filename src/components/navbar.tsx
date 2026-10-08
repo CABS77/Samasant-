@@ -1,122 +1,44 @@
-"use client";
+'use client';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useState } from 'react';
-import { LanguageSelector } from '@/components/language-selector';
-import { Menu, X, Home, MessageCircle, CalendarDays } from 'lucide-react';
+import { Menu, X, Home, MessageCircle, CalendarDays, ArrowUpRight } from 'lucide-react';
+import { ThemeToggle } from './theme-toggle';
+import { LanguageSelector } from './language-selector';
+import { Brand } from './brand';
 
 export function Navbar() {
   const { t } = useTranslation();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-
+  useEffect(() => setMobileOpen(false), [pathname]);
+  useEffect(() => {
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setMobileOpen(false); };
+    document.addEventListener('keydown', close);
+    return () => document.removeEventListener('keydown', close);
+  }, []);
   const links = [
     { href: '/', label: t('nav_home'), icon: Home },
-    { href: '/app', label: t('nav_app'), icon: MessageCircle },
+    { href: '/app', label: t('design_nav_assistant'), icon: MessageCircle },
     { href: '/appointments', label: t('nav_appointments'), icon: CalendarDays },
   ];
-
-  const isActive = (href: string) =>
-    href === '/' ? pathname === '/' : pathname.startsWith(href);
-
-  return (
-    <>
-      {/* Desktop navbar */}
-      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/70 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto flex items-center justify-between px-4 h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <span className="flex items-center justify-center h-9 w-9 rounded-xl bg-primary text-primary-foreground font-poppins-bold text-sm shadow-md shadow-primary/20 group-hover:shadow-lg group-hover:shadow-primary/30 transition-shadow">
-              SS
-            </span>
-            <span className="font-poppins-bold text-lg tracking-tight hidden sm:inline">
-              {t('appName_sama')}
-            </span>
-          </Link>
-
-          {/* Desktop Nav */}
-          <nav aria-label={t('nav_label')} className="hidden md:flex items-center gap-1">
-            {links.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                aria-current={isActive(href) ? 'page' : undefined}
-                href={href}
-                className={`relative flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive(href)
-                    ? 'text-primary bg-primary/10'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-                {isActive(href) && (
-                  <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-primary" />
-                )}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Right side */}
-          <div className="flex items-center gap-2">
-            <LanguageSelector /><ThemeToggle />
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden flex items-center justify-center h-9 w-9 rounded-lg hover:bg-muted/50 transition-colors"
-              aria-expanded={mobileOpen}
-              aria-controls="mobile-navigation"
-              aria-label={mobileOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-            >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
+  const active = (href: string) => href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+  return <>
+    <header className="site-header">
+      <div className="site-container flex h-20 items-center justify-between gap-3">
+        <Link href="/" aria-label="SamaSanté — Accueil" className="shrink-0"><Brand className="max-[380px]:gap-1.5 [&>span:last-child]:max-[380px]:text-lg" /></Link>
+        <nav aria-label={t('nav_label')} className="hidden items-center gap-7 lg:flex">
+          {links.map(({ href, label }) => <Link key={href} href={href} aria-current={active(href) ? 'page' : undefined} className={`nav-link ${active(href) ? 'nav-link-active' : ''}`}>{label}</Link>)}
+        </nav>
+        <div className="flex items-center gap-1.5 sm:gap-2"><LanguageSelector /><ThemeToggle />
+          <Link href="/app#chat" className="action-link action-primary ml-2 hidden !min-h-11 !px-4 !text-xs xl:inline-flex">{t('design_nav_start')}<ArrowUpRight aria-hidden="true" className="h-4 w-4" /></Link>
+          <button type="button" onClick={() => setMobileOpen(!mobileOpen)} aria-expanded={mobileOpen} aria-controls="mobile-navigation" aria-label={t(mobileOpen ? 'design_menu_close' : 'design_menu_open')} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-muted lg:hidden">{mobileOpen ? <X aria-hidden="true" className="h-5 w-5" /> : <Menu aria-hidden="true" className="h-5 w-5" />}</button>
         </div>
-
-        {/* Mobile dropdown */}
-        {mobileOpen && (
-          <div id="mobile-navigation" className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl">
-            <nav className="container mx-auto px-4 py-3 flex flex-col gap-1">
-              {links.map(({ href, label, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                    isActive(href)
-                      ? 'text-primary bg-primary/10'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </Link>
-              ))}
-            </nav>
-          </div>
-        )}
-      </header>
-
-      {/* Mobile bottom tab bar */}
-      <nav aria-label={t('nav_mobile_label')} className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50 safe-area-bottom">
-        <div className="flex items-center justify-around h-16 px-2">
-          {links.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg min-w-[64px] transition-colors ${
-                isActive(href)
-                  ? 'text-primary'
-                  : 'text-muted-foreground'
-              }`}
-            >
-              <Icon className={`h-5 w-5 ${isActive(href) ? 'text-primary' : ''}`} />
-              <span className="text-[10px] font-medium leading-tight">{label}</span>
-            </Link>
-          ))}
-        </div>
-      </nav>
-    </>
-  );
+      </div>
+      {mobileOpen && <nav id="mobile-navigation" aria-label={t('nav_label')} className="site-container grid gap-1 border-t py-3 lg:hidden">{links.map(({ href, label, icon: Icon }) => <Link key={href} href={href} onClick={() => setMobileOpen(false)} aria-current={active(href) ? 'page' : undefined} className={`flex min-h-12 items-center gap-3 rounded-xl px-4 text-sm ${active(href) ? 'bg-primary/10 font-semibold text-primary' : 'text-muted-foreground'}`}><Icon aria-hidden="true" className="h-4 w-4" />{label}</Link>)}</nav>}
+    </header>
+    <nav aria-label={t('nav_mobile_label')} className="mobile-tab-bar safe-area-bottom md:hidden"><div className="flex h-16 items-center justify-around">{links.map(({ href, label, icon: Icon }) => <Link key={href} href={href} aria-current={active(href) ? 'page' : undefined} className={`flex min-h-12 min-w-20 flex-col items-center justify-center gap-1 rounded-xl px-3 text-[11px] ${active(href) ? 'font-semibold text-primary' : 'text-muted-foreground'}`}><Icon aria-hidden="true" className="h-5 w-5" strokeWidth={active(href) ? 2.2 : 1.7} />{label}</Link>)}</div></nav>
+  </>;
 }

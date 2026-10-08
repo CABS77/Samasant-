@@ -224,14 +224,15 @@ export default function AdminPage() {
   // Login
   if (!authenticated) {
     return (
-      <main id="main-content" tabIndex={-1} className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-sm bg-card rounded-2xl border border-border/50 p-8 shadow-lg">
+      <main id="main-content" tabIndex={-1} className="site-container grid items-center gap-8 py-12 md:min-h-[65vh] md:grid-cols-2 md:gap-16">
+        <div className="max-w-md"><p className="eyebrow">Espace professionnel</p><h1 className="section-heading mt-4">L’administration<br />SamaSanté.</h1><p className="mt-5 text-sm leading-relaxed text-muted-foreground">Retrouvez les demandes, le suivi des notifications et votre annuaire dans un espace réservé aux opérateurs autorisés.</p><p className="mt-4 flex items-center gap-2 text-xs text-primary"><Lock aria-hidden="true" className="h-4 w-4" />Compte individuel et double authentification</p></div>
+        <div className="w-full max-w-md rounded-3xl border bg-card p-6 md:p-8">
           <div className="text-center mb-8">
             <div className="mx-auto w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
               <Lock className="h-7 w-7 text-primary" />
             </div>
-            <h1 className="text-2xl font-bold">Administration</h1>
-            <p className="text-muted-foreground text-sm mt-1">SamaSanté AI</p>
+            <h2 className="text-xl font-semibold">Accéder à votre espace</h2>
+            <p className="text-muted-foreground text-xs mt-2">SamaSanté AI</p>
           </div>
           {authMode === 'mfa' ? <AdminSignIn onAuthenticated={() => setAuthenticated(true)} /> : <form onSubmit={handleLogin} className="space-y-4">
             <Input aria-label="Mot de passe de développement local" type="password" placeholder="Mot de passe" value={password} onChange={(e) => setPassword(e.target.value)} className={authError ? 'border-destructive' : ''} autoFocus />
@@ -249,24 +250,22 @@ export default function AdminPage() {
   return (
     <main id="main-content" tabIndex={-1} className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-premium text-white">
-        <div className="container mx-auto px-4 py-10 md:py-14">
-          <div className="flex items-center justify-between">
+      <div className="site-container page-heading">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
                 <Settings className="h-7 w-7" />
                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Gestion des médecins</h1>
               </div>
-              <p className="text-white/70 mt-2">Gérez l&apos;annuaire SamaSanté.</p>
+              <p className="text-muted-foreground text-sm mt-3">Gérez l&apos;annuaire SamaSanté.</p>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white">
+            <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />Déconnexion
             </Button>
           </div>
-        </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl -mt-4 space-y-6">
+      <div className="site-container space-y-6 pb-12">
         <AdminAppointments doctors={doctors} />
         <AdminNotifications />
         <AdminAuditLog />

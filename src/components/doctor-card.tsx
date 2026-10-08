@@ -1,82 +1,20 @@
-import React from 'react'
-import { Icons } from './icons'
-import type { Doctor } from '@/types/doctor'
-import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
-import { MapPin, Calendar } from 'lucide-react'
+'use client';
 
-interface Props {
-  doctor: Doctor
-  onSelect?: (id: string) => void
-}
+import type { Doctor } from '@/types/doctor';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { MapPin, CalendarDays, ArrowUpRight, Check } from 'lucide-react';
 
-export default function DoctorCard({ doctor, onSelect }: Props) {
-  const { t } = useTranslation()
-
-  const iconMap: Record<string, JSX.Element> = {
-    Cardiologie: <Icons.heartPulse className="w-4 h-4" />,
-    Dermatologie: <Icons.syringe className="w-4 h-4" />,
-    Pédiatrie: <Icons.baby className="w-4 h-4" />,
-    Gynécologie: <Icons.venus className="w-4 h-4" />,
-    Généraliste: <Icons.stethoscope className="w-4 h-4" />,
-  }
-
-
-  return (
-    <div className="flex flex-col bg-card rounded-2xl border border-border/50 hover:border-primary/30 hover:shadow-md transition-all duration-200 overflow-hidden h-full">
-      {/* Header with specialty color */}
-      <div className="px-5 pt-5 pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2 text-xs font-medium text-primary bg-primary/10 rounded-lg px-2.5 py-1">
-            {iconMap[doctor.specialty] ?? <Icons.stethoscope className="w-3.5 h-3.5" />}
-            {doctor.specialty}
-          </div>
-
-        </div>
-
-        <h4 className="text-base font-semibold mt-3">{doctor.name}</h4>
-
-        {doctor.location && (
-          <p className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-            <MapPin className="h-3 w-3" />
-            {doctor.location}
-          </p>
-        )}
-
-        {doctor.bio && (
-          <p className="text-sm text-muted-foreground mt-2 line-clamp-2 leading-relaxed">
-            {doctor.bio}
-          </p>
-        )}
-      </div>
-
-      {/* Footer */}
-      <div className="mt-auto px-5 pb-5 pt-3 border-t border-border/30">
-        {doctor.available && doctor.available.length > 0 && (
-          <div className="flex items-center gap-1.5 mb-3">
-            <Calendar className="h-3 w-3 text-muted-foreground" />
-            <div className="flex gap-1 flex-wrap">
-              {doctor.available.map((day) => (
-                <span
-                  key={day}
-                  className="text-[10px] font-medium bg-muted rounded px-1.5 py-0.5"
-                >
-                  {day}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <Button
-          onClick={() => onSelect?.(doctor.id)}
-          variant="outline"
-          size="sm"
-          className="w-full"
-        >
-          {t('doctor_select_button')}
-        </Button>
-      </div>
+export default function DoctorCard({ doctor, onSelect, selected = false }: { doctor: Doctor; onSelect?: (id: string) => void; selected?: boolean }) {
+  const { t } = useTranslation();
+  const initials = doctor.name.replace(/^dr\.?\s*/i, '').split(/\s+/).filter(Boolean).slice(0,2).map(part => part[0]).join('');
+  return <article className={`flex h-full flex-col rounded-2xl border bg-card p-5 transition-colors ${selected ? 'border-primary ring-1 ring-primary/20' : 'hover:border-primary/40'}`}>
+    <div className="flex items-center justify-between"><span aria-hidden="true" className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-sm font-semibold text-primary">{initials}</span><span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-medium text-primary">{doctor.specialty}</span></div>
+    <h3 className="mt-4 text-base font-semibold">{doctor.name}</h3>
+    {doctor.location && <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground"><MapPin aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />{doctor.location}</p>}
+    {doctor.bio && <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{doctor.bio}</p>}
+    <div className="mt-auto pt-5">{doctor.available.length > 0 && <div className="mb-4 flex items-center gap-2"><CalendarDays aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /><div className="flex flex-wrap gap-1">{doctor.available.map(day => <span key={day} className="rounded bg-muted px-1.5 py-1 text-[11px]">{day}</span>)}</div></div>}
+      <Button type="button" onClick={() => onSelect?.(doctor.id)} variant={selected ? 'default' : 'outline'} aria-pressed={selected} className="w-full text-xs">{selected ? t('design_doctor_selected') : t('doctor_select_button')}{selected ? <Check aria-hidden="true" /> : <ArrowUpRight aria-hidden="true" />}</Button>
     </div>
-  )
+  </article>;
 }

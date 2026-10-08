@@ -59,7 +59,7 @@ export function PatientSignIn({ onSessionChange, returnPath = '/appointments' }:
     finally { setBusy(false); }
   };
 
-  if (!configured) return <p role="status">{t('patient_unavailable')}</p>;
+  if (!configured) return <p role="status" className="status-notice">{t(returnPath === '/admin' ? 'design_admin_unavailable' : 'patient_unavailable')}</p>;
   if (connected) return (
     <div className="space-y-2 text-sm">
       <p>{t('patient_connected')}</p>
@@ -68,7 +68,9 @@ export function PatientSignIn({ onSessionChange, returnPath = '/appointments' }:
     </div>
   );
   return (
-    <div className="space-y-2 rounded-lg border p-4">
+    <div className="space-y-3 rounded-2xl border bg-secondary/30 p-4">
+      <p className="text-sm font-semibold">{t('design_patient_signin_title')}</p>
+      <p className="text-xs leading-relaxed text-muted-foreground">{t('design_patient_signin_text')}</p>
       <label htmlFor="patient-email" className="text-sm font-medium">{t('patient_email_label')}</label>
       <Input id="patient-email" type="email" autoComplete="email" value={email}
         onChange={event => setEmail(event.target.value)} placeholder="vous@exemple.com" />

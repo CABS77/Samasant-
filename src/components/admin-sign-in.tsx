@@ -49,12 +49,12 @@ export function AdminSignIn({ onAuthenticated }: { onAuthenticated: () => void }
   return <div className="space-y-4">
     <p className="text-sm">Compte individuel autorisé et double authentification requis.</p>
     <PatientSignIn onSessionChange={sessionChanged} returnPath="/admin" />
-    {userId && !factor && <Button disabled={busy} onClick={() => void enroll()}>Activer un authentificateur TOTP</Button>}
+    {userId && !factor && <Button className="h-auto min-h-11 w-full whitespace-normal" disabled={busy} onClick={() => void enroll()}>Activer un authentificateur TOTP</Button>}
     {secret && <p className="break-all text-sm">Ajoutez cette clé dans votre application d’authentification : <code>{secret}</code></p>}
     {factor && <div className="space-y-2">
       <label htmlFor="admin-totp" className="text-sm font-medium">Code de votre authentificateur</label>
       <Input id="admin-totp" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={event => setCode(event.target.value.replace(/\D/g, ''))} />
-      <Button disabled={busy || code.length !== 6} onClick={() => void verify()}>Vérifier et ouvrir l’administration</Button>
+      <Button className="h-auto min-h-11 w-full whitespace-normal" disabled={busy || code.length !== 6} onClick={() => void verify()}>Vérifier et ouvrir l’administration</Button>
     </div>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
   </div>;
