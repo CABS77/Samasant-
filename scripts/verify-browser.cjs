@@ -22,6 +22,17 @@ async function main() {
     assert.ok(ready,'Production test server did not start');
     browser = await chromium.launch({ headless:true, ...(process.env.CHROMIUM_PATH ? { executablePath:process.env.CHROMIUM_PATH } : {}), args:['--no-sandbox'] });
     const context = await browser.newContext(); const page = await context.newPage();
+    const rendered = async () => {
+      await page.locator('html[data-samasante-ready="true"]').waitFor();
+      await page.locator('main#main-content h1').waitFor({ state: 'visible' });
+      await page.evaluate(() => document.fonts.ready);
+    };
+    const visit = async path => {
+      const response = await page.goto(base + path, { waitUntil: 'domcontentloaded' });
+      assert.equal(response.status(), 200, `${path}: unexpected page response`);
+      await rendered();
+    };
+    const reload = async () => { await page.reload({ waitUntil: 'domcontentloaded' }); await rendered(); };
     await context.route('https://**',route=>route.abort()); // No provider, patient or real SMS contacted.
     const errors=[]; page.on('pageerror',error=>errors.push(error.message));
     for (const method of ['POST','PUT','DELETE']) {
@@ -38,9 +49,19 @@ async function main() {
     assert.equal((await context.request.get(`${base}/api/patient/data`)).status(),401);
     assert.equal((await context.request.get(`${base}/api/operations/maintenance`)).status(),401);
     pass('Patient records, operator queue and maintenance protected');
+    // Background image work must not hold the hydrated interface hostage.
+    const pendingImages = [];
+    const imagePattern = `${base}/_next/image?**`;
+    const holdImage = route => { pendingImages.push(route); };
+    await context.route(imagePattern, holdImage);
+    await visit('/');
+    assert.ok(pendingImages.length > 0, 'Slow-image fixture did not intercept a request');
+    await context.unroute(imagePattern, holdImage);
+    await Promise.all(pendingImages.map(route => route.continue()));
+    pass('Hydrated interface is ready while background images remain pending');
     for (const path of ['/','/app','/appointments','/admin','/confidentialite']) {
       for (const width of [320,360,390,768]) {
-        await page.setViewportSize({width,height:900}); await page.goto(base+path,{waitUntil:'networkidle'});
+        await page.setViewportSize({width,height:900}); await visit(path);
         assert.ok(await page.locator('main#main-content').count(),`${path}: missing main landmark`);
         const size=await page.evaluate(()=>({viewport:innerWidth,body:document.documentElement.scrollWidth}));
         assert.ok(size.body<=size.viewport+1,`${path} overflows at ${width}: ${size.body}`);
@@ -51,20 +72,20 @@ async function main() {
     for (const theme of ['light','dark']) {
       await page.evaluate(value=>localStorage.setItem('theme',value),theme);
       for (const path of ['/','/app','/appointments','/admin','/confidentialite']) {
-        await page.goto(base+path,{waitUntil:'networkidle'}); await page.evaluate(axe);
+        await visit(path); await page.evaluate(axe);
         const violations=await page.evaluate(async()=> (await window.axe.run(document,{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa']}})).violations.filter(item=>['serious','critical'].includes(item.impact)).map(item=>({id:item.id,nodes:item.nodes.map(node=>({target:node.target,summary:node.failureSummary}))})));
         assert.deepEqual(violations,[],`${path} ${theme}: ${JSON.stringify(violations)}`);
       }
     }
     pass('No serious or critical axe violations in five pages, light and dark');
-    await page.goto(base+'/app',{waitUntil:'networkidle'});
+    await visit('/app');
     await page.getByLabel('Langue de l’interface').selectOption('wo');
     await page.waitForFunction(()=>document.documentElement.lang==='wo');
     assert.equal(await page.locator('html').getAttribute('lang'),'wo');
-    await page.reload({waitUntil:'networkidle'}); assert.equal(await page.locator('html').getAttribute('lang'),'wo');
+    await reload(); assert.equal(await page.locator('html').getAttribute('lang'),'wo');
     pass('Wolof selection persists across navigation and reload');
     await page.getByLabel('Làkku jëfekaay bi').selectOption('fr');
-    await page.keyboard.press('Tab'); await page.goto(base+'/app',{waitUntil:'networkidle'});
+    await page.keyboard.press('Tab'); await visit('/app');
     await page.keyboard.press('Tab');
     await page.getByRole('link',{name:'Aller au contenu'}).focus(); await page.keyboard.press('Enter');
     assert.equal(await page.evaluate(()=>document.activeElement.id),'main-content');
@@ -77,11 +98,11 @@ async function main() {
     assert.equal((await context.request.get(base+'/og')).headers()['content-type'],'image/png');
     const sitemap=await (await context.request.get(base+'/sitemap.xml')).text(); assert.ok(sitemap.includes('/confidentialite') && !sitemap.includes('/admin'));
     pass('Nonce CSP, denied framing, private noindex, real OG image and public sitemap');
-    await page.goto(base+'/appointments',{waitUntil:'networkidle'});
+    await visit('/appointments');
     assert.ok(await page.getByText('Les réservations sont temporairement indisponibles. Contactez directement la clinique.').count());
     assert.equal(await page.getByText('Rendez-vous confirmé',{exact:true}).count(),0);
     pass('Unconfigured reservations cannot display a confirmed appointment');
-    await page.evaluate(()=>navigator.serviceWorker.ready); await page.reload({waitUntil:'networkidle'});
+    await page.evaluate(()=>navigator.serviceWorker.ready); await reload();
     await page.evaluate(async()=> { const cache=await caches.open('samasante-cache-v1'); await cache.put('/api/private-fixture',new Response('private')); });
     await page.evaluate(()=>navigator.serviceWorker.controller.postMessage({type:'CLEAR_PRIVATE_DATA'}));
     await page.waitForFunction(async()=>!(await caches.keys()).includes('samasante-cache-v1'));
