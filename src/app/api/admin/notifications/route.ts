@@ -1,5 +1,6 @@
+import { adminMutation } from '@/lib/admin-mutations';
 import { NextResponse } from 'next/server';
-import { AdminAuthError, currentAdminId, requireAdmin, requireSameOrigin } from '@/lib/admin-auth';
+import { AdminAuthError, currentAdminSessionId, requireAdmin, requireSameOrigin } from '@/lib/admin-auth';
 import { serverDatabase } from '@/lib/server-database';
 import { z } from 'zod';
 const headers = { 'Cache-Control': 'private, no-store' };
@@ -14,14 +15,11 @@ export async function GET() {
 }
 export async function PATCH(request: Request) {
   try {
-    const operator = await currentAdminId();
+    const sessionId = await currentAdminSessionId();
     requireSameOrigin(request);
     const body = z.object({ id: z.string().uuid(), acknowledge: z.literal(true) }).strict().safeParse(await request.json());
     if (!body.success) return NextResponse.json({ error: 'Requête invalide.' }, { status: 400, headers });
-    const { data, error } = await serverDatabase().from('sms_notifications').update({
-      acknowledged_at: new Date().toISOString(), acknowledged_by: operator,
-    }).eq('id', body.data.id).is('acknowledged_at', null).select('id').maybeSingle();
-    if (error) throw error;
+    const data = await adminMutation<boolean>('admin_acknowledge_notification', sessionId, { p_id: body.data.id });
     return NextResponse.json({ acknowledged: Boolean(data) }, { headers });
   } catch (error) { return NextResponse.json({ error: 'Accusé indisponible.' }, { status: error instanceof AdminAuthError ? error.status : 503, headers }); }
 }

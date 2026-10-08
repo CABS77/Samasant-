@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAllDoctors, createDoctor } from '@/lib/doctor-store';
 import { doctorCreateSchema } from '@/lib/doctor-validation';
-import { AdminAuthError, requireAdmin, requireSameOrigin } from '@/lib/admin-auth';
+import { AdminAuthError, currentAdminSessionId, requireSameOrigin } from '@/lib/admin-auth';
 
 // Force Node.js runtime (needed for fs operations in doctor-store)
 export const runtime = 'nodejs';
@@ -21,7 +21,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    await requireAdmin();
+    const sessionId = await currentAdminSessionId();
     requireSameOrigin(request);
     const body = await request.json();
     const result = doctorCreateSchema.safeParse(body);
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const doctor = await createDoctor(result.data);
+    const doctor = await createDoctor(result.data, sessionId);
     return NextResponse.json(doctor, { status: 201 });
   } catch (error) {
     if (error instanceof AdminAuthError) return NextResponse.json({ error: error.message }, { status: error.status });

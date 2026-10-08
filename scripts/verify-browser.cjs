@@ -7,7 +7,7 @@ const root = resolve(__dirname, '..');
 const dir = mkdtempSync('/tmp/samasante-browser-');
 for (const name of ['.next','node_modules','next.config.ts','package.json','public']) if (existsSync(join(root,name))) symlinkSync(join(root,name),join(dir,name));
 const env = { ...process.env, NEXT_TELEMETRY_DISABLED: '1' };
-for (const key of Object.keys(env)) if (/^(ADMIN_|AI_|DEEPSEEK_|ANTHROPIC_|CLAUDE_|TWILIO_|SUPABASE_|NEXT_PUBLIC_|EMERGENCY_|SMS_|CRON_|APPOINTMENT_)/.test(key)) delete env[key];
+for (const key of Object.keys(env)) if (/^(ADMIN_|AI_|DEEPSEEK_|ANTHROPIC_|CLAUDE_|TWILIO_|SUPABASE_|NEXT_PUBLIC_|MAPBOX_|EMERGENCY_|SMS_|CRON_|APPOINTMENT_)/.test(key)) delete env[key];
 const port = Number(process.env.BROWSER_TEST_PORT || 9013);
 const base = `http://localhost:${port}`;
 const server = spawn(process.execPath,[join(root,'node_modules/next/dist/bin/next'),'start','-p',String(port),'-H','localhost'],{ cwd:dir, env, stdio:['ignore','pipe','pipe'] });
@@ -32,6 +32,8 @@ async function main() {
     pass('Anonymous doctor mutations denied');
     assert.equal((await context.request.get(`${base}/api/admin/appointments`)).status(),401);
     assert.equal((await context.request.get(`${base}/api/admin/notifications`)).status(),401);
+    const audit = await context.request.get(`${base}/api/admin/audit`);
+    assert.equal(audit.status(),401); assert.ok(audit.headers()['cache-control'].includes('private, no-store'));
     assert.equal((await context.request.post(`${base}/api/appointments`,{data:{}})).status(),401);
     assert.equal((await context.request.get(`${base}/api/patient/data`)).status(),401);
     assert.equal((await context.request.get(`${base}/api/operations/maintenance`)).status(),401);

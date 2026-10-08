@@ -18,6 +18,7 @@ import {
 } from './actions';
 import { fetchDoctorsServer } from '@/app/actions/doctors';
 import { AdminNotifications } from '@/components/admin-notifications';
+import { AdminAuditLog } from '@/components/admin-audit-log';
 import { AdminSignIn } from '@/components/admin-sign-in';
 import { AdminAppointments } from '@/components/admin-appointments';
 
@@ -268,6 +269,7 @@ export default function AdminPage() {
       <div className="container mx-auto px-4 py-8 max-w-4xl -mt-4 space-y-6">
         <AdminAppointments doctors={doctors} />
         <AdminNotifications />
+        <AdminAuditLog />
 
         {/* Inline delete confirmation */}
         {deleteTarget && (

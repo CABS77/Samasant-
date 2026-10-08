@@ -1,11 +1,11 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
-  getUser: vi.fn(), doctor: vi.fn(), from: vi.fn(), insert: vi.fn(), update: vi.fn(),
+  getUser: vi.fn(), doctor: vi.fn(), from: vi.fn(), insert: vi.fn(), update: vi.fn(), rpc: vi.fn(),
   select: vi.fn(), eq: vi.fn(), in: vi.fn(), order: vi.fn(), limit: vi.fn(), maybeSingle: vi.fn(), single: vi.fn(),
   cookie: undefined as string | undefined,
 }));
-vi.mock('@supabase/supabase-js', () => ({ createClient: () => ({ auth: { getUser: mocks.getUser }, from: mocks.from }) }));
+vi.mock('@supabase/supabase-js', () => ({ createClient: () => ({ auth: { getUser: mocks.getUser }, from: mocks.from, rpc: mocks.rpc }) }));
 vi.mock('@/lib/doctor-store', () => ({ getDoctorById: mocks.doctor }));
 vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => mocks.cookie ? { value: mocks.cookie } : undefined }) }));
 import { POST } from '@/app/api/appointments/route';
@@ -16,6 +16,7 @@ const input = { doctorId: 'dr-1', startAt: '2026-10-12T08:00:00.000Z', mode: 'cl
   motif: 'Test', phone: '+221771234567', requestKey: '00000000-0000-4000-8000-000000000001' };
 const row = { id: '00000000-0000-4000-8000-000000000002', user_id: 'verified-patient', doctor_id: input.doctorId,
   start_at: input.startAt, motif: input.motif, phone: input.phone, mode: input.mode, request_key: input.requestKey, status: 'requested' };
+const operatorId = '00000000-0000-4000-8000-000000000003';
 function req(body: unknown = input, token: string | null = 'valid-test-token') {
   return new Request('http://localhost/api/appointments', { method: 'POST', headers: {
     'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -26,10 +27,14 @@ beforeEach(() => {
   for (const [key, value] of Object.entries({ NEXT_PUBLIC_SUPABASE_URL: 'https://fixture.supabase.co',
     NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon', SUPABASE_SERVICE_ROLE_KEY: 'test-service',
     ADMIN_PASSWORD: 'test-admin-password-long', ADMIN_SESSION_SECRET: 'test-admin-secret-at-least-32-characters',
+    ADMIN_USER_IDS: operatorId,
   })) vi.stubEnv(key, value);
   const chain = { insert: mocks.insert, update: mocks.update, select: mocks.select, eq: mocks.eq,
     in: mocks.in, order: mocks.order, limit: mocks.limit, maybeSingle: mocks.maybeSingle, single: mocks.single };
-  mocks.from.mockReturnValue(chain);
+  const sessionChain = { select: vi.fn(), eq: vi.fn(), is: vi.fn(), gt: vi.fn(), maybeSingle: vi.fn().mockResolvedValue({ data: { id: 'active-session' }, error: null }) };
+  for (const fn of [sessionChain.select, sessionChain.eq, sessionChain.is, sessionChain.gt]) fn.mockReturnValue(sessionChain);
+  mocks.from.mockImplementation((table: string) => table === 'admin_sessions' ? sessionChain : chain);
+  mocks.rpc.mockResolvedValue({ data: null, error: null });
   for (const fn of [mocks.insert, mocks.update, mocks.select, mocks.eq, mocks.in, mocks.order]) fn.mockReturnValue(chain);
   mocks.limit.mockResolvedValue({ data: [row], error: null });
   mocks.maybeSingle.mockResolvedValue({ data: null, error: null });
@@ -112,17 +117,37 @@ describe('clinic processing authorization', () => {
     expect(mocks.from).not.toHaveBeenCalled();
   });
   it('allows clinic confirmation only from a pending request with an admin session', async () => {
-    mocks.cookie = issueAdminToken();
+    mocks.cookie = issueAdminToken(Date.now(), operatorId);
     expect((await adminList()).status).toBe(200);
-    mocks.maybeSingle.mockResolvedValue({ data: { id: row.id, status: 'confirmed' }, error: null });
+    mocks.rpc.mockResolvedValue({ data: { id: row.id, status: 'confirmed' }, error: null });
     expect((await adminUpdate(patch())).status).toBe(200);
-    expect(mocks.in).toHaveBeenCalledWith('status', ['requested']);
-    expect(mocks.update).toHaveBeenCalledWith({ status: 'confirmed' });
+    const session = JSON.parse(Buffer.from(mocks.cookie.split('.')[0], 'base64url').toString());
+    expect(mocks.rpc).toHaveBeenCalledWith('admin_appointment_write', { p_session_id: session.nonce, p_id: row.id, p_status: 'confirmed' });
+    expect(mocks.update).not.toHaveBeenCalled();
   });
   it('rejects stale state transitions and foreign origins', async () => {
-    mocks.cookie = issueAdminToken();
+    mocks.cookie = issueAdminToken(Date.now(), operatorId);
     expect((await adminUpdate(patch())).status).toBe(409);
     const request = patch(); request.headers.set('origin', 'https://untrusted.example');
     expect((await adminUpdate(request)).status).toBe(403);
+  });
+  it('does not let the local shared password mutate a configured database', async () => {
+    mocks.cookie = issueAdminToken();
+    expect((await adminUpdate(patch())).status).toBe(403);
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+  it('rejects a caller supplied session identifier', async () => {
+    mocks.cookie = issueAdminToken(Date.now(), operatorId);
+    const request = new Request('http://localhost/api/admin/appointments', { method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: row.id, status: 'confirmed', p_session_id: operatorId }) });
+    expect((await adminUpdate(request)).status).toBe(400);
+    expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+  it('denies a session revoked between the HTTP guard and transaction, without leaking provider details', async () => {
+    mocks.cookie = issueAdminToken(Date.now(), operatorId);
+    mocks.rpc.mockResolvedValue({ data: null, error: { code: '42501', message: 'private-provider-detail' } });
+    const response = await adminUpdate(patch());
+    expect(response.status).toBe(401);
+    expect(await response.text()).not.toContain('private-provider-detail');
   });
 });

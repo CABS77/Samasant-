@@ -1,8 +1,9 @@
+import { adminMutation } from '@/lib/admin-mutations';
 import { serverFetch } from '@/lib/server-fetch';
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { AdminAuthError, requireAdmin, requireSameOrigin } from '@/lib/admin-auth';
+import { AdminAuthError, requireAdmin, requireSameOrigin, currentAdminSessionId } from '@/lib/admin-auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -34,15 +35,12 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    await requireAdmin();
+    const sessionId = await currentAdminSessionId();
     requireSameOrigin(request);
     const parsed = updateSchema.safeParse(await request.json());
     if (!parsed.success) throw new AdminAuthError(400, 'Demande invalide.');
     const { id, status } = parsed.data;
-    const { data, error } = await database().from('appointment_requests').update({ status })
-      .eq('id', id).in('status', status === 'confirmed' ? ['requested'] : ['requested', 'confirmed'])
-      .select('id,status').maybeSingle();
-    if (error) throw error;
+    const data = await adminMutation<{ id: string; status: string }>('admin_appointment_write', sessionId, { p_id: id, p_status: status });
     if (!data) throw new AdminAuthError(409, 'Cette demande a déjà été traitée. Actualisez la liste.');
     return NextResponse.json(data, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) { return failure(error); }

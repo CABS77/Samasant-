@@ -13,7 +13,9 @@ import { encryptNotification, decryptNotification } from '@/services/notificatio
 import { POST as webhook } from '@/app/api/notifications/twilio/route';
 import { GET as exportData, DELETE as deleteData } from '@/app/api/patient/data/route';
 import { POST as login, GET as session, DELETE as logout } from '@/app/api/admin/verify/route';
-import { ADMIN_COOKIE, validAdminToken, requireAdmin } from '@/lib/admin-auth';
+import { ADMIN_COOKIE, validAdminToken, requireAdmin, issueAdminToken } from '@/lib/admin-auth';
+import { GET as auditLog } from '@/app/api/admin/audit/route';
+import { PATCH as acknowledge } from '@/app/api/admin/notifications/route';
 import { GET as maintenance } from '@/app/api/operations/maintenance/route';
 const operator = '00000000-0000-4000-8000-000000000001';
 const patient = '00000000-0000-4000-8000-000000000002';
@@ -58,6 +60,34 @@ describe('shared quotas and provider failures', () => {
   });
 });
 describe('individual administrator access', () => {
+  it('keeps the operational journal private and excludes medical payload columns', async () => {
+    const unauthorized = await auditLog();
+    expect(unauthorized.status).toBe(401);
+    expect(unauthorized.headers.get('cache-control')).toContain('private, no-store');
+    expect(mocks.from).not.toHaveBeenCalled();
+    mocks.cookie = issueAdminToken(Date.now(), operator);
+    const events = [{ entity: 'doctor_directory', operator_id: operator, action: 'INSERT' }];
+    const limit = vi.fn().mockResolvedValue({ data: events, error: null });
+    mocks.order.mockReturnValue({ limit });
+    const response = await auditLog();
+    expect(response.status).toBe(200); expect(await response.json()).toEqual({ events });
+    expect(mocks.select).toHaveBeenCalledWith('id,entity,entity_id,action,from_state,to_state,operator_id,created_at');
+    expect(limit).toHaveBeenCalledWith(100);
+    limit.mockResolvedValue({ data: null, error: { message: 'private-query-details' } });
+    const failure = await auditLog(); expect(failure.status).toBe(503);
+    expect(await failure.text()).not.toContain('private-query-details');
+  });
+  it('records a human acknowledgement with the signed individual session, preserving a previous receipt', async () => {
+    mocks.cookie = issueAdminToken(Date.now(), operator);
+    const id = '00000000-0000-4000-8000-000000000010';
+    const response = await acknowledge(request('/api/admin/notifications', 'PATCH', { id, acknowledge: true }));
+    expect(response.status).toBe(200); expect(await response.json()).toEqual({ acknowledged: true });
+    const session = JSON.parse(Buffer.from(mocks.cookie.split('.')[0], 'base64url').toString());
+    expect(mocks.rpc).toHaveBeenCalledWith('admin_acknowledge_notification', { p_session_id: session.nonce, p_id: id });
+    mocks.rpc.mockResolvedValue({ data: false, error: null });
+    expect(await (await acknowledge(request('/api/admin/notifications', 'PATCH', { id, acknowledge: true }))).json()).toEqual({ acknowledged: false });
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
   it('rejects patients, first-factor-only admins and shared production passwords', async () => {
     vi.stubEnv('NODE_ENV','production');
     mocks.user.mockResolvedValueOnce({ data: { user: { id: patient } }, error: null });

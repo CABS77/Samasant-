@@ -7,6 +7,7 @@
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
+    "build:verified": "node scripts/verify-release.cjs",
     "start": "next start",
     "lint": "eslint src tests scripts --ext .ts,.tsx,.js,.cjs",
     "lint:fix": "eslint src tests scripts --ext .ts,.tsx,.js,.cjs --fix",

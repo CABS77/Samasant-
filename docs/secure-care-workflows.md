@@ -12,7 +12,7 @@ Utiliser [.env.example](../.env.example), sans commettre les valeurs réelles. L
 | `SUPABASE_SERVICE_ROLE_KEY` | Accès serveur privilégié, après vérification de l’identité |
 | `ADMIN_USER_IDS` | UUID des comptes individuels Supabase autorisés, séparés par virgules |
 | `ADMIN_SESSION_SECRET` | Secret aléatoire d’au moins 32 caractères |
-| `ADMIN_PASSWORD` | Développement local uniquement, au moins 16 caractères ; ignoré en production |
+| `ADMIN_PASSWORD` | Démonstration locale uniquement, au moins 16 caractères ; ignoré en production et insuffisant pour modifier une base configurée |
 | `AI_QUOTA_SECRET` | Secret HMAC pour pseudonymiser les adresses réseau ; utilise le secret de session si absent |
 | `AI_DAILY_BUDGET_REQUESTS` | Budget partagé de requêtes IA, défaut 1000, plafond 10000 |
 | `AI_PROVIDER`, clés du fournisseur | Claude ou DeepSeek ; pas de repli automatique vers un autre fournisseur en cas de panne |
@@ -36,6 +36,8 @@ Les secrets HMAC/AES et de vérification Twilio doivent être les véritables va
 6. Contrôler la demande persistée, la collision de créneau, les lectures de deux patients, confirmation/annulation et l’export/suppression. Tester séparément l’acceptation Twilio, le webhook signé et l’accusé humain dans l’administration.
 
 Les cookies administrateurs sont signés, HttpOnly, Secure, SameSite strict et expirent après une heure. Chaque session individuelle possède une ligne révocable en base, vérifiée à chaque mutation. La déconnexion révoque cette ligne avant d’effacer le cookie. Retirer l’UUID de l’allowlist ou changer le secret invalide également l’accès. En cas de panne de la base, les opérations protégées échouent.
+
+La migration `202610080007_admin_mutations.sql` rend les écritures administratives atomiques avec leur événement de journal. Les RPC revérifient la session individuelle et attribuent le compte à l’événement ; la session ne peut pas être fournie par le corps JSON du client. Les écritures directes de l’annuaire et les changements directs de statut des réservations sont refusés au rôle serveur. Le journal `/admin` reste privé et ne stocke pas les motifs médicaux ni les téléphones. Les événements historiques sans opérateur ne sont pas réattribués. Un mot de passe local permet uniquement les mutations du fichier de démonstration, sans base configurée. Préparer une version de secours utilisant ces RPC avant la migration : les anciens builds ne peuvent plus écrire directement dans ces tables.
 
 ## Réservations
 
@@ -65,12 +67,11 @@ Les requêtes fournisseur ont un délai de 15 secondes, aucun retry automatique 
 
 ```sh
 npm ci
-npm run quality
-npm run verify:db
-npm audit --omit=dev --audit-level=high
-npm run build
+npm run build:verified
 npx playwright install chromium
 npm run verify:browser
 ```
 
 Les tests utilisent des données jetables et des fournisseurs simulés. Les contrôles SQL exécutent réellement PostgreSQL via PGlite et restaurent une base de test. Les contrôles navigateur lancent le build de production isolé, sans accès à un patient ou envoi de SMS. Ils ne prouvent pas la configuration de Supabase, Vercel, Twilio ni une restauration de production.
+
+`build:verified` est aussi la commande Vercel déclarée dans le dépôt. Elle impose lint, typage, tests, vérification SQL et audit des dépendances avant de construire. Une erreur ou une alerte critique/élevée bloque le build. Les contrôles navigateur restent exécutés par GitHub Actions ; la protection de branche et les règles de promotion doivent être configurées sur les services distants.

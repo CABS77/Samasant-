@@ -77,9 +77,19 @@ export const adminCookieOptions = {
 };
 
 export async function requireAdmin(): Promise<void> {
+  await verifiedAdminSession();
+}
+
+async function verifiedAdminSession(): Promise<{ subject: string; nonce: string; exp: number }> {
   const token = (await cookies()).get(ADMIN_COOKIE)?.value;
   if (!validAdminToken(token)) throw new AdminAuthError(401, 'Connexion administrateur requise.');
   if (!await adminSessionLive(token!)) throw new AdminAuthError(401, 'Session administrateur révoquée.');
+  return payloadOf(token!);
+}
+
+export async function currentAdminSessionId(): Promise<string | null> {
+  const session = await verifiedAdminSession();
+  return session.subject === 'local-admin' ? null : session.nonce;
 }
 
 function payloadOf(token: string): { subject: string; nonce: string; exp: number } {
@@ -116,9 +126,7 @@ export async function revokeAdminSession(token: string | undefined): Promise<voi
 }
 
 export async function currentAdminId(): Promise<string | null> {
-  await requireAdmin();
-  const token = (await cookies()).get(ADMIN_COOKIE)?.value;
-  const subject = payloadOf(token!).subject;
+  const { subject } = await verifiedAdminSession();
   return subject === 'local-admin' ? null : subject;
 }
 

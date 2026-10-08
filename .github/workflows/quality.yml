@@ -21,9 +21,6 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: npm run quality
-      - run: npm run verify:db
-      - run: npm audit --omit=dev --audit-level=high
-      - run: npm run build
+      - run: npm run build:verified
       - run: npx playwright install --with-deps chromium
       - run: npm run verify:browser

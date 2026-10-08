@@ -1,3 +1,5 @@
 {
+  "installCommand": "HUSKY=0 npm ci --include=dev",
+  "buildCommand": "npm run build:verified",
   "crons": [{ "path": "/api/operations/maintenance", "schedule": "0 3 * * *" }]
 }

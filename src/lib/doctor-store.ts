@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { adminMutation } from './admin-mutations';
 
 // The demo directory is local only. Configured deployments use the shared database.
 const INITIAL_DOCTORS: Doctor[] = ['Généraliste', 'Cardiologie', 'Pédiatrie', 'Dermatologie', 'Gynécologie', 'Généraliste'].map((specialty, index) => ({
@@ -63,13 +64,13 @@ export async function getDoctorById(id: string): Promise<Doctor | undefined> {
   return localStore().doctors.find(d => d.id === id);
 }
 
-export async function createDoctor(data: Omit<Doctor, 'id'>): Promise<Doctor> {
+export async function createDoctor(data: Omit<Doctor, 'id'>, sessionId?: string | null): Promise<Doctor> {
   const doctor = { ...data, id: `dr-${randomUUID()}` };
   const db = database();
   if (db) {
-    const result = await db.from('doctor_directory').insert(doctor).select(columns).single();
-    if (result.error || !result.data) throw new Error('Impossible d’enregistrer le médecin.');
-    return result.data as Doctor;
+    const saved = await adminMutation<Doctor>('admin_doctor_write', sessionId, { p_action: 'create', p_id: doctor.id, p_values: data });
+    if (!saved) throw new Error('Impossible d’enregistrer le médecin.');
+    return saved;
   }
   const store = localStore();
   const updated = { doctors: [...store.doctors, doctor] };
@@ -77,13 +78,12 @@ export async function createDoctor(data: Omit<Doctor, 'id'>): Promise<Doctor> {
   return doctor;
 }
 
-export async function updateDoctor(id: string, data: Partial<Omit<Doctor, 'id'>>): Promise<Doctor> {
+export async function updateDoctor(id: string, data: Partial<Omit<Doctor, 'id'>>, sessionId?: string | null): Promise<Doctor> {
   const db = database();
   if (db) {
-    const result = await db.from('doctor_directory').update(data).eq('id', id).select(columns).maybeSingle();
-    if (result.error) throw new Error('Impossible de modifier le médecin.');
-    if (!result.data) throw new Error('Médecin introuvable');
-    return result.data as Doctor;
+    const saved = await adminMutation<Doctor>('admin_doctor_write', sessionId, { p_action: 'update', p_id: id, p_values: data });
+    if (!saved) throw new Error('Médecin introuvable');
+    return saved;
   }
   const store = localStore();
   const existing = store.doctors.find(d => d.id === id);
@@ -94,12 +94,11 @@ export async function updateDoctor(id: string, data: Partial<Omit<Doctor, 'id'>>
   return doctor;
 }
 
-export async function deleteDoctor(id: string): Promise<boolean> {
+export async function deleteDoctor(id: string, sessionId?: string | null): Promise<boolean> {
   const db = database();
   if (db) {
-    const { data, error } = await db.from('doctor_directory').delete().eq('id', id).select('id').maybeSingle();
-    if (error) throw new Error('Impossible de supprimer le médecin.');
-    if (!data) throw new Error('Médecin introuvable');
+    const saved = await adminMutation<Doctor>('admin_doctor_write', sessionId, { p_action: 'delete', p_id: id, p_values: {} });
+    if (!saved) throw new Error('Médecin introuvable');
     return true;
   }
   const store = localStore();

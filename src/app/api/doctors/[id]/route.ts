@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { updateDoctor, deleteDoctor, getDoctorById } from '@/lib/doctor-store';
 import { doctorUpdateSchema } from '@/lib/doctor-validation';
-import { AdminAuthError, requireAdmin, requireSameOrigin } from '@/lib/admin-auth';
+import { AdminAuthError, currentAdminSessionId, requireSameOrigin } from '@/lib/admin-auth';
 
 // Force Node.js runtime (needed for fs operations in doctor-store)
 export const runtime = 'nodejs';
@@ -12,7 +12,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const sessionId = await currentAdminSessionId();
     requireSameOrigin(request);
     const { id } = await params;
     const existing = await getDoctorById(id);
@@ -37,7 +37,7 @@ export async function PUT(
       );
     }
 
-    const doctor = await updateDoctor(id, result.data);
+    const doctor = await updateDoctor(id, result.data, sessionId);
     return NextResponse.json(doctor);
   } catch (error) {
     if (error instanceof AdminAuthError) return NextResponse.json({ error: error.message }, { status: error.status });
@@ -53,7 +53,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const sessionId = await currentAdminSessionId();
     requireSameOrigin(request);
     const { id } = await params;
     const existing = await getDoctorById(id);
@@ -64,7 +64,7 @@ export async function DELETE(
       );
     }
 
-    await deleteDoctor(id);
+    await deleteDoctor(id, sessionId);
     return NextResponse.json({ success: true, message: 'Médecin supprimé' });
   } catch (error) {
     if (error instanceof AdminAuthError) return NextResponse.json({ error: error.message }, { status: error.status });
